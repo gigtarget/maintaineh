@@ -6,7 +6,16 @@
 <body>
     <h2>Welcome, {{ current_user.email }}</h2>
 
-    <p>This is your dashboard where your linked machines or QR codes will be shown (to be implemented later).</p>
+    <h3>Your Claimed Batches:</h3>
+    {% if batches %}
+        <ul>
+        {% for batch in batches %}
+            <li>Batch ID: {{ batch.id }} | Created: {{ batch.created_at.strftime('%Y-%m-%d %H:%M') }}</li>
+        {% endfor %}
+        </ul>
+    {% else %}
+        <p>No QR batches claimed yet.</p>
+    {% endif %}
 
     <div style="margin-top: 20px;">
         <a href="{{ url_for('routes.home') }}"><button>Back to Home</button></a>
