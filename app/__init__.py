@@ -23,8 +23,10 @@ def create_app():
     def load_user(user_id):
         return User.query.get(int(user_id))
 
-    # ⬇️ Register blueprint here
     from app.routes import routes
     app.register_blueprint(routes)
 
     return app
+
+# ✅ Add this line at the end
+app = create_app()
