@@ -8,7 +8,7 @@ class QRBatch(db.Model):
 
 class QRCode(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    batch_id = db.Column(db.Integer, db.ForeignKey('q_r_batch.id'), nullable=False)
+    batch_id = db.Column(db.Integer, db.ForeignKey('qr_batch.id'), nullable=False)  # ✅ Fixed line
     qr_type = db.Column(db.String(20))  # master, service, sub1...sub8
     image_url = db.Column(db.String(255))
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
