@@ -8,6 +8,9 @@
 
     <p>This is your dashboard where your linked machines or QR codes will be shown (to be implemented later).</p>
 
-    <a href="{{ url_for('routes.logout') }}"><button>Logout</button></a>
+    <div style="margin-top: 20px;">
+        <a href="{{ url_for('routes.home') }}"><button>Back to Home</button></a>
+        <a href="{{ url_for('routes.logout') }}"><button>Logout</button></a>
+    </div>
 </body>
 </html>
