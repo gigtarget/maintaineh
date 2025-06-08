@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Maintaineh – Home</title>
+</head>
+<body>
+    <h1>Welcome to Maintaineh</h1>
+    <nav>
+        <a href="{{ url_for('routes.user_login') }}"><button>User Login</button></a>
+        <a href="{{ url_for('routes.user_signup') }}"><button>User Signup</button></a>
+        <a href="{{ url_for('routes.admin_login') }}"><button>Admin Login</button></a>
+    </nav>
+
+    <hr>
+    <p>Maintaineh helps you manage machine maintenance with ease using QR code kits.</p>
+</body>
+</html>
