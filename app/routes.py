@@ -1,79 +1,71 @@
-from flask import render_template, request, redirect, url_for, flash, session, send_file, current_app as app
-from app import db
-from app.models import QRBatch, QRCode
+from flask import Blueprint, render_template, redirect, url_for, flash, request, send_file
+from flask_login import login_user, logout_user, login_required, current_user
+from app.models import User, QRBatch, QRCode
 from app.utils import generate_and_store_qr_batch
-from io import BytesIO
-import requests
+from app import db
+import io
 import zipfile
-import os
+import requests
 
-# ---------------- Admin Login ----------------
-@app.route("/admin/login", methods=["GET", "POST"])
+routes = Blueprint("routes", __name__)
+
+@routes.route("/")
+def home():
+    return redirect(url_for("routes.admin_login"))
+
+@routes.route("/admin/login", methods=["GET", "POST"])
 def admin_login():
     if request.method == "POST":
-        email = request.form.get("email")
-        password = request.form.get("password")
-
-        if email == os.getenv("ADMIN_EMAIL") and password == os.getenv("ADMIN_PASSWORD"):
-            session["admin_logged_in"] = True
-            return redirect(url_for("admin_dashboard"))
+        email = request.form["email"]
+        password = request.form["password"]
+        user = User.query.filter_by(email=email, role="admin").first()
+        if user and user.password == password:
+            login_user(user)
+            return redirect(url_for("routes.admin_dashboard"))
         else:
-            flash("Invalid admin credentials.", "danger")
-
+            flash("Invalid credentials", "danger")
     return render_template("admin_login.html")
 
-# ---------------- Admin Logout ----------------
-@app.route("/admin/logout")
-def admin_logout():
-    session.pop("admin_logged_in", None)
-    return redirect(url_for("admin_login"))
-
-# ---------------- Admin Dashboard ----------------
-@app.route("/admin/dashboard")
+@routes.route("/admin/dashboard")
+@login_required
 def admin_dashboard():
-    if not session.get("admin_logged_in"):
-        return redirect(url_for("admin_login"))
-
+    if current_user.role != "admin":
+        return redirect(url_for("routes.admin_login"))
     batches = QRBatch.query.order_by(QRBatch.created_at.desc()).all()
     return render_template("admin_dashboard.html", batches=batches)
 
-# ---------------- Create New QR Batch ----------------
-@app.route("/admin/create-batch")
+@routes.route("/admin/create-batch")
+@login_required
 def create_batch():
-    if not session.get("admin_logged_in"):
-        return redirect(url_for("admin_login"))
+    if current_user.role != "admin":
+        return redirect(url_for("routes.admin_login"))
+    batch_id = generate_and_store_qr_batch()
+    return redirect(url_for("routes.admin_dashboard"))
 
-    try:
-        batch_id = generate_and_store_qr_batch()
-        flash(f"✅ Batch #{batch_id} created successfully!", "success")
-    except Exception as e:
-        print(f"❌ Error generating batch: {e}")
-        flash("❌ Failed to create new batch.", "danger")
-
-    return redirect(url_for("admin_dashboard"))
-
-# ---------------- Download QR Batch ----------------
-@app.route("/admin/download/<int:batch_id>")
+@routes.route("/admin/download-batch/<int:batch_id>")
+@login_required
 def download_batch(batch_id):
-    if not session.get("admin_logged_in"):
-        return redirect(url_for("admin_login"))
+    if current_user.role != "admin":
+        return redirect(url_for("routes.admin_login"))
 
-    batch = QRBatch.query.get_or_404(batch_id)
-    qr_images = batch.qrcodes
+    qrcodes = QRCode.query.filter_by(batch_id=batch_id).all()
 
-    zip_stream = BytesIO()
-    with zipfile.ZipFile(zip_stream, 'w') as zipf:
-        for qr in qr_images:
+    zip_buffer = io.BytesIO()
+    with zipfile.ZipFile(zip_buffer, "w") as zip_file:
+        for qr in qrcodes:
             response = requests.get(qr.image_url)
-            if response.status_code == 200:
-                file_ext = qr.image_url.split('.')[-1].split('?')[0]
-                filename = f"{qr.qr_type}.{file_ext}"
-                zipf.writestr(filename, response.content)
+            file_name = f"{qr.qr_type}.png"
+            zip_file.writestr(file_name, response.content)
 
-    zip_stream.seek(0)
+    zip_buffer.seek(0)
     return send_file(
-        zip_stream,
-        mimetype='application/zip',
+        zip_buffer,
+        mimetype="application/zip",
         as_attachment=True,
-        download_name=f'batch_{batch_id}_qrcodes.zip'
+        download_name=f"batch_{batch_id}.zip"
     )
+
+@routes.route("/logout")
+def logout():
+    logout_user()
+    return redirect(url_for("routes.admin_login"))
