@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, redirect, url_for, flash, request, send_file
+from flask import Blueprint, render_template, redirect, url_for, flash, request, send_file, session
 from flask_login import login_user, logout_user, login_required, current_user
 from app.models import User, QRBatch, QRCode
 from app.utils import generate_and_store_qr_batch
@@ -9,9 +9,12 @@ import requests
 
 routes = Blueprint("routes", __name__)
 
+# ---------- HOME ----------
+
 @routes.route("/")
 def home():
     return render_template("index.html")
+
 
 # ---------- USER AUTH ----------
 
@@ -46,18 +49,70 @@ def user_login():
         if user and user.password == password:
             login_user(user)
             flash("Login successful", "success")
+
+            # Handle QR claim redirect after login
+            if "claim_qr_id" in session:
+                return redirect(url_for("routes.finish_claim"))
+
             return redirect(url_for("routes.user_dashboard"))
         else:
             flash("Invalid credentials", "danger")
 
     return render_template("login.html")
 
+
 @routes.route("/user/dashboard")
 @login_required
 def user_dashboard():
     if current_user.role != "user":
         return redirect(url_for("routes.user_login"))
-    return render_template("user_dashboard.html")
+
+    user_batches = current_user.batches
+    return render_template("user_dashboard.html", batches=user_batches)
+
+
+# ---------- CLAIM QR BATCH FLOW ----------
+
+@routes.route("/claim/<int:qr_id>")
+def claim_qr(qr_id):
+    qr = QRCode.query.get_or_404(qr_id)
+
+    if qr.qr_type != "master":
+        flash("Only Master QR codes can be used to claim a batch.", "danger")
+        return redirect(url_for("routes.home"))
+
+    session["claim_qr_id"] = qr_id
+
+    if current_user.is_authenticated and current_user.role == "user":
+        return redirect(url_for("routes.finish_claim"))
+
+    flash("Please login or signup to complete QR claim.", "info")
+    return redirect(url_for("routes.user_login"))
+
+
+@routes.route("/finish-claim")
+@login_required
+def finish_claim():
+    if current_user.role != "user":
+        flash("Only users can claim QR batches.", "danger")
+        return redirect(url_for("routes.home"))
+
+    qr_id = session.pop("claim_qr_id", None)
+    if not qr_id:
+        flash("No QR claim in progress.", "warning")
+        return redirect(url_for("routes.user_dashboard"))
+
+    qr = QRCode.query.get_or_404(qr_id)
+
+    if qr.batch.user_id is None:
+        qr.batch.user_id = current_user.id
+        db.session.commit()
+        flash("QR batch claimed successfully!", "success")
+    else:
+        flash("This QR batch is already claimed by another user.", "danger")
+
+    return redirect(url_for("routes.user_dashboard"))
+
 
 # ---------- ADMIN AUTH ----------
 
@@ -67,6 +122,7 @@ def admin_login():
         email = request.form["email"]
         password = request.form["password"]
         user = User.query.filter_by(email=email, role="admin").first()
+
         if user and user.password == password:
             login_user(user)
             return redirect(url_for("routes.admin_dashboard"))
@@ -74,21 +130,26 @@ def admin_login():
             flash("Invalid credentials", "danger")
     return render_template("admin_login.html")
 
+
 @routes.route("/admin/dashboard")
 @login_required
 def admin_dashboard():
     if current_user.role != "admin":
         return redirect(url_for("routes.admin_login"))
+
     batches = QRBatch.query.order_by(QRBatch.created_at.desc()).all()
     return render_template("admin_dashboard.html", batches=batches)
+
 
 @routes.route("/admin/create-batch")
 @login_required
 def create_batch():
     if current_user.role != "admin":
         return redirect(url_for("routes.admin_login"))
+
     batch_id = generate_and_store_qr_batch()
     return redirect(url_for("routes.admin_dashboard"))
+
 
 @routes.route("/admin/download-batch/<int:batch_id>")
 @login_required
@@ -112,6 +173,9 @@ def download_batch(batch_id):
         as_attachment=True,
         download_name=f"batch_{batch_id}.zip"
     )
+
+
+# ---------- LOGOUT ----------
 
 @routes.route("/logout")
 def logout():
