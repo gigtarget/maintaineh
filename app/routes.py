@@ -1,5 +1,4 @@
 from flask import render_template, redirect, url_for, request, session, flash
-from flask import send_from_directory
 from app import db
 from flask import Blueprint
 from app.models import QRBatch, QRCode
@@ -43,4 +42,9 @@ def create_batch():
 @routes.route('/admin/logout')
 def admin_logout():
     session.pop('admin_logged_in', None)
+    return redirect(url_for('routes.admin_login'))
+
+# ✅ Home route to redirect to admin login
+@routes.route('/')
+def home():
     return redirect(url_for('routes.admin_login'))
