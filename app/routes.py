@@ -1,5 +1,4 @@
-from flask import render_template, request, redirect, url_for, flash, session, send_file
-from flask import current_app as app
+from flask import render_template, request, redirect, url_for, flash, session, send_file, current_app as app
 from app import db
 from app.models import QRBatch, QRCode
 from app.utils import generate_and_store_qr_batch
