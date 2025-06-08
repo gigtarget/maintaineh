@@ -7,3 +7,4 @@ python-dotenv
 Flask-Session
 cloudinary
 qrcode
+Pillow
