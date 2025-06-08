@@ -8,3 +8,4 @@ Flask-Session
 cloudinary
 qrcode
 Pillow
+requests
