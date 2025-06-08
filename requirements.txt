@@ -4,3 +4,4 @@ psycopg2-binary
 Flask-Login
 gunicorn
 python-dotenv
+Flask-Session
