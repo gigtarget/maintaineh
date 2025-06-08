@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Maintaineh Admin Dashboard</title>
+</head>
+<body>
+    <h2>Maintaineh – Admin Dashboard</h2>
+    <a href="{{ url_for('routes.create_batch') }}">
+        <button>Create New Batch</button>
+    </a>
+    <a href="{{ url_for('routes.admin_logout') }}">Logout</a>
+
+    <h3>Generated QR Code Batches:</h3>
+    {% for batch in batches %}
+        <div style="margin-bottom: 20px;">
+            <h4>{{ batch }}</h4>
+            {% for i in range(1, 11) %}
+                <img src="{{ url_for('routes.serve_qr', filename=batch ~ '/qr' ~ i ~ '.png') }}" width="100">
+            {% endfor %}
+        </div>
+    {% endfor %}
+</body>
+</html>
