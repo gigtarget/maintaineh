@@ -8,7 +8,7 @@ load_dotenv()
 
 db = SQLAlchemy()
 login_manager = LoginManager()
-login_manager.login_view = 'login'
+login_manager.login_view = 'routes.login'
 
 def create_app():
     app = Flask(__name__)
@@ -19,8 +19,11 @@ def create_app():
     db.init_app(app)
     login_manager.init_app(app)
 
+    from app.routes import routes
+    app.register_blueprint(routes)
+
     with app.app_context():
-        from app import routes, models
+        from app import models
         db.create_all()
 
     return app
