@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head><title>User Signup</title></head>
+<body>
+    <h2>User Signup</h2>
+    {% with messages = get_flashed_messages() %}
+      {% if messages %}
+        <ul>
+          {% for message in messages %}
+            <li style="color: red;">{{ message }}</li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+    {% endwith %}
+    <form method="POST">
+        <label>Email:</label><br>
+        <input type="text" name="email" required><br><br>
+        <label>Password:</label><br>
+        <input type="password" name="password" required><br><br>
+        <button type="submit">Sign Up</button>
+    </form>
+</body>
+</html>
