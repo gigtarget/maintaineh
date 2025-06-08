@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <title>Maintaineh Admin Dashboard</title>
+    <title>Maintaineh Dashboard</title>
 </head>
 <body>
     <h2>Maintaineh – Admin Dashboard</h2>
@@ -10,12 +10,26 @@
     </a>
     <a href="{{ url_for('routes.admin_logout') }}">Logout</a>
 
-    <h3>Generated QR Code Batches:</h3>
+    <hr>
+
+    {% with messages = get_flashed_messages() %}
+      {% if messages %}
+        <ul>
+          {% for message in messages %}
+            <li style="color: green;">{{ message }}</li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+    {% endwith %}
+
     {% for batch in batches %}
-        <div style="margin-bottom: 20px;">
-            <h4>{{ batch }}</h4>
-            {% for i in range(1, 11) %}
-                <img src="{{ url_for('routes.serve_qr', filename=batch ~ '/qr' ~ i ~ '.png') }}" width="100">
+        <div style="margin-top: 40px;">
+            <h3>Batch #{{ batch.id }} – {{ batch.created_at.strftime('%Y-%m-%d %H:%M') }}</h3>
+            {% for qr in batch.qrcodes %}
+                <div style="display:inline-block; margin:10px; text-align:center;">
+                    <img src="{{ qr.image_url }}" width="100"><br>
+                    <small>{{ qr.qr_type|capitalize }}</small>
+                </div>
             {% endfor %}
         </div>
     {% endfor %}
