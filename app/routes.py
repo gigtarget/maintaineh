@@ -3,54 +3,64 @@ from flask_login import login_user, logout_user, login_required, current_user
 from app.models import User, QRBatch, QRCode
 from app.utils import generate_and_store_qr_batch
 from app import db
-import io, zipfile, requests
+import io
+import zipfile
+import requests
 
 routes = Blueprint("routes", __name__)
 
-# ---------------- PUBLIC HOMEPAGE ----------------
 @routes.route("/")
-def homepage():
-    return render_template("homepage.html")
+def home():
+    return render_template("index.html")
 
-# ---------------- USER SIGNUP ----------------
+# ---------- USER AUTH ----------
+
 @routes.route("/signup", methods=["GET", "POST"])
 def user_signup():
     if request.method == "POST":
         email = request.form["email"]
         password = request.form["password"]
-        if User.query.filter_by(email=email).first():
+
+        existing_user = User.query.filter_by(email=email).first()
+        if existing_user:
             flash("Email already registered", "danger")
-        else:
-            user = User(email=email, password=password, role="user")
-            db.session.add(user)
-            db.session.commit()
-            flash("Signup successful. Please log in.", "success")
-            return redirect(url_for("routes.user_login"))
+            return redirect(url_for("routes.user_signup"))
+
+        new_user = User(email=email, password=password, role="user")
+        db.session.add(new_user)
+        db.session.commit()
+
+        flash("Signup successful! Please login.", "success")
+        return redirect(url_for("routes.user_login"))
+
     return render_template("signup.html")
 
-# ---------------- USER LOGIN ----------------
+
 @routes.route("/login", methods=["GET", "POST"])
 def user_login():
     if request.method == "POST":
         email = request.form["email"]
         password = request.form["password"]
         user = User.query.filter_by(email=email, role="user").first()
+
         if user and user.password == password:
             login_user(user)
+            flash("Login successful", "success")
             return redirect(url_for("routes.user_dashboard"))
         else:
             flash("Invalid credentials", "danger")
-    return render_template("user_login.html")
 
-# ---------------- USER DASHBOARD ----------------
-@routes.route("/dashboard")
+    return render_template("login.html")
+
+@routes.route("/user/dashboard")
 @login_required
 def user_dashboard():
     if current_user.role != "user":
         return redirect(url_for("routes.user_login"))
-    return render_template("user_dashboard.html")
+    return "<h2>User Dashboard Coming Soon</h2>"
 
-# ---------------- ADMIN LOGIN (already exists) ----------------
+# ---------- ADMIN AUTH ----------
+
 @routes.route("/admin/login", methods=["GET", "POST"])
 def admin_login():
     if request.method == "POST":
@@ -78,7 +88,6 @@ def create_batch():
     if current_user.role != "admin":
         return redirect(url_for("routes.admin_login"))
     batch_id = generate_and_store_qr_batch()
-    flash(f"✅ Batch #{batch_id} created successfully!", "success")
     return redirect(url_for("routes.admin_dashboard"))
 
 @routes.route("/admin/download-batch/<int:batch_id>")
@@ -88,6 +97,7 @@ def download_batch(batch_id):
         return redirect(url_for("routes.admin_login"))
 
     qrcodes = QRCode.query.filter_by(batch_id=batch_id).all()
+
     zip_buffer = io.BytesIO()
     with zipfile.ZipFile(zip_buffer, "w") as zip_file:
         for qr in qrcodes:
@@ -106,4 +116,4 @@ def download_batch(batch_id):
 @routes.route("/logout")
 def logout():
     logout_user()
-    return redirect(url_for("routes.homepage"))
+    return redirect(url_for("routes.home"))
