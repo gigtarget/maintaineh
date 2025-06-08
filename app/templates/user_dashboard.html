@@ -1,9 +1,13 @@
 <!DOCTYPE html>
-<html>
-<head><title>User Dashboard</title></head>
+<html lang="en">
+<head>
+    <title>User Dashboard</title>
+</head>
 <body>
     <h2>Welcome, {{ current_user.email }}</h2>
-    <p>This is the user dashboard. (You can add machine info later)</p>
-    <a href="{{ url_for('routes.logout') }}">Logout</a>
+
+    <p>This is your dashboard where your linked machines or QR codes will be shown (to be implemented later).</p>
+
+    <a href="{{ url_for('routes.logout') }}"><button>Logout</button></a>
 </body>
 </html>
