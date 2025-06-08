@@ -5,3 +5,4 @@ Flask-Login
 gunicorn
 python-dotenv
 Flask-Session
+cloudinary
