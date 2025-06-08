@@ -5,8 +5,8 @@ from datetime import datetime
 class User(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
     email = db.Column(db.String(120), unique=True, nullable=False)
-    password = db.Column(db.String(255), nullable=False)  # should be hashed
-    role = db.Column(db.String(20), default="user")  # admin or user
+    password = db.Column(db.String(255), nullable=False)
+    role = db.Column(db.String(20), default="user")
 
 class QRBatch(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -16,6 +16,6 @@ class QRBatch(db.Model):
 class QRCode(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     batch_id = db.Column(db.Integer, db.ForeignKey('qr_batch.id'), nullable=False)
-    qr_type = db.Column(db.String(20))  # master, service, sub1...sub8
+    qr_type = db.Column(db.String(20))
     image_url = db.Column(db.String(255))
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
