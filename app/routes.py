@@ -57,7 +57,7 @@ def user_login():
 def user_dashboard():
     if current_user.role != "user":
         return redirect(url_for("routes.user_login"))
-    return "<h2>User Dashboard Coming Soon</h2>"
+    return render_template("user_dashboard.html")
 
 # ---------- ADMIN AUTH ----------
 
