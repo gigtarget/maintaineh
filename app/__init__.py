@@ -9,17 +9,16 @@ load_dotenv()
 
 db = SQLAlchemy()
 login_manager = LoginManager()
-login_manager.login_view = 'routes.login'
+login_manager.login_view = 'routes.admin_login'
 
 def create_app():
     app = Flask(__name__)
-    app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'your-secret')
+    app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'your-secret-key')
     app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL')
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-
     app.config['SESSION_TYPE'] = 'filesystem'
-    Session(app)
 
+    Session(app)
     db.init_app(app)
     login_manager.init_app(app)
 
@@ -33,3 +32,8 @@ def create_app():
     return app
 
 app = create_app()
+
+# ✅ Prevent error from Flask-Login until real user model is ready
+@login_manager.user_loader
+def load_user(user_id):
+    return None
