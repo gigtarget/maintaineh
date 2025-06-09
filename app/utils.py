@@ -6,12 +6,15 @@ from io import BytesIO
 from app import db
 from app.models import QRBatch, QRCode
 
-# ✅ Cloudinary Config
+# ✅ Cloudinary Configuration
 cloudinary.config(
     cloud_name=os.getenv("CLOUDINARY_CLOUD_NAME"),
     api_key=os.getenv("CLOUDINARY_API_KEY"),
     api_secret=os.getenv("CLOUDINARY_API_SECRET")
 )
+
+# ✅ Use Railway subdomain as base
+BASE_URL = "https://web-production-a8c0.up.railway.app"
 
 def generate_and_store_qr_batch():
     print("👉 Creating new QR batch...")
@@ -22,7 +25,7 @@ def generate_and_store_qr_batch():
     qr_types = ['master', 'service'] + [f"sub{i}" for i in range(1, 9)]
 
     for qr_type in qr_types:
-        qr_data = f"https://maintaineh.app/scan/{qr_type}/{batch.id}"
+        qr_data = f"{BASE_URL}/scan/{qr_type}/{batch.id}"
         print(f"➡️ Generating QR for: {qr_data}")
 
         qr_img = qrcode.make(qr_data)
