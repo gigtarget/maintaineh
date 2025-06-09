@@ -6,20 +6,22 @@
 <body>
     <h2>Welcome, {{ current_user.email }}</h2>
 
+    <h3>Your Claimed QR Code Batches:</h3>
     {% if batches %}
-        {% for batch in batches %}
-            <div style="margin-top: 40px;">
-                <h3>Batch #{{ batch.id }} – {{ batch.created_at.strftime('%Y-%m-%d %H:%M') }}</h3>
-                {% for qr in batch.qrcodes %}
-                    <div style="display:inline-block; margin:10px; text-align:center;">
-                        <img src="{{ qr.image_url }}" width="100"><br>
-                        <small>{{ qr.qr_type|capitalize }}</small>
-                    </div>
-                {% endfor %}
-            </div>
-        {% endfor %}
+        <ul>
+            {% for batch in batches %}
+                <li>
+                    Batch ID: {{ batch.id }} — Claimed on {{ batch.created_at.strftime('%Y-%m-%d %H:%M') }}
+                    <ul>
+                        {% for qr in batch.qrcodes %}
+                            <li>{{ qr.qr_type }} → <a href="{{ qr.image_url }}" target="_blank">View QR</a></li>
+                        {% endfor %}
+                    </ul>
+                </li>
+            {% endfor %}
+        </ul>
     {% else %}
-        <p>No batches linked to your account yet.</p>
+        <p>No batches claimed yet. Scan a master QR to link your batch.</p>
     {% endif %}
 
     <div style="margin-top: 20px;">
