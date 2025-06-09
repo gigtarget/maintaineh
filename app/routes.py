@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, redirect, url_for, flash, request, send_file, session
 from flask_login import login_user, logout_user, login_required, current_user
-from app.models import User, QRBatch, QRCode
+from app.models import User, QRBatch, QRCode, Machine
 from app.utils import generate_and_store_qr_batch
 from app import db
 import io
@@ -27,7 +27,7 @@ def claim_batch(batch_id):
     if current_user.role != "user":
         flash("Only users can claim batches.", "danger")
         return redirect(url_for("routes.home"))
-    
+
     batch = QRBatch.query.get(batch_id)
     if not batch:
         flash("Batch not found.", "danger")
@@ -42,7 +42,7 @@ def claim_batch(batch_id):
         batch.user_id = current_user.id
         db.session.commit()
         flash("Batch successfully claimed!", "success")
-    
+
     return redirect(url_for("routes.user_dashboard"))
 
 # ---------- USER AUTH ----------
@@ -81,11 +81,24 @@ def user_login():
 
     return render_template("login.html", next=next_url)
 
-@routes.route("/user/dashboard")
+@routes.route("/user/dashboard", methods=["GET", "POST"])
 @login_required
 def user_dashboard():
     if current_user.role != "user":
         return redirect(url_for("routes.user_login"))
+
+    if request.method == "POST":
+        batch_id = request.form.get("batch_id")
+        name = request.form.get("name")
+        mtype = request.form.get("type")
+
+        if batch_id and name and mtype:
+            machine = Machine(batch_id=batch_id, name=name, type=mtype)
+            db.session.add(machine)
+            db.session.commit()
+            flash("Machine added successfully.", "success")
+        else:
+            flash("All fields are required to add a machine.", "danger")
 
     user_batches = QRBatch.query.filter_by(user_id=current_user.id).all()
     return render_template("user_dashboard.html", batches=user_batches)
