@@ -7,12 +7,12 @@ class User(db.Model, UserMixin):
     email = db.Column(db.String(120), unique=True, nullable=False)
     password = db.Column(db.String(255), nullable=False)
     role = db.Column(db.String(20), default="user")
-    batches = db.relationship('QRBatch', backref='owner', lazy=True)
+    batches = db.relationship('QRBatch', backref='user', lazy=True)  # Relationship to batches
 
 class QRBatch(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))  # <-- Add this line to link user
     qrcodes = db.relationship('QRCode', backref='batch', lazy=True)
 
 class QRCode(db.Model):
