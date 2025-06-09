@@ -19,20 +19,22 @@
                         {% endfor %}
                     </ul>
 
-                    <!-- Machine Add Form for This Batch -->
-                    <form method="POST" style="margin-top: 10px;">
-                        <input type="hidden" name="batch_id" value="{{ batch.id }}">
-                        <label>Machine Name:</label>
-                        <input type="text" name="name" required>
-                        <label>Type:</label>
-                        <select name="type" required>
-                            <option value="Embroidery">Embroidery</option>
-                            <option value="Laser Cutter">Laser Cutter</option>
-                            <option value="Sublimation">Sublimation</option>
-                            <option value="Other">Other</option>
-                        </select>
-                        <button type="submit">Add Machine</button>
-                    </form>
+                    {% if not batch.machines %}
+                        <!-- Only show machine form if none exist -->
+                        <form method="POST" style="margin-top: 10px;">
+                            <input type="hidden" name="batch_id" value="{{ batch.id }}">
+                            <label>Machine Name:</label>
+                            <input type="text" name="name" required>
+                            <label>Type:</label>
+                            <select name="type" required>
+                                <option value="Embroidery">Embroidery</option>
+                                <option value="Laser Cutter">Laser Cutter</option>
+                                <option value="Sublimation">Sublimation</option>
+                                <option value="Other">Other</option>
+                            </select>
+                            <button type="submit">Add Machine</button>
+                        </form>
+                    {% endif %}
 
                     {% if batch.machines %}
                         <p><strong>Machines Under This Batch:</strong></p>
