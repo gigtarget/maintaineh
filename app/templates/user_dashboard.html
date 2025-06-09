@@ -11,17 +11,43 @@
         <ul>
             {% for batch in batches %}
                 <li>
-                    Batch ID: {{ batch.id }} — Claimed on {{ batch.created_at.strftime('%Y-%m-%d %H:%M') }}
+                    <strong>Batch ID: {{ batch.id }}</strong> — Claimed on {{ batch.created_at.strftime('%Y-%m-%d %H:%M') }}
+
                     <ul>
                         {% for qr in batch.qrcodes %}
                             <li>{{ qr.qr_type }} → <a href="{{ qr.image_url }}" target="_blank">View QR</a></li>
                         {% endfor %}
                     </ul>
+
+                    <!-- Machine Add Form for This Batch -->
+                    <form method="POST" style="margin-top: 10px;">
+                        <input type="hidden" name="batch_id" value="{{ batch.id }}">
+                        <label>Machine Name:</label>
+                        <input type="text" name="name" required>
+                        <label>Type:</label>
+                        <select name="type" required>
+                            <option value="Embroidery">Embroidery</option>
+                            <option value="Laser Cutter">Laser Cutter</option>
+                            <option value="Sublimation">Sublimation</option>
+                            <option value="Other">Other</option>
+                        </select>
+                        <button type="submit">Add Machine</button>
+                    </form>
+
+                    {% if batch.machines %}
+                        <p><strong>Machines Under This Batch:</strong></p>
+                        <ul>
+                            {% for machine in batch.machines %}
+                                <li>{{ machine.name }} ({{ machine.type }})</li>
+                            {% endfor %}
+                        </ul>
+                    {% endif %}
                 </li>
+                <hr>
             {% endfor %}
         </ul>
     {% else %}
-        <p>No batches claimed yet. Scan a master QR to link your batch.</p>
+        <p>No batches claimed yet.</p>
     {% endif %}
 
     <div style="margin-top: 20px;">
