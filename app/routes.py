@@ -64,7 +64,6 @@ def user_signup():
 
     return render_template("signup.html")
 
-
 @routes.route("/login", methods=["GET", "POST"])
 def user_login():
     next_url = request.args.get('next')
@@ -78,7 +77,6 @@ def user_login():
             return redirect(next_url or url_for("routes.user_dashboard"))
         else:
             flash("Invalid credentials", "danger")
-
     return render_template("login.html", next=next_url)
 
 @routes.route("/user/dashboard", methods=["GET", "POST"])
@@ -92,13 +90,15 @@ def user_dashboard():
         name = request.form.get("name")
         mtype = request.form.get("type")
 
-        if batch_id and name and mtype:
+        # ✅ Check if a machine already exists for this batch
+        existing = Machine.query.filter_by(batch_id=batch_id).first()
+        if existing:
+            flash("A machine is already assigned to this batch.", "danger")
+        else:
             machine = Machine(batch_id=batch_id, name=name, type=mtype)
             db.session.add(machine)
             db.session.commit()
             flash("Machine added successfully.", "success")
-        else:
-            flash("All fields are required to add a machine.", "danger")
 
     user_batches = QRBatch.query.filter_by(user_id=current_user.id).all()
     return render_template("user_dashboard.html", batches=user_batches)
