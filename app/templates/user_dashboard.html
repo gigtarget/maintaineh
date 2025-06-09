@@ -2,59 +2,88 @@
 <html lang="en">
 <head>
     <title>User Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
-    <h2>Welcome, {{ current_user.email }}</h2>
+<body class="bg-gray-100 font-sans">
+    <!-- Navbar -->
+    <nav class="bg-white shadow-md p-4 flex items-center justify-between">
+        <div class="flex items-center space-x-4">
+            <span class="text-xl font-bold text-indigo-600">🛠 Mainteneh</span>
+            <a href="{{ url_for('routes.user_dashboard') }}" class="text-gray-600 hover:text-indigo-600">My Dashboard</a>
+        </div>
+        <div class="flex items-center space-x-4">
+            <a href="#" class="bg-teal-500 hover:bg-teal-600 text-white px-4 py-2 rounded">Scan Tag</a>
+            <span class="text-gray-700">Welcome, {{ current_user.email }}!</span>
+            <a href="{{ url_for('routes.logout') }}" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded">Logout</a>
+        </div>
+    </nav>
 
-    <h3>Your Claimed QR Code Batches:</h3>
-    {% if batches %}
-        <ul>
-            {% for batch in batches %}
-                <li>
-                    <strong>Batch ID: {{ batch.id }}</strong> — Claimed on {{ batch.created_at.strftime('%Y-%m-%d %H:%M') }}
+    <!-- Dashboard Content -->
+    <div class="max-w-6xl mx-auto mt-8">
+        <h1 class="text-3xl font-bold mb-6 text-gray-800">My Dashboard</h1>
 
-                    <ul>
-                        {% for qr in batch.qrcodes %}
-                            <li>{{ qr.qr_type }} → <a href="{{ qr.image_url }}" target="_blank">View QR</a></li>
-                        {% endfor %}
-                    </ul>
+        <!-- Stats -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-6">
+            <div class="bg-white p-6 rounded shadow">
+                <p class="text-sm text-gray-500">Total Machines</p>
+                <p class="text-3xl font-semibold text-indigo-600">
+                    {{ batches | sum(attribute='machines|length') }}
+                </p>
+            </div>
+            <div class="bg-white p-6 rounded shadow">
+                <p class="text-sm text-gray-500">Total Maintenance Logs</p>
+                <p class="text-3xl font-semibold text-indigo-600">0</p>
+            </div>
+        </div>
 
-                    {% if not batch.machines %}
-                        <!-- Only show machine form if none exist -->
-                        <form method="POST" style="margin-top: 10px;">
-                            <input type="hidden" name="batch_id" value="{{ batch.id }}">
-                            <label>Machine Name:</label>
-                            <input type="text" name="name" required>
-                            <label>Type:</label>
-                            <select name="type" required>
-                                <option value="Embroidery">Embroidery</option>
-                                <option value="Laser Cutter">Laser Cutter</option>
-                                <option value="Sublimation">Sublimation</option>
-                                <option value="Other">Other</option>
-                            </select>
-                            <button type="submit">Add Machine</button>
-                        </form>
-                    {% endif %}
+        <!-- Batches and Machines -->
+        {% for batch in batches %}
+        <div class="bg-white shadow rounded p-6 mb-6">
+            <h2 class="text-xl font-semibold text-gray-800 mb-2">
+                Batch ID: {{ batch.id }} — Claimed on {{ batch.created_at.strftime('%Y-%m-%d %H:%M') }}
+            </h2>
 
-                    {% if batch.machines %}
-                        <p><strong>Machines Under This Batch:</strong></p>
-                        <ul>
-                            {% for machine in batch.machines %}
-                                <li>{{ machine.name }} ({{ machine.type }})</li>
-                            {% endfor %}
-                        </ul>
-                    {% endif %}
-                </li>
-                <hr>
-            {% endfor %}
-        </ul>
-    {% else %}
-        <p>No batches claimed yet.</p>
-    {% endif %}
+            <div class="grid grid-cols-2 md:grid-cols-3 gap-4 mb-4">
+                {% for qr in batch.qrcodes %}
+                <div class="bg-gray-100 p-3 rounded">
+                    <p class="text-sm text-gray-600">{{ qr.qr_type }}</p>
+                    <a href="{{ qr.image_url }}" target="_blank" class="text-indigo-600 hover:underline">View QR</a>
+                </div>
+                {% endfor %}
+            </div>
 
-    <div style="margin-top: 20px;">
-        <a href="{{ url_for('routes.home') }}"><button>Back to Home</button></a>
-        <a href="{{ url_for('routes.logout') }}"><button>Logout</button></a>
+            <!-- Add Machine -->
+            <form method="POST" class="flex items-center space-x-4 mt-4">
+                <input type="hidden" name="batch_id" value="{{ batch.id }}">
+                <input type="text" name="name" placeholder="Machine Name" required class="p-2 border rounded w-1/3">
+                <select name="type" required class="p-2 border rounded w-1/3">
+                    <option value="Embroidery">Embroidery</option>
+                    <option value="Laser Cutter">Laser Cutter</option>
+                    <option value="Sublimation">Sublimation</option>
+                    <option value="Other">Other</option>
+                </select>
+                <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded">
+                    Add Machine
+                </button>
+            </form>
+
+            <!-- Machines List -->
+            {% if batch.machines %}
+            <div class="mt-4">
+                <h3 class="text-lg font-semibold text-gray-700 mb-2">Machines Under This Batch:</h3>
+                <ul class="list-disc list-inside text-gray-800">
+                    {% for machine in batch.machines %}
+                    <li>{{ machine.name }} ({{ machine.type }})</li>
+                    {% endfor %}
+                </ul>
+            </div>
+            {% endif %}
+        </div>
+        {% endfor %}
+
+        {% if not batches %}
+        <p class="text-gray-600">No batches claimed yet.</p>
+        {% endif %}
     </div>
 </body>
 </html>
