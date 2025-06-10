@@ -109,7 +109,9 @@ def user_dashboard():
             flash("Machine added successfully.", "success")
 
     user_batches = QRBatch.query.filter_by(owner_id=current_user.id).all()
+
     return render_template("user_dashboard.html", batches=user_batches)
+
 
 # ---------- SUB QR NEEDLE VIEW ----------
 @routes.route("/sub/<int:sub_tag_id>", methods=["GET", "POST"])
