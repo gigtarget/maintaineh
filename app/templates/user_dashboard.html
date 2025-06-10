@@ -53,14 +53,14 @@
             <div id="batch-{{ batch.id }}" class="p-4 hidden">
                 <p class="text-sm text-gray-600 mb-4">Claimed on {{ batch.created_at.strftime('%Y-%m-%d %H:%M') }}</p>
 
-                <!-- Show QR Codes -->
+                <!-- Show QR Tags -->
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                    {% for qr in batch.qr_codes %}
+                    {% for tag in batch.tags %}
                     <div class="bg-gray-50 rounded p-4 border text-center">
-                        <img src="{{ qr.image_url }}" alt="{{ qr.qr_type }} QR" class="mx-auto h-32 mb-2">
-                        <p class="font-semibold capitalize">{{ qr.qr_type }}</p>
-                        {% if qr.qr_type.startswith('sub') %}
-                            <a href="{{ url_for('routes.sub_tag_view', sub_tag_id=qr.id) }}"
+                        <img src="{{ tag.image_url }}" alt="{{ tag.tag_type }} QR" class="mx-auto h-32 mb-2">
+                        <p class="font-semibold capitalize">{{ tag.tag_type }}</p>
+                        {% if tag.tag_type.startswith('sub') %}
+                            <a href="{{ url_for('routes.sub_tag_view', sub_tag_id=tag.id) }}"
                                class="text-blue-500 text-sm underline block mt-1">Go to Needle Tracker</a>
                         {% endif %}
                     </div>
@@ -81,11 +81,11 @@
                         <input type="hidden" name="batch_id" value="{{ batch.id }}">
                         <div class="mb-2">
                             <input type="text" name="name" placeholder="Machine Name"
-                                   class="w-full px-3 py-2 border rounded">
+                                   class="w-full px-3 py-2 border rounded" required>
                         </div>
                         <div class="mb-2">
                             <input type="text" name="type" placeholder="Machine Type"
-                                   class="w-full px-3 py-2 border rounded">
+                                   class="w-full px-3 py-2 border rounded" required>
                         </div>
                         <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded mt-2">Add Machine</button>
                     </form>
