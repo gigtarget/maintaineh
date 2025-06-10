@@ -24,6 +24,7 @@ def scan_master(batch_id):
         return redirect(url_for("routes.user_login", next=url_for("routes.claim_batch", batch_id=batch_id)))
     return redirect(url_for("routes.claim_batch", batch_id=batch_id))
 
+
 @routes.route("/scan/sub/<int:sub_tag_id>")
 def scan_sub(sub_tag_id):
     if not current_user.is_authenticated:
@@ -77,6 +78,7 @@ def user_signup():
 
     return render_template("signup.html")
 
+
 @routes.route("/login", methods=["GET", "POST"])
 def user_login():
     next_url = request.args.get('next')
@@ -115,18 +117,7 @@ def user_dashboard():
             flash("Machine added successfully.", "success")
 
     user_batches = QRBatch.query.filter_by(owner_id=current_user.id).all()
-    batch_data = []
-    for batch in user_batches:
-        machine = Machine.query.filter_by(batch_id=batch.id).first()
-        tags = QRTag.query.filter_by(batch_id=batch.id).all()
-        batch_data.append({
-            "id": batch.id,
-            "created_at": batch.created_at,
-            "machine": machine,
-            "tags": tags
-        })
-
-    return render_template("user_dashboard.html", batches=batch_data)
+    return render_template("user_dashboard.html", batches=user_batches)
 
 
 # ---------- SUB QR NEEDLE VIEW ----------
@@ -187,6 +178,7 @@ def admin_login():
             flash("Invalid credentials", "danger")
     return render_template("admin_login.html")
 
+
 @routes.route("/admin/dashboard")
 @login_required
 def admin_dashboard():
@@ -195,6 +187,7 @@ def admin_dashboard():
     batches = QRBatch.query.order_by(QRBatch.created_at.desc()).all()
     return render_template("admin_dashboard.html", batches=batches)
 
+
 @routes.route("/admin/create-batch")
 @login_required
 def create_batch():
@@ -202,6 +195,7 @@ def create_batch():
         return redirect(url_for("routes.admin_login"))
     batch_id = generate_and_store_qr_batch()
     return redirect(url_for("routes.admin_dashboard"))
+
 
 @routes.route("/admin/download-batch/<int:batch_id>")
 @login_required
