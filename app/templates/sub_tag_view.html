@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Needle Tracker - Head View</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-100 text-gray-800">
+    <div class="max-w-5xl mx-auto py-10">
+        <h1 class="text-3xl font-bold text-center mb-8">🧵 Needle Tracker</h1>
+
+        <div class="bg-white shadow rounded p-6 mb-8">
+            <h2 class="text-xl font-semibold mb-4">Sub QR: {{ sub_tag.tag_type }} | Batch #{{ sub_tag.batch_id }}</h2>
+
+            <form method="POST" class="flex flex-col md:flex-row md:items-end gap-4">
+                <div>
+                    <label for="needle_number" class="block font-medium mb-1">Needle Number</label>
+                    <select name="needle_number" id="needle_number" class="border p-2 rounded w-32">
+                        {% for i in range(1, 16) %}
+                            <option value="{{ i }}">{{ i }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div>
+                    <label for="needle_type" class="block font-medium mb-1">Needle Type</label>
+                    <select name="needle_type" id="needle_type" class="border p-2 rounded w-32">
+                        <option value="11">Type 11</option>
+                        <option value="12">Type 12</option>
+                    </select>
+                </div>
+
+                <div>
+                    <button type="submit" class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 mt-6">
+                        Log Change
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+            {% for i in range(1, 16) %}
+                <div class="bg-white shadow rounded p-4 text-center border {{ 'border-green-500' if last_change_dict.get(i) else 'border-gray-300' }}">
+                    <h3 class="text-lg font-bold mb-2">Needle {{ i }}</h3>
+                    {% if last_change_dict.get(i) %}
+                        <p class="text-sm text-gray-600">Last Changed:</p>
+                        <p class="text-sm">{{ last_change_dict[i].timestamp.strftime('%Y-%m-%d %H:%M') }}</p>
+                        <p class="mt-1 text-sm">Type: <strong>{{ last_change_dict[i].needle_type }}</strong></p>
+                    {% else %}
+                        <p class="text-sm text-gray-400 italic">No logs yet</p>
+                    {% endif %}
+                </div>
+            {% endfor %}
+        </div>
+
+        <div class="text-center mt-10">
+            <a href="{{ url_for('routes.user_dashboard') }}" class="text-blue-600 hover:underline">&larr; Back to Dashboard</a>
+        </div>
+    </div>
+</body>
+</html>
