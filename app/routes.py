@@ -108,7 +108,7 @@ def user_dashboard():
             db.session.commit()
             flash("Machine added successfully.", "success")
 
-    user_batches = QRBatch.query.filter_by(user_id=current_user.id).all()
+    user_batches = QRBatch.query.filter_by(owner_id=current_user.id).all()
     return render_template("user_dashboard.html", batches=user_batches)
 
 # ---------- SUB QR NEEDLE VIEW ----------
