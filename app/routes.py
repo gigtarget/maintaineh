@@ -1,14 +1,16 @@
 from flask import Blueprint, render_template, redirect, url_for, flash, request, send_file, session
 from flask_login import login_user, logout_user, login_required, current_user
-from app.models import User, QRBatch, QRCode, Machine
+from app.models import User, QRBatch, QRCode, Machine, QRTag, NeedleChange
 from app.utils import generate_and_store_qr_batch
 from app import db
+from datetime import datetime
 import io
 import zipfile
 import requests
 
 routes = Blueprint("routes", __name__)
 
+# ---------- HOME ----------
 @routes.route("/")
 def home():
     return render_template("index.html")
@@ -90,7 +92,6 @@ def user_dashboard():
         name = request.form.get("name")
         mtype = request.form.get("type")
 
-        # ✅ Check if a machine already exists for this batch
         existing = Machine.query.filter_by(batch_id=batch_id).first()
         if existing:
             flash("A machine is already assigned to this batch.", "danger")
@@ -102,6 +103,49 @@ def user_dashboard():
 
     user_batches = QRBatch.query.filter_by(user_id=current_user.id).all()
     return render_template("user_dashboard.html", batches=user_batches)
+
+# ---------- SUB QR NEEDLE VIEW ----------
+@routes.route("/sub/<int:sub_tag_id>", methods=["GET", "POST"])
+@login_required
+def sub_tag_view(sub_tag_id):
+    sub_tag = QRTag.query.get_or_404(sub_tag_id)
+
+    if not sub_tag.tag_type.startswith("sub"):
+        flash("Invalid QR Tag. Only Sub QR tags represent machine heads.", "danger")
+        return redirect(url_for("routes.user_dashboard"))
+
+    if request.method == "POST":
+        needle_number = int(request.form["needle_number"])
+        needle_type = int(request.form["needle_type"])
+
+        change = NeedleChange(
+            batch_id=sub_tag.batch.id,
+            sub_tag_id=sub_tag.id,
+            needle_number=needle_number,
+            needle_type=needle_type,
+            timestamp=datetime.utcnow()
+        )
+        db.session.add(change)
+        db.session.commit()
+        flash(f"Needle #{needle_number} updated successfully!", "success")
+        return redirect(url_for("routes.sub_tag_view", sub_tag_id=sub_tag_id))
+
+    logs = (
+        NeedleChange.query
+        .filter_by(sub_tag_id=sub_tag.id)
+        .order_by(NeedleChange.timestamp.desc())
+        .all()
+    )
+
+    last_change_dict = {}
+    for log in logs:
+        if log.needle_number not in last_change_dict:
+            last_change_dict[log.needle_number] = log
+
+    return render_template("sub_tag_view.html",
+                           sub_tag=sub_tag,
+                           last_change_dict=last_change_dict,
+                           now=datetime.utcnow())
 
 # ---------- ADMIN ----------
 @routes.route("/admin/login", methods=["GET", "POST"])
