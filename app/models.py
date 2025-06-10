@@ -18,6 +18,7 @@ class QRBatch(db.Model):
     qr_tags = db.relationship("QRTag", backref="batch", lazy=True)
     needle_changes = db.relationship("NeedleChange", backref="batch", lazy=True)
     qr_codes = db.relationship("QRCode", backref="batch", lazy=True)
+    machine = db.relationship("Machine", backref="batch", uselist=False)
 
 class QRTag(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -29,7 +30,7 @@ class QRTag(db.Model):
 class QRCode(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     batch_id = db.Column(db.Integer, db.ForeignKey("qr_batch.id"))
-    qr_type = db.Column(db.String(20))  # master, service, sub1–sub8
+    qr_type = db.Column(db.String(20))  # master, service, sub1-sub8
     image_url = db.Column(db.String(255))
 
 class NeedleChange(db.Model):
@@ -39,3 +40,9 @@ class NeedleChange(db.Model):
     needle_number = db.Column(db.Integer, nullable=False)  # 1 to 15
     needle_type = db.Column(db.Integer, nullable=False)    # 11 or 12
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)
+
+class Machine(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    batch_id = db.Column(db.Integer, db.ForeignKey("qr_batch.id"))
+    name = db.Column(db.String(100))
+    type = db.Column(db.String(100))
