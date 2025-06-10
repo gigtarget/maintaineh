@@ -26,7 +26,7 @@
             <div class="bg-white rounded shadow p-4">
                 <h2 class="text-sm text-gray-500 mb-1">Total Machines</h2>
                 <p class="text-3xl font-semibold">
-                    {{ batches | map(attribute='machines') | map('length') | sum }}
+                    {{ batches | selectattr('machine') | list | length }}
                 </p>
             </div>
             <div class="bg-white rounded shadow p-4">
@@ -40,7 +40,12 @@
         <div class="bg-white rounded shadow mb-6">
             <!-- Header -->
             <div class="flex justify-between items-center p-4 border-b">
-                <h2 class="text-lg font-semibold">Batch ID: {{ batch.id }}</h2>
+                <h2 class="text-lg font-semibold">
+                    Batch ID: {{ batch.id }}
+                    {% if batch.machine %}
+                        - {{ batch.machine.name }} ({{ batch.machine.type }})
+                    {% endif %}
+                </h2>
                 <button onclick="toggleBatch({{ batch.id }})" class="text-sm text-blue-600 hover:underline">Toggle</button>
             </div>
 
@@ -55,7 +60,7 @@
                         <img src="{{ qr.image_url }}" alt="{{ qr.qr_type }} QR" class="mx-auto h-32 mb-2">
                         <p class="font-semibold capitalize">{{ qr.qr_type }}</p>
                         {% if qr.qr_type.startswith('sub') %}
-                            <a href="{{ url_for('routes.sub_tag_view', sub_tag_id=loop.index) }}"
+                            <a href="{{ url_for('routes.sub_tag_view', sub_tag_id=qr.id) }}"
                                class="text-blue-500 text-sm underline block mt-1">Go to Needle Tracker</a>
                         {% endif %}
                     </div>
@@ -63,14 +68,10 @@
                 </div>
 
                 <!-- Machines Under This Batch -->
-                {% if batch.machines %}
+                {% if batch.machine %}
                 <div class="mb-6">
-                    <h3 class="font-medium mb-2">Machines:</h3>
-                    <ul class="list-disc list-inside text-sm text-gray-700">
-                        {% for machine in batch.machines %}
-                        <li>{{ machine.name }} ({{ machine.type }})</li>
-                        {% endfor %}
-                    </ul>
+                    <h3 class="font-medium mb-2">Machine:</h3>
+                    <p class="text-sm text-gray-700">{{ batch.machine.name }} ({{ batch.machine.type }})</p>
                 </div>
                 {% else %}
                 <!-- Form to add machine -->
