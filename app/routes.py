@@ -160,7 +160,7 @@ def sub_tag_view(sub_tag_id):
     return render_template("sub_tag_view.html",
                            sub_tag=sub_tag,
                            last_change_dict=last_change_dict,
-                           now=datetime.utcnow())
+                           now=datetime.utcnow().date())
 
 
 # ---------- ADMIN ----------
