@@ -117,7 +117,18 @@ def user_dashboard():
             flash("Machine added successfully.", "success")
 
     user_batches = QRBatch.query.filter_by(owner_id=current_user.id).all()
-    return render_template("user_dashboard.html", batches=user_batches)
+    batch_data = []
+    for batch in user_batches:
+        machine = Machine.query.filter_by(batch_id=batch.id).first()
+        qr_codes = QRCode.query.filter_by(batch_id=batch.id).all()
+        batch_data.append({
+            "id": batch.id,
+            "created_at": batch.created_at,
+            "machine": machine,
+            "qr_codes": qr_codes
+        })
+
+    return render_template("user_dashboard.html", batches=batch_data)
 
 
 # ---------- SUB QR NEEDLE VIEW ----------
