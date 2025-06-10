@@ -15,6 +15,7 @@ routes = Blueprint("routes", __name__)
 def home():
     return render_template("index.html")
 
+
 # ---------- QR SCAN FLOW ----------
 @routes.route("/scan/master/<int:batch_id>")
 def scan_master(batch_id):
@@ -30,6 +31,8 @@ def scan_sub(sub_tag_id):
         return redirect(url_for("routes.user_login", next=url_for("routes.sub_tag_view", sub_tag_id=sub_tag_id)))
     return redirect(url_for("routes.sub_tag_view", sub_tag_id=sub_tag_id))
 
+
+# ---------- BATCH CLAIM ----------
 @routes.route("/claim/<int:batch_id>")
 @login_required
 def claim_batch(batch_id):
@@ -42,17 +45,19 @@ def claim_batch(batch_id):
         flash("Batch not found.", "danger")
         return redirect(url_for("routes.user_dashboard"))
 
-    if batch.user_id is not None:
-        if batch.user_id == current_user.id:
+    # ✅ FIX: use owner_id instead of user_id
+    if batch.owner_id is not None:
+        if batch.owner_id == current_user.id:
             flash("You already claimed this batch.", "info")
         else:
             flash("This batch has already been claimed by another user.", "danger")
     else:
-        batch.user_id = current_user.id
+        batch.owner_id = current_user.id
         db.session.commit()
         flash("Batch successfully claimed!", "success")
 
     return redirect(url_for("routes.user_dashboard"))
+
 
 # ---------- USER AUTH ----------
 @routes.route("/signup", methods=["GET", "POST"])
@@ -88,6 +93,8 @@ def user_login():
             flash("Invalid credentials", "danger")
     return render_template("login.html", next=next_url)
 
+
+# ---------- USER DASHBOARD ----------
 @routes.route("/user/dashboard", methods=["GET", "POST"])
 @login_required
 def user_dashboard():
@@ -109,7 +116,6 @@ def user_dashboard():
             flash("Machine added successfully.", "success")
 
     user_batches = QRBatch.query.filter_by(owner_id=current_user.id).all()
-
     return render_template("user_dashboard.html", batches=user_batches)
 
 
@@ -155,6 +161,7 @@ def sub_tag_view(sub_tag_id):
                            sub_tag=sub_tag,
                            last_change_dict=last_change_dict,
                            now=datetime.utcnow())
+
 
 # ---------- ADMIN ----------
 @routes.route("/admin/login", methods=["GET", "POST"])
@@ -208,6 +215,8 @@ def download_batch(batch_id):
         download_name=f"batch_{batch_id}.zip"
     )
 
+
+# ---------- LOGOUT ----------
 @routes.route("/logout")
 def logout():
     logout_user()
