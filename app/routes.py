@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, redirect, url_for, flash, request, send_file, session
 from flask_login import login_user, logout_user, login_required, current_user
-from app.models import User, QRBatch, QRCode, Machine, QRTag, NeedleChange
+from app.models import User, QRBatch, QRCode, QRTag, Machine, NeedleChange
 from app.utils import generate_and_store_qr_batch
 from app import db
 from datetime import datetime
@@ -121,11 +121,13 @@ def user_dashboard():
     for batch in user_batches:
         machine = Machine.query.filter_by(batch_id=batch.id).first()
         qr_codes = QRCode.query.filter_by(batch_id=batch.id).all()
+        qr_tags = QRTag.query.filter_by(batch_id=batch.id).all()
         batch_data.append({
             "id": batch.id,
             "created_at": batch.created_at,
             "machine": machine,
-            "qr_codes": qr_codes
+            "qr_codes": qr_codes,
+            "qr_tags": qr_tags
         })
 
     return render_template("user_dashboard.html", batches=batch_data)
@@ -146,7 +148,7 @@ def sub_tag_view(sub_tag_id):
         needle_type = int(request.form["needle_type"])
 
         change = NeedleChange(
-            batch_id=sub_tag.batch.id,
+            batch_id=sub_tag.batch_id,
             sub_tag_id=sub_tag.id,
             needle_number=needle_number,
             needle_type=needle_type,
