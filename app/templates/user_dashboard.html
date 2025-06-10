@@ -53,28 +53,30 @@
             <div id="batch-{{ batch.id }}" class="p-4 hidden">
                 <p class="text-sm text-gray-600 mb-4">Claimed on {{ batch.created_at.strftime('%Y-%m-%d %H:%M') }}</p>
 
-                <!-- Show QR Tags -->
+                <!-- Show QR Codes -->
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                    {% for tag in batch.tags %}
+                    {% for qr in batch.qr_codes %}
                     <div class="bg-gray-50 rounded p-4 border text-center">
-                        <img src="{{ tag.image_url }}" alt="{{ tag.tag_type }} QR" class="mx-auto h-32 mb-2">
-                        <p class="font-semibold capitalize">{{ tag.tag_type }}</p>
-                        {% if tag.tag_type.startswith('sub') %}
+                        <img src="{{ qr.image_url }}" alt="{{ qr.qr_type }} QR" class="mx-auto h-32 mb-2">
+                        <p class="font-semibold capitalize">{{ qr.qr_type }}</p>
+                        {% if qr.qr_type.startswith('sub') %}
+                            {% set tag = batch.tags | selectattr("tag_type", "equalto", qr.qr_type) | list | first %}
+                            {% if tag %}
                             <a href="{{ url_for('routes.sub_tag_view', sub_tag_id=tag.id) }}"
                                class="text-blue-500 text-sm underline block mt-1">Go to Needle Tracker</a>
+                            {% endif %}
                         {% endif %}
                     </div>
                     {% endfor %}
                 </div>
 
-                <!-- Machines Under This Batch -->
+                <!-- Machine Info or Add Form -->
                 {% if batch.machine %}
                 <div class="mb-6">
                     <h3 class="font-medium mb-2">Machine:</h3>
                     <p class="text-sm text-gray-700">{{ batch.machine.name }} ({{ batch.machine.type }})</p>
                 </div>
                 {% else %}
-                <!-- Form to add machine -->
                 <div class="bg-gray-50 p-4 rounded border mb-6">
                     <h3 class="font-medium mb-2">Add Machine for this Batch</h3>
                     <form method="POST">
