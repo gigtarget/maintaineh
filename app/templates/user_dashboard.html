@@ -26,7 +26,7 @@
             <div class="bg-white rounded shadow p-4">
                 <h2 class="text-sm text-gray-500 mb-1">Total Machines</h2>
                 <p class="text-3xl font-semibold">
-                    {{ batches | map(attribute='machine') | select | list | length }}
+                    {{ batches | map(attribute='machines') | map('length') | sum }}
                 </p>
             </div>
             <div class="bg-white rounded shadow p-4">
@@ -38,48 +38,58 @@
         <!-- Batches -->
         {% for batch in batches %}
         <div class="bg-white rounded shadow mb-6">
+            <!-- Header -->
             <div class="flex justify-between items-center p-4 border-b">
                 <h2 class="text-lg font-semibold">Batch ID: {{ batch.id }}</h2>
                 <button onclick="toggleBatch({{ batch.id }})" class="text-sm text-blue-600 hover:underline">Toggle</button>
             </div>
 
+            <!-- Collapsible content -->
             <div id="batch-{{ batch.id }}" class="p-4 hidden">
                 <p class="text-sm text-gray-600 mb-4">Claimed on {{ batch.created_at.strftime('%Y-%m-%d %H:%M') }}</p>
 
-                <!-- QR Codes -->
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    {% for tag in batch.tags %}
-                    <div class="bg-gray-50 rounded p-4 border">
-                        <h3 class="font-medium capitalize mb-1">{{ tag.tag_type }}</h3>
-                        {% if tag.tag_type.startswith("sub") %}
-                            <a href="{{ url_for('routes.sub_tag_view', sub_tag_id=tag.id) }}" class="text-blue-600 underline text-sm">View Needle Logs</a>
-                        {% else %}
-                            <p class="text-sm text-gray-600">Not a sub-tag</p>
+                <!-- Show QR Codes -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                    {% for qr in batch.qr_codes %}
+                    <div class="bg-gray-50 rounded p-4 border text-center">
+                        <img src="{{ qr.image_url }}" alt="{{ qr.qr_type }} QR" class="mx-auto h-32 mb-2">
+                        <p class="font-semibold capitalize">{{ qr.qr_type }}</p>
+                        {% if qr.qr_type.startswith('sub') %}
+                            <a href="{{ url_for('routes.sub_tag_view', sub_tag_id=loop.index) }}"
+                               class="text-blue-500 text-sm underline block mt-1">Go to Needle Tracker</a>
                         {% endif %}
                     </div>
                     {% endfor %}
                 </div>
 
-                <!-- Machine Info with Editable Fields -->
-                <div class="mt-6">
-                    {% if batch.machine %}
-                        <h3 class="font-medium mb-2">Machine Details:</h3>
-                        <form method="POST" action="{{ url_for('routes.user_dashboard') }}" class="space-y-2">
-                            <input type="hidden" name="batch_id" value="{{ batch.id }}">
-                            <input type="text" name="name" value="{{ batch.machine.name }}" class="border px-2 py-1 w-full rounded" placeholder="Machine Name">
-                            <input type="text" name="type" value="{{ batch.machine.type }}" class="border px-2 py-1 w-full rounded" placeholder="Machine Type">
-                            <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded">Update</button>
-                        </form>
-                    {% else %}
-                        <h3 class="font-medium mb-2">Add Machine:</h3>
-                        <form method="POST" action="{{ url_for('routes.user_dashboard') }}" class="space-y-2">
-                            <input type="hidden" name="batch_id" value="{{ batch.id }}">
-                            <input type="text" name="name" placeholder="Machine Name" class="border px-2 py-1 w-full rounded">
-                            <input type="text" name="type" placeholder="Machine Type" class="border px-2 py-1 w-full rounded">
-                            <button type="submit" class="bg-green-600 text-white px-4 py-2 rounded">Add Machine</button>
-                        </form>
-                    {% endif %}
+                <!-- Machines Under This Batch -->
+                {% if batch.machines %}
+                <div class="mb-6">
+                    <h3 class="font-medium mb-2">Machines:</h3>
+                    <ul class="list-disc list-inside text-sm text-gray-700">
+                        {% for machine in batch.machines %}
+                        <li>{{ machine.name }} ({{ machine.type }})</li>
+                        {% endfor %}
+                    </ul>
                 </div>
+                {% else %}
+                <!-- Form to add machine -->
+                <div class="bg-gray-50 p-4 rounded border mb-6">
+                    <h3 class="font-medium mb-2">Add Machine for this Batch</h3>
+                    <form method="POST">
+                        <input type="hidden" name="batch_id" value="{{ batch.id }}">
+                        <div class="mb-2">
+                            <input type="text" name="name" placeholder="Machine Name"
+                                   class="w-full px-3 py-2 border rounded">
+                        </div>
+                        <div class="mb-2">
+                            <input type="text" name="type" placeholder="Machine Type"
+                                   class="w-full px-3 py-2 border rounded">
+                        </div>
+                        <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded mt-2">Add Machine</button>
+                    </form>
+                </div>
+                {% endif %}
             </div>
         </div>
         {% endfor %}
