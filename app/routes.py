@@ -32,7 +32,7 @@ def scan_sub(sub_tag_id):
     return redirect(url_for("routes.sub_tag_view", sub_tag_id=sub_tag_id))
 
 
-# ---------- BATCH CLAIM ----------
+# ---------- CLAIM BATCH ----------
 @routes.route("/claim/<int:batch_id>")
 @login_required
 def claim_batch(batch_id):
@@ -45,7 +45,6 @@ def claim_batch(batch_id):
         flash("Batch not found.", "danger")
         return redirect(url_for("routes.user_dashboard"))
 
-    # ✅ FIX: use owner_id instead of user_id
     if batch.owner_id is not None:
         if batch.owner_id == current_user.id:
             flash("You already claimed this batch.", "info")
@@ -59,7 +58,7 @@ def claim_batch(batch_id):
     return redirect(url_for("routes.user_dashboard"))
 
 
-# ---------- USER AUTH ----------
+# ---------- USER SIGNUP / LOGIN ----------
 @routes.route("/signup", methods=["GET", "POST"])
 def user_signup():
     if request.method == "POST":
@@ -116,7 +115,18 @@ def user_dashboard():
             flash("Machine added successfully.", "success")
 
     user_batches = QRBatch.query.filter_by(owner_id=current_user.id).all()
-    return render_template("user_dashboard.html", batches=user_batches)
+    batch_data = []
+    for batch in user_batches:
+        machine = Machine.query.filter_by(batch_id=batch.id).first()
+        tags = QRTag.query.filter_by(batch_id=batch.id).all()
+        batch_data.append({
+            "id": batch.id,
+            "created_at": batch.created_at,
+            "machine": machine,
+            "tags": tags
+        })
+
+    return render_template("user_dashboard.html", batches=batch_data)
 
 
 # ---------- SUB QR NEEDLE VIEW ----------
