@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, redirect, url_for, flash, request, send_file, session
 from flask_login import login_user, logout_user, login_required, current_user
-from app.models import User, QRBatch, QRCode, QRTag, Machine, NeedleChange
+from app.models import User, QRBatch, QRCode, Machine, QRTag, NeedleChange
 from app.utils import generate_and_store_qr_batch
 from app import db
 from datetime import datetime
@@ -10,13 +10,12 @@ import requests
 
 routes = Blueprint("routes", __name__)
 
-# ---------- HOME ----------
+
 @routes.route("/")
 def home():
     return render_template("index.html")
 
 
-# ---------- QR SCAN FLOW ----------
 @routes.route("/scan/master/<int:batch_id>")
 def scan_master(batch_id):
     if not current_user.is_authenticated:
@@ -33,7 +32,6 @@ def scan_sub(sub_tag_id):
     return redirect(url_for("routes.sub_tag_view", sub_tag_id=sub_tag_id))
 
 
-# ---------- CLAIM BATCH ----------
 @routes.route("/claim/<int:batch_id>")
 @login_required
 def claim_batch(batch_id):
@@ -59,7 +57,6 @@ def claim_batch(batch_id):
     return redirect(url_for("routes.user_dashboard"))
 
 
-# ---------- USER SIGNUP / LOGIN ----------
 @routes.route("/signup", methods=["GET", "POST"])
 def user_signup():
     if request.method == "POST":
@@ -95,7 +92,6 @@ def user_login():
     return render_template("login.html", next=next_url)
 
 
-# ---------- USER DASHBOARD ----------
 @routes.route("/user/dashboard", methods=["GET", "POST"])
 @login_required
 def user_dashboard():
@@ -121,19 +117,18 @@ def user_dashboard():
     for batch in user_batches:
         machine = Machine.query.filter_by(batch_id=batch.id).first()
         qr_codes = QRCode.query.filter_by(batch_id=batch.id).all()
-        qr_tags = QRTag.query.filter_by(batch_id=batch.id).all()
+        tags = QRTag.query.filter_by(batch_id=batch.id).all()
         batch_data.append({
             "id": batch.id,
             "created_at": batch.created_at,
             "machine": machine,
             "qr_codes": qr_codes,
-            "qr_tags": qr_tags
+            "tags": tags
         })
 
     return render_template("user_dashboard.html", batches=batch_data)
 
 
-# ---------- SUB QR NEEDLE VIEW ----------
 @routes.route("/sub/<int:sub_tag_id>", methods=["GET", "POST"])
 @login_required
 def sub_tag_view(sub_tag_id):
@@ -148,7 +143,7 @@ def sub_tag_view(sub_tag_id):
         needle_type = int(request.form["needle_type"])
 
         change = NeedleChange(
-            batch_id=sub_tag.batch_id,
+            batch_id=sub_tag.batch.id,
             sub_tag_id=sub_tag.id,
             needle_number=needle_number,
             needle_type=needle_type,
@@ -177,7 +172,6 @@ def sub_tag_view(sub_tag_id):
                            now=datetime.utcnow().date())
 
 
-# ---------- ADMIN ----------
 @routes.route("/admin/login", methods=["GET", "POST"])
 def admin_login():
     if request.method == "POST":
@@ -233,7 +227,6 @@ def download_batch(batch_id):
     )
 
 
-# ---------- LOGOUT ----------
 @routes.route("/logout")
 def logout():
     logout_user()
