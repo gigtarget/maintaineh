@@ -1,14 +1,34 @@
 <!DOCTYPE html>
-<html>
-<head><title>Maintaineh - Home</title></head>
-<body>
-    <h2>Welcome to Maintaineh</h2>
-    <nav>
-        <a href="{{ url_for('routes.user_login') }}">Login</a> |
-        <a href="{{ url_for('routes.user_signup') }}">Sign Up</a> |
-        <a href="{{ url_for('routes.admin_login') }}">Admin Login</a>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Maintaineh - Home</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gradient-to-br from-blue-100 to-white min-h-screen flex justify-center pt-16 p-4">
+
+  <div class="bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl shadow-xl w-full max-w-lg p-6 sm:p-10 text-center">
+    
+    <img src="{{ url_for('static', filename='logo/logo.svg') }}"
+         alt="Maintaineh Logo"
+         class="w-32 h-auto mx-auto mb-4 object-contain shadow-none bg-transparent">
+
+    <h2 class="text-3xl font-bold text-slate-800 mb-4">Welcome to Maintaineh</h2>
+
+    <p class="text-slate-600 mb-6">Your smart solution for tracking machine services, maintenance, and components — all in one place.</p>
+
+    <nav class="flex flex-col sm:flex-row justify-center gap-4">
+      <a href="{{ url_for('routes.user_login') }}"
+         class="px-6 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-medium transition-all shadow-md">User Login</a>
+
+      <a href="{{ url_for('routes.user_signup') }}"
+         class="px-6 py-2 rounded-xl bg-white/30 backdrop-blur-md border border-white/20 text-blue-600 hover:text-blue-800 font-medium transition-all shadow-md">Sign Up</a>
+
+      <a href="{{ url_for('routes.admin_login') }}"
+         class="px-6 py-2 rounded-xl bg-slate-700 hover:bg-slate-800 text-white font-medium transition-all shadow-md">Admin Login</a>
     </nav>
-    <hr>
-    <p>This is the main homepage of your platform.</p>
+  </div>
+
 </body>
 </html>
