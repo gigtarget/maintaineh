@@ -4,10 +4,10 @@
     <title>User Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
-      function toggleBatch(id) {
-          const box = document.getElementById(`batch-${id}`);
-          box.classList.toggle("hidden");
-      }
+        function toggleBatch(id) {
+            const box = document.getElementById(`batch-${id}`);
+            box.classList.toggle("hidden");
+        }
     </script>
 </head>
 <body class="bg-gray-100 text-gray-800">
@@ -25,9 +25,7 @@
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-6">
             <div class="bg-white rounded shadow p-4">
                 <h2 class="text-sm text-gray-500 mb-1">Total Machines</h2>
-                <p class="text-3xl font-semibold">
-                    {{ batches | selectattr('machine') | list | length }}
-                </p>
+                <p class="text-3xl font-semibold">{{ batches | selectattr('machine') | list | length }}</p>
             </div>
             <div class="bg-white rounded shadow p-4">
                 <h2 class="text-sm text-gray-500 mb-1">Claimed Batches</h2>
@@ -43,7 +41,7 @@
                 <h2 class="text-lg font-semibold">
                     Batch ID: {{ batch.id }}
                     {% if batch.machine %}
-                        - {{ batch.machine.name }} ({{ batch.machine.type }})
+                        – {{ batch.machine.name }} ({{ batch.machine.type }})
                     {% endif %}
                 </h2>
                 <button onclick="toggleBatch({{ batch.id }})" class="text-sm text-blue-600 hover:underline">Toggle</button>
@@ -53,15 +51,15 @@
             <div id="batch-{{ batch.id }}" class="p-4 hidden">
                 <p class="text-sm text-gray-600 mb-4">Claimed on {{ batch.created_at.strftime('%Y-%m-%d %H:%M') }}</p>
 
-                <!-- Show QR Codes -->
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                <!-- QR Grid -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mb-6">
                     {% for qr in batch.qr_codes %}
                     <div class="bg-gray-50 rounded p-4 border text-center">
                         <img src="{{ qr.image_url }}" alt="{{ qr.qr_type }} QR" class="mx-auto h-32 mb-2">
                         <p class="font-semibold capitalize">{{ qr.qr_type }}</p>
 
                         {% if qr.qr_type.startswith('sub') %}
-                            {% set tag = batch.tags | selectattr("tag_type", "lower") | select("equalto", qr.qr_type.lower()) | list | first %}
+                            {% set tag = batch.tags | selectattr("tag_type", "equalto", qr.qr_type) | list | first %}
                             {% if tag %}
                                 <a href="{{ url_for('routes.sub_tag_view', sub_tag_id=tag.id) }}"
                                    class="text-blue-500 text-sm underline block mt-1">Go to Needle Tracker</a>
