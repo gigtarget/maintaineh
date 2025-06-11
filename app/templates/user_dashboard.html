@@ -61,7 +61,7 @@
                         <p class="font-semibold capitalize">{{ qr.qr_type }}</p>
 
                         {% if qr.qr_type.startswith('sub') %}
-                            {% set tag = batch.tags | selectattr("tag_type", "equalto", qr.qr_type) | list | first %}
+                            {% set tag = batch.tags | selectattr("tag_type", "lower") | select("equalto", qr.qr_type.lower()) | list | first %}
                             {% if tag %}
                                 <a href="{{ url_for('routes.sub_tag_view', sub_tag_id=tag.id) }}"
                                    class="text-blue-500 text-sm underline block mt-1">Go to Needle Tracker</a>
