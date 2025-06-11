@@ -59,11 +59,12 @@
                     <div class="bg-gray-50 rounded p-4 border text-center">
                         <img src="{{ qr.image_url }}" alt="{{ qr.qr_type }} QR" class="mx-auto h-32 mb-2">
                         <p class="font-semibold capitalize">{{ qr.qr_type }}</p>
+
                         {% if qr.qr_type.startswith('sub') %}
                             {% set tag = batch.tags | selectattr("tag_type", "equalto", qr.qr_type) | list | first %}
                             {% if tag %}
-                            <a href="{{ url_for('routes.sub_tag_view', sub_tag_id=tag.id) }}"
-                               class="text-blue-500 text-sm underline block mt-1">Go to Needle Tracker</a>
+                                <a href="{{ url_for('routes.sub_tag_view', sub_tag_id=tag.id) }}"
+                                   class="text-blue-500 text-sm underline block mt-1">Go to Needle Tracker</a>
                             {% endif %}
                         {% endif %}
                     </div>
