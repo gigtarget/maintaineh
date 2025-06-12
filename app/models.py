@@ -54,5 +54,5 @@ class ServiceLog(db.Model):
     sub_tag_id = db.Column(db.Integer, db.ForeignKey("qr_tag.id"))
     part_name = db.Column(db.String(100), nullable=False)
     description = db.Column(db.Text)
-    warranty_till = db.Column(db.Date)
+    warranty_till = db.Column(db.Date)  # instead of db.String or character
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)
