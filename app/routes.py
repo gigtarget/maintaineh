@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, redirect, url_for, flash, request, send_file, session
 from flask_login import login_user, logout_user, login_required, current_user
-from app.models import User, QRBatch, QRCode, Machine, QRTag, NeedleChange
+from app.models import User, QRBatch, QRCode, Machine, QRTag, NeedleChange, ServiceLog
 from app.utils import generate_and_store_qr_batch
 from app import db
 from datetime import datetime
@@ -28,8 +28,89 @@ def scan_master(batch_id):
 def scan_sub(sub_tag_id):
     if not current_user.is_authenticated:
         session['pending_sub_tag_id'] = sub_tag_id
-        return redirect(url_for("routes.user_login", next=url_for("routes.sub_tag_view", sub_tag_id=sub_tag_id)))
-    return redirect(url_for("routes.sub_tag_view", sub_tag_id=sub_tag_id))
+        return redirect(url_for("routes.user_login", next=url_for("routes.sub_tag_options", sub_tag_id=sub_tag_id)))
+    return redirect(url_for("routes.sub_tag_options", sub_tag_id=sub_tag_id))
+
+
+@routes.route("/sub/<int:sub_tag_id>/choose")
+@login_required
+def sub_tag_options(sub_tag_id):
+    sub_tag = QRTag.query.get_or_404(sub_tag_id)
+    return render_template("sub_options.html", sub_tag=sub_tag)
+
+
+@routes.route("/sub/<int:sub_tag_id>/needle-change", methods=["GET", "POST"])
+@login_required
+def sub_tag_view(sub_tag_id):
+    sub_tag = QRTag.query.get_or_404(sub_tag_id)
+
+    if not sub_tag.tag_type.startswith("sub"):
+        flash("Invalid QR Tag. Only Sub QR tags represent machine heads.", "danger")
+        return redirect(url_for("routes.user_dashboard"))
+
+    if request.method == "POST":
+        needle_number = int(request.form["needle_number"])
+        needle_type = int(request.form["needle_type"])
+
+        change = NeedleChange(
+            batch_id=sub_tag.batch.id,
+            sub_tag_id=sub_tag.id,
+            needle_number=needle_number,
+            needle_type=needle_type,
+            timestamp=datetime.utcnow()
+        )
+        db.session.add(change)
+        db.session.commit()
+        flash(f"Needle #{needle_number} updated successfully!", "success")
+        return redirect(url_for("routes.sub_tag_view", sub_tag_id=sub_tag_id))
+
+    logs = (
+        NeedleChange.query
+        .filter_by(sub_tag_id=sub_tag.id)
+        .order_by(NeedleChange.timestamp.desc())
+        .all()
+    )
+
+    last_change_dict = {}
+    for log in logs:
+        if log.needle_number not in last_change_dict:
+            last_change_dict[log.needle_number] = log
+
+    return render_template("sub_tag_view.html",
+                           sub_tag=sub_tag,
+                           last_change_dict=last_change_dict,
+                           now=datetime.utcnow().date())
+
+
+@routes.route("/sub/<int:sub_tag_id>/service-log", methods=["GET", "POST"])
+@login_required
+def sub_tag_service_log(sub_tag_id):
+    sub_tag = QRTag.query.get_or_404(sub_tag_id)
+
+    if not sub_tag.tag_type.startswith("sub"):
+        flash("Invalid QR Tag for service logging.", "danger")
+        return redirect(url_for("routes.user_dashboard"))
+
+    if request.method == "POST":
+        part_name = request.form.get("part_name")
+        description = request.form.get("description")
+        warranty_till = request.form.get("warranty_till")
+
+        log = ServiceLog(
+            batch_id=sub_tag.batch.id,
+            sub_tag_id=sub_tag.id,
+            part_name=part_name,
+            description=description,
+            warranty_till=warranty_till,
+            timestamp=datetime.utcnow()
+        )
+        db.session.add(log)
+        db.session.commit()
+        flash(f"Logged replacement for '{part_name}' successfully!", "success")
+        return redirect(url_for("routes.sub_tag_service_log", sub_tag_id=sub_tag_id))
+
+    service_logs = ServiceLog.query.filter_by(sub_tag_id=sub_tag.id).order_by(ServiceLog.timestamp.desc()).all()
+    return render_template("sub_service_log.html", sub_tag=sub_tag, logs=service_logs)
 
 
 @routes.route("/claim/<int:batch_id>")
@@ -127,49 +208,6 @@ def user_dashboard():
         })
 
     return render_template("user_dashboard.html", batches=batch_data)
-
-
-@routes.route("/sub/<int:sub_tag_id>", methods=["GET", "POST"])
-@login_required
-def sub_tag_view(sub_tag_id):
-    sub_tag = QRTag.query.get_or_404(sub_tag_id)
-
-    if not sub_tag.tag_type.startswith("sub"):
-        flash("Invalid QR Tag. Only Sub QR tags represent machine heads.", "danger")
-        return redirect(url_for("routes.user_dashboard"))
-
-    if request.method == "POST":
-        needle_number = int(request.form["needle_number"])
-        needle_type = int(request.form["needle_type"])
-
-        change = NeedleChange(
-            batch_id=sub_tag.batch.id,
-            sub_tag_id=sub_tag.id,
-            needle_number=needle_number,
-            needle_type=needle_type,
-            timestamp=datetime.utcnow()
-        )
-        db.session.add(change)
-        db.session.commit()
-        flash(f"Needle #{needle_number} updated successfully!", "success")
-        return redirect(url_for("routes.sub_tag_view", sub_tag_id=sub_tag_id))
-
-    logs = (
-        NeedleChange.query
-        .filter_by(sub_tag_id=sub_tag.id)
-        .order_by(NeedleChange.timestamp.desc())
-        .all()
-    )
-
-    last_change_dict = {}
-    for log in logs:
-        if log.needle_number not in last_change_dict:
-            last_change_dict[log.needle_number] = log
-
-    return render_template("sub_tag_view.html",
-                           sub_tag=sub_tag,
-                           last_change_dict=last_change_dict,
-                           now=datetime.utcnow().date())
 
 
 @routes.route("/admin/login", methods=["GET", "POST"])
