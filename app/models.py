@@ -1,6 +1,6 @@
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import UserMixin
-from datetime import datetime
+from datetime import datetime, date
 
 db = SQLAlchemy()
 
@@ -22,7 +22,7 @@ class QRBatch(db.Model):
 
 class QRTag(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    tag_type = db.Column(db.String(20))  # master, service, sub1–sub8
+    tag_type = db.Column(db.String(20))
     batch_id = db.Column(db.Integer, db.ForeignKey("qr_batch.id"))
     qr_url = db.Column(db.String(255))
     needle_changes = db.relationship("NeedleChange", backref="sub_tag", lazy=True)
@@ -30,15 +30,15 @@ class QRTag(db.Model):
 class QRCode(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     batch_id = db.Column(db.Integer, db.ForeignKey("qr_batch.id"))
-    qr_type = db.Column(db.String(20))  # master, service, sub1-sub8
+    qr_type = db.Column(db.String(20))
     image_url = db.Column(db.String(255))
 
 class NeedleChange(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     batch_id = db.Column(db.Integer, db.ForeignKey("qr_batch.id"))
     sub_tag_id = db.Column(db.Integer, db.ForeignKey("qr_tag.id"))
-    needle_number = db.Column(db.Integer, nullable=False)  # 1 to 15
-    needle_type = db.Column(db.Integer, nullable=False)    # 11 or 12
+    needle_number = db.Column(db.Integer, nullable=False)
+    needle_type = db.Column(db.Integer, nullable=False)
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)
 
 class Machine(db.Model):
@@ -48,13 +48,11 @@ class Machine(db.Model):
     type = db.Column(db.String(100))
 
 class ServiceLog(db.Model):
-    __tablename__ = 'servicelog'  # <-- explicitly map to lowercase table
-
+    __tablename__ = 'servicelog'
     id = db.Column(db.Integer, primary_key=True)
     batch_id = db.Column(db.Integer, db.ForeignKey("qr_batch.id"))
     sub_tag_id = db.Column(db.Integer, db.ForeignKey("qr_tag.id"))
     part_name = db.Column(db.String(100), nullable=False)
     description = db.Column(db.Text)
-    warranty_till = db.Column(db.String(50))
+    warranty_till = db.Column(db.Date)
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)
-
