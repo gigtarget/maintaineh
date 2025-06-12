@@ -46,3 +46,12 @@ class Machine(db.Model):
     batch_id = db.Column(db.Integer, db.ForeignKey("qr_batch.id"))
     name = db.Column(db.String(100))
     type = db.Column(db.String(100))
+
+class ServiceLog(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    batch_id = db.Column(db.Integer, db.ForeignKey("qr_batch.id"))
+    sub_tag_id = db.Column(db.Integer, db.ForeignKey("qr_tag.id"))
+    part_name = db.Column(db.String(100), nullable=False)
+    description = db.Column(db.Text)
+    warranty_till = db.Column(db.String(50))
+    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
