@@ -48,6 +48,8 @@ class Machine(db.Model):
     type = db.Column(db.String(100))
 
 class ServiceLog(db.Model):
+    __tablename__ = 'servicelog'  # <-- explicitly map to lowercase table
+
     id = db.Column(db.Integer, primary_key=True)
     batch_id = db.Column(db.Integer, db.ForeignKey("qr_batch.id"))
     sub_tag_id = db.Column(db.Integer, db.ForeignKey("qr_tag.id"))
@@ -55,3 +57,4 @@ class ServiceLog(db.Model):
     description = db.Column(db.Text)
     warranty_till = db.Column(db.String(50))
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)
+
