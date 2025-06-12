@@ -52,7 +52,6 @@
             – {{ batch.machine.name }} ({{ batch.machine.type }})
           {% endif %}
         </div>
-
         <svg id="chevron-{{ batch.id }}"
              class="w-5 h-5 text-blue-600 transition-transform duration-200 group-hover:scale-110"
              xmlns="http://www.w3.org/2000/svg"
@@ -97,9 +96,9 @@
                 <p class="text-slate-800 font-medium text-base capitalize">{{ qr.qr_type }}</p>
                 {% set tag = batch.tags | selectattr("tag_type", "equalto", qr.qr_type) | list | first %}
                 {% if tag %}
-                  <a href="{{ url_for('routes.sub_tag_view', sub_tag_id=tag.id) }}"
+                  <a href="{{ url_for('routes.sub_tag_options', sub_tag_id=tag.id) }}"
                      class="text-xs text-blue-600 underline mt-1 block group-hover:text-blue-800 transition">
-                    Go to Needle Tracker
+                    Open Sub QR
                   </a>
                 {% endif %}
               </div>
