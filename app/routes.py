@@ -114,23 +114,15 @@ def user_dashboard():
 
     user_batches = QRBatch.query.filter_by(owner_id=current_user.id).all()
     batch_data = []
-
     for batch in user_batches:
         machine = Machine.query.filter_by(batch_id=batch.id).first()
         qr_codes = QRCode.query.filter_by(batch_id=batch.id).all()
         tags = QRTag.query.filter_by(batch_id=batch.id).all()
-
-        master_qr = next((q for q in qr_codes if q.qr_type == 'master'), None)
-        service_qr = next((q for q in qr_codes if q.qr_type == 'service'), None)
-        sub_qrs = [q for q in qr_codes if q.qr_type.startswith('sub')]
-
         batch_data.append({
             "id": batch.id,
             "created_at": batch.created_at,
             "machine": machine,
-            "master_qr": master_qr,
-            "service_qr": service_qr,
-            "sub_qrs": sub_qrs,
+            "qr_codes": qr_codes,
             "tags": tags
         })
 
