@@ -39,10 +39,6 @@
 
     <!-- Batches -->
     {% for batch in batches %}
-    {% set master_qr = batch.qr_codes | selectattr("qr_type", "equalto", "master") | list | first %}
-    {% set service_qr = batch.qr_codes | selectattr("qr_type", "equalto", "service") | list | first %}
-    {% set sub_qrs = batch.qr_codes | selectattr("qr_type", "match", "sub.*") | list %}
-    
     <div class="bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl shadow-lg mb-8 overflow-hidden">
       
       <!-- Header -->
@@ -59,52 +55,34 @@
 
       <!-- Collapsible Content -->
       <div id="batch-{{ batch.id }}" class="p-6 hidden">
-        <p class="text-sm text-slate-600 mb-6">Claimed on {{ batch.created_at.strftime('%Y-%m-%d %H:%M') }}</p>
+        <p class="text-sm text-slate-600 mb-4">Claimed on {{ batch.created_at.strftime('%Y-%m-%d %H:%M') }}</p>
 
-        <!-- QR Mind Map Tree -->
-        <div class="flex flex-col items-center space-y-6">
+        <!-- QR Grid -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mb-6">
+          {% for qr in batch.qr_codes %}
+          <div class="bg-white/20 backdrop-blur-md border border-white/20 rounded-xl p-4 text-center shadow-md">
+            <img src="{{ qr.image_url }}" alt="{{ qr.qr_type }} QR" class="mx-auto h-32 mb-2">
+            <p class="font-semibold capitalize text-slate-700">{{ qr.qr_type }}</p>
 
-          <!-- Master -->
-          <div class="flex flex-col items-center">
-            <img src="{{ master_qr.image_url }}" class="h-28" alt="Master QR">
-            <p class="mt-2 font-semibold text-slate-800">Master</p>
-          </div>
-
-          <div class="h-6 w-1 bg-slate-300 rounded-full"></div>
-
-          <!-- Service -->
-          <div class="flex flex-col items-center">
-            <img src="{{ service_qr.image_url }}" class="h-28" alt="Service QR">
-            <p class="mt-2 font-semibold text-slate-800">Service</p>
-          </div>
-
-          <div class="h-6 w-1 bg-slate-300 rounded-full"></div>
-
-          <!-- Sub Tags -->
-          <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-            {% for qr in sub_qrs %}
-            <div class="flex flex-col items-center bg-white/20 backdrop-blur-md border border-white/20 rounded-xl p-4 shadow">
-              <img src="{{ qr.image_url }}" class="h-24" alt="{{ qr.qr_type }} QR">
-              <p class="mt-2 font-medium text-slate-700">{{ qr.qr_type }}</p>
-
+            {% if qr.qr_type.startswith('sub') %}
               {% set tag = batch.tags | selectattr("tag_type", "equalto", qr.qr_type) | list | first %}
               {% if tag %}
-              <a href="{{ url_for('routes.sub_tag_view', sub_tag_id=tag.id) }}"
-                 class="text-blue-500 text-xs underline mt-1">Needle Tracker</a>
+                <a href="{{ url_for('routes.sub_tag_view', sub_tag_id=tag.id) }}"
+                   class="text-blue-500 text-sm underline block mt-1">Go to Needle Tracker</a>
               {% endif %}
-            </div>
-            {% endfor %}
+            {% endif %}
           </div>
+          {% endfor %}
         </div>
 
         <!-- Machine Info or Add Form -->
         {% if batch.machine %}
-        <div class="bg-white/20 backdrop-blur-md border border-white/20 rounded-xl p-4 shadow mt-8">
+        <div class="bg-white/20 backdrop-blur-md border border-white/20 rounded-xl p-4 shadow mb-6">
           <h3 class="font-medium text-slate-700 mb-2">Machine:</h3>
           <p class="text-sm">{{ batch.machine.name }} ({{ batch.machine.type }})</p>
         </div>
         {% else %}
-        <div class="bg-white/20 backdrop-blur-md border border-white/20 rounded-xl p-4 shadow mt-8">
+        <div class="bg-white/20 backdrop-blur-md border border-white/20 rounded-xl p-4 shadow mb-6">
           <h3 class="font-medium text-slate-700 mb-2">Add Machine for this Batch</h3>
           <form method="POST">
             <input type="hidden" name="batch_id" value="{{ batch.id }}">
