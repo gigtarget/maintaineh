@@ -7,25 +7,33 @@
 <body class="bg-gradient-to-br from-blue-100 to-white min-h-screen flex flex-col items-center justify-center p-6">
 
   <div class="bg-white/30 backdrop-blur-lg border border-white/20 shadow-lg rounded-2xl p-10 w-full max-w-md text-center">
-    <img src="{{ url_for('static', filename='logo/logo.svg') }}" class="mx-auto h-14 mb-6">
     
+    <!-- Logo -->
+    <img src="{{ url_for('static', filename='logo/logo.svg') }}" class="mx-auto h-14 mb-6" alt="Logo">
+    
+    <!-- Sub QR Info -->
     <h2 class="text-xl font-semibold text-slate-800 mb-6">
       Sub QR: {{ sub_tag.tag_type }}
     </h2>
 
-    <!-- Needle Button -->
-    <a href="{{ url_for('routes.sub_tag_view', sub_tag_id=sub_tag.id) }}"
-       class="flex items-center justify-center gap-3 bg-green-500 hover:bg-green-600 text-white font-semibold py-3 px-5 rounded-xl mb-4 transition shadow-lg">
-      <img src="{{ url_for('static', filename='emb assets/needle.png') }}" class="h-6 w-6" alt="Needle Icon">
-      Log Needle Change
-    </a>
+    <!-- Action Buttons in Row -->
+    <div class="grid grid-cols-2 gap-6">
+      
+      <!-- Needle Change -->
+      <a href="{{ url_for('routes.sub_tag_view', sub_tag_id=sub_tag.id) }}"
+         class="flex flex-col items-center justify-center bg-white/60 hover:bg-green-100 rounded-xl shadow p-4 transition border border-green-400 hover:border-green-600">
+        <img src="{{ url_for('static', filename='emb assets/needle.png') }}" alt="Needle" class="h-10 mb-2">
+        <span class="text-green-700 font-semibold text-sm">Needle Change</span>
+      </a>
 
-    <!-- Service Button -->
-    <a href="{{ url_for('routes.sub_tag_service_log', sub_tag_id=sub_tag.id) }}"
-       class="flex items-center justify-center gap-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-5 rounded-xl transition shadow-lg">
-      <img src="{{ url_for('static', filename='emb assets/setting.png') }}" class="h-6 w-6" alt="Service Icon">
-      Log Service Part
-    </a>
+      <!-- Service Part -->
+      <a href="{{ url_for('routes.sub_tag_service_log', sub_tag_id=sub_tag.id) }}"
+         class="flex flex-col items-center justify-center bg-white/60 hover:bg-blue-100 rounded-xl shadow p-4 transition border border-blue-400 hover:border-blue-600">
+        <img src="{{ url_for('static', filename='emb assets/setting.png') }}" alt="Setting" class="h-10 mb-2">
+        <span class="text-blue-700 font-semibold text-sm">Service Part</span>
+      </a>
+
+    </div>
   </div>
 
 </body>
