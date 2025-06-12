@@ -94,7 +94,18 @@ def sub_tag_service_log(sub_tag_id):
     if request.method == "POST":
         part_name = request.form.get("part_name")
         description = request.form.get("description")
-        warranty_till = request.form.get("warranty_till")
+        warranty_str = request.form.get("warranty_till")
+
+        warranty_till = None
+        if warranty_str:
+            try:
+                warranty_till = datetime.strptime(warranty_str, "%Y-%m-%d").date()
+                if warranty_till < datetime.utcnow().date():
+                    flash("Warranty date cannot be in the past.", "danger")
+                    return redirect(url_for("routes.sub_tag_service_log", sub_tag_id=sub_tag_id))
+            except ValueError:
+                flash("Invalid date format.", "danger")
+                return redirect(url_for("routes.sub_tag_service_log", sub_tag_id=sub_tag_id))
 
         log = ServiceLog(
             batch_id=sub_tag.batch.id,
@@ -110,7 +121,7 @@ def sub_tag_service_log(sub_tag_id):
         return redirect(url_for("routes.sub_tag_service_log", sub_tag_id=sub_tag_id))
 
     service_logs = ServiceLog.query.filter_by(sub_tag_id=sub_tag.id).order_by(ServiceLog.timestamp.desc()).all()
-    return render_template("sub_service_log.html", sub_tag=sub_tag, logs=service_logs)
+    return render_template("sub_service_log.html", sub_tag=sub_tag, logs=service_logs, now=datetime.utcnow().date())
 
 
 @routes.route("/claim/<int:batch_id>")
