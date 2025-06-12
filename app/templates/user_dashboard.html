@@ -42,20 +42,15 @@
     <!-- Batches -->
     {% for batch in batches %}
     <div class="mb-8">
-      
-      <!-- ⬇️ Aesthetic Batch Header -->
+
+      <!-- Batch Header -->
       <div onclick="toggleBatch({{ batch.id }})"
            class="cursor-pointer flex justify-between items-center px-6 py-4 bg-white/10 hover:bg-white/20 backdrop-blur-xl border border-white/20 shadow-md rounded-xl transition-all duration-200 group">
-        <div class="flex items-center gap-3 text-slate-800 font-semibold text-lg">
-          <div class="w-8 h-8 flex items-center justify-center bg-white/30 border border-white/20 rounded-full text-blue-600 font-medium shadow-sm text-sm">
-            #
-          </div>
-          <span>
-            Batch ID: {{ batch.id }}
-            {% if batch.machine %}
-              – {{ batch.machine.name }} ({{ batch.machine.type }})
-            {% endif %}
-          </span>
+        <div class="text-slate-800 font-semibold text-lg">
+          Batch ID: {{ batch.id }}
+          {% if batch.machine %}
+            – {{ batch.machine.name }} ({{ batch.machine.type }})
+          {% endif %}
         </div>
 
         <svg id="chevron-{{ batch.id }}"
@@ -68,22 +63,32 @@
 
       <!-- Collapsible Content -->
       <div id="batch-{{ batch.id }}" class="p-6 hidden bg-white/10 backdrop-blur-xl border border-white/20 rounded-b-2xl shadow-md mt-2">
-        <p class="text-sm text-slate-600 mb-4">Claimed on {{ batch.created_at.strftime('%Y-%m-%d %H:%M') }}</p>
+        <p class="text-sm text-slate-600 mb-6">Claimed on {{ batch.created_at.strftime('%Y-%m-%d %H:%M') }}</p>
 
         <!-- QR Grid -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mb-6">
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 mb-6">
           {% for qr in batch.qr_codes %}
-          <div class="bg-white/20 backdrop-blur-md border border-white/20 rounded-xl p-4 text-center shadow-md">
-            <img src="{{ qr.image_url }}" alt="{{ qr.qr_type }} QR" class="mx-auto h-32 mb-2">
-            <p class="font-semibold capitalize text-slate-700">{{ qr.qr_type }}</p>
+          <div class="group bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl p-4 shadow-xl transition-all hover:shadow-2xl hover:-translate-y-1">
+            <!-- QR Image -->
+            <div class="relative w-full flex justify-center mb-3">
+              <div class="p-2 bg-white rounded-xl shadow-inner w-fit">
+                <img src="{{ qr.image_url }}" alt="{{ qr.qr_type }} QR" class="h-24 w-24 object-contain" />
+              </div>
+            </div>
 
-            {% if qr.qr_type.startswith('sub') %}
-              {% set tag = batch.tags | selectattr("tag_type", "equalto", qr.qr_type) | list | first %}
-              {% if tag %}
+            <!-- Label & Tracker -->
+            <div class="text-center mt-1">
+              <p class="text-slate-800 font-medium text-base capitalize">{{ qr.qr_type }}</p>
+              {% if qr.qr_type.startswith('sub') %}
+                {% set tag = batch.tags | selectattr("tag_type", "equalto", qr.qr_type) | list | first %}
+                {% if tag %}
                 <a href="{{ url_for('routes.sub_tag_view', sub_tag_id=tag.id) }}"
-                   class="text-blue-500 text-sm underline block mt-1">Go to Needle Tracker</a>
+                   class="text-xs text-blue-600 underline mt-1 block group-hover:text-blue-800 transition">
+                  Go to Needle Tracker
+                </a>
+                {% endif %}
               {% endif %}
-            {% endif %}
+            </div>
           </div>
           {% endfor %}
         </div>
