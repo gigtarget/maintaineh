@@ -7,7 +7,9 @@
   <script>
     function toggleBatch(id) {
       const box = document.getElementById(`batch-${id}`);
+      const arrow = document.getElementById(`chevron-${id}`);
       box.classList.toggle("hidden");
+      arrow.classList.toggle("rotate-180");
     }
   </script>
 </head>
@@ -39,22 +41,33 @@
 
     <!-- Batches -->
     {% for batch in batches %}
-    <div class="bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl shadow-lg mb-8 overflow-hidden">
+    <div class="mb-8">
       
-      <!-- Header -->
-      <div class="flex justify-between items-center px-6 py-4 border-b border-white/20">
-        <h2 class="text-lg font-semibold text-slate-800">
-          Batch ID: {{ batch.id }}
-          {% if batch.machine %}
-            – {{ batch.machine.name }} ({{ batch.machine.type }})
-          {% endif %}
-        </h2>
-        <button onclick="toggleBatch({{ batch.id }})"
-                class="text-sm text-blue-600 hover:underline">Toggle</button>
+      <!-- ⬇️ Aesthetic Batch Header -->
+      <div onclick="toggleBatch({{ batch.id }})"
+           class="cursor-pointer flex justify-between items-center px-6 py-4 bg-white/10 hover:bg-white/20 backdrop-blur-xl border border-white/20 shadow-md rounded-xl transition-all duration-200 group">
+        <div class="flex items-center gap-3 text-slate-800 font-semibold text-lg">
+          <div class="w-8 h-8 flex items-center justify-center bg-white/30 border border-white/20 rounded-full text-blue-600 font-medium shadow-sm text-sm">
+            #
+          </div>
+          <span>
+            Batch ID: {{ batch.id }}
+            {% if batch.machine %}
+              – {{ batch.machine.name }} ({{ batch.machine.type }})
+            {% endif %}
+          </span>
+        </div>
+
+        <svg id="chevron-{{ batch.id }}"
+             class="w-5 h-5 text-blue-600 transition-transform duration-200 group-hover:scale-110"
+             xmlns="http://www.w3.org/2000/svg"
+             fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+        </svg>
       </div>
 
       <!-- Collapsible Content -->
-      <div id="batch-{{ batch.id }}" class="p-6 hidden">
+      <div id="batch-{{ batch.id }}" class="p-6 hidden bg-white/10 backdrop-blur-xl border border-white/20 rounded-b-2xl shadow-md mt-2">
         <p class="text-sm text-slate-600 mb-4">Claimed on {{ batch.created_at.strftime('%Y-%m-%d %H:%M') }}</p>
 
         <!-- QR Grid -->
