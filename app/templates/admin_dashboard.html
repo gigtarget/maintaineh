@@ -50,9 +50,26 @@
       <div class="bg-white/30 backdrop-blur-lg border border-white/20 rounded-2xl shadow-lg p-6">
         <!-- header row -->
         <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-4">
-          <h2 class="text-lg font-semibold">
-            Batch #{{ item.id }} · {{ item.created_at.strftime('%Y-%m-%d %H:%M') }}
-          </h2>
+          <div>
+            <h2 class="text-lg font-semibold">
+              Batch #{{ item.id }} · {{ item.created_at.strftime('%Y-%m-%d %H:%M') }}
+            </h2>
+            <p class="text-sm text-slate-600 mt-1">
+              Claimed by:
+              {% if item.user %}
+                <span class="font-medium">{{ item.user.email }}</span>
+              {% else %}
+                <span class="italic text-slate-400">Not Claimed</span>
+              {% endif %}
+              |
+              Machine:
+              {% if item.machine %}
+                ✅ {{ item.machine.name }} ({{ item.machine.type }})
+              {% else %}
+                ❌ Not Added
+              {% endif %}
+            </p>
+          </div>
           <div class="flex gap-3 flex-wrap">
             <a href="{{ url_for('routes.download_batch', batch_id=item.id) }}"
                class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm">
