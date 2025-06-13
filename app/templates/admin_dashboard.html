@@ -1,50 +1,65 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Maintaineh Dashboard</title>
+  <meta charset="UTF-8" />
+  <title>Maintaineh – Admin Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
-    <h2>Maintaineh – Admin Dashboard</h2>
+<body class="bg-gradient-to-br from-blue-100 to-white min-h-screen p-4 text-gray-800">
 
-    <div style="margin-bottom: 20px;">
-        <a href="{{ url_for('routes.create_batch') }}">
-            <button>Create New Batch</button>
-        </a>
-        <a href="{{ url_for('routes.logout') }}">
-            <button>Logout</button>
-        </a>
+  <!-- Logo -->
+  <div class="max-w-5xl mx-auto mb-6 flex justify-center">
+    <img src="{{ url_for('static', filename='logo/logo.svg') }}" alt="Logo" class="h-14 sm:h-16">
+  </div>
+
+  <!-- Header Buttons -->
+  <div class="max-w-5xl mx-auto flex flex-col sm:flex-row justify-between items-center mb-6 gap-3">
+    <h2 class="text-2xl font-bold text-slate-800 text-center sm:text-left">Maintaineh – Admin Dashboard</h2>
+    <div class="flex gap-3">
+      <a href="{{ url_for('routes.create_batch') }}" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-xl shadow transition">
+        ➕ Create New Batch
+      </a>
+      <a href="{{ url_for('routes.logout') }}" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-xl shadow transition">
+        🔓 Logout
+      </a>
     </div>
+  </div>
 
-    <hr>
+  <!-- Flash Messages -->
+  {% with messages = get_flashed_messages() %}
+    {% if messages %}
+      <div class="max-w-5xl mx-auto mb-4 bg-green-50 border border-green-400 text-green-700 p-4 rounded-xl shadow">
+        {% for message in messages %}
+          <p>{{ message }}</p>
+        {% endfor %}
+      </div>
+    {% endif %}
+  {% endwith %}
 
-    {% with messages = get_flashed_messages() %}
-        {% if messages %}
-            <ul>
-                {% for message in messages %}
-                    <li style="color: green;">{{ message }}</li>
-                {% endfor %}
-            </ul>
-        {% endif %}
-    {% endwith %}
-
+  <!-- Batches -->
+  <div class="max-w-5xl mx-auto space-y-8">
     {% for batch in batches %}
-        <div style="margin-top: 40px;">
-            <h3>Batch #{{ batch.id }} – {{ batch.created_at.strftime('%Y-%m-%d %H:%M') }}</h3>
-
-            <a href="{{ url_for('routes.download_batch', batch_id=batch.id) }}">
-                <button>⬇️ Download Entire Batch</button>
-            </a>
-
-            <div style="margin-top: 10px;">
-                {% for qr in batch.qrcodes %}
-                    <div style="display:inline-block; margin:10px; text-align:center;">
-                        <img src="{{ qr.image_url }}" width="100"><br>
-                        <small>{{ qr.qr_type|capitalize }}</small>
-                    </div>
-                {% endfor %}
-            </div>
+      <div class="bg-white/30 backdrop-blur-xl border border-white/20 p-6 rounded-2xl shadow-xl">
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-2">
+          <h3 class="text-lg font-semibold text-slate-800">Batch #{{ batch.id }} – {{ batch.created_at.strftime('%Y-%m-%d %H:%M') }}</h3>
+          <a href="{{ url_for('routes.download_batch', batch_id=batch.id) }}"
+             class="text-sm bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl shadow transition">
+            ⬇️ Download Entire Batch
+          </a>
         </div>
+
+        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6">
+          {% for qr in batch.qrcodes %}
+            <div class="bg-white/40 backdrop-blur-md border border-white/30 rounded-xl p-3 shadow text-center hover:-translate-y-1 transition">
+              <img src="{{ qr.image_url }}" alt="{{ qr.qr_type }}" class="h-24 w-24 mx-auto object-contain mb-2">
+              <p class="text-sm font-medium text-slate-700 capitalize">{{ qr.qr_type }}</p>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
     {% endfor %}
+  </div>
+
 </body>
 </html>
