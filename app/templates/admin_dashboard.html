@@ -13,16 +13,26 @@
     <img src="{{ url_for('static', filename='logo/logo.svg') }}" alt="Logo" class="h-14 sm:h-16">
   </div>
 
-  <!-- Header Buttons -->
-  <div class="max-w-5xl mx-auto flex flex-col sm:flex-row justify-between items-center mb-6 gap-3">
-    <h2 class="text-2xl font-bold text-slate-800 text-center sm:text-left">Maintaineh – Admin Dashboard</h2>
-    <div class="flex gap-3">
-      <a href="{{ url_for('routes.create_batch') }}" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-xl shadow transition">
-        ➕ Create New Batch
-      </a>
-      <a href="{{ url_for('routes.logout') }}" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-xl shadow transition">
-        🔓 Logout
-      </a>
+  <!-- Header + Stats -->
+  <div class="max-w-5xl mx-auto grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+    <div class="bg-white/30 backdrop-blur-xl border border-white/20 rounded-2xl shadow-xl p-4">
+      <h2 class="text-lg font-semibold text-slate-800 mb-1">Maintaineh – Admin Dashboard</h2>
+      <div class="flex gap-2 mt-2">
+        <a href="{{ url_for('routes.create_batch') }}" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-xl shadow">➕ New Batch</a>
+        <a href="{{ url_for('routes.logout') }}" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-xl shadow">🔓 Logout</a>
+      </div>
+    </div>
+    <div class="bg-white/30 backdrop-blur-xl border border-white/20 rounded-2xl shadow-xl p-4 grid grid-cols-2 text-center">
+      <div>
+        <p class="text-sm text-slate-500">Total Batches</p>
+        <p class="text-2xl font-bold text-slate-800">{{ batches|length }}</p>
+      </div>
+      <div>
+        <p class="text-sm text-slate-500">Total QR Codes</p>
+        <p class="text-2xl font-bold text-slate-800">
+          {{ batches | map(attribute='qrcodes') | sum(attribute='|length') }}
+        </p>
+      </div>
     </div>
   </div>
 
@@ -37,18 +47,27 @@
     {% endif %}
   {% endwith %}
 
-  <!-- Batches -->
+  <!-- Batches List -->
   <div class="max-w-5xl mx-auto space-y-8">
     {% for batch in batches %}
       <div class="bg-white/30 backdrop-blur-xl border border-white/20 p-6 rounded-2xl shadow-xl">
         <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-2">
           <h3 class="text-lg font-semibold text-slate-800">Batch #{{ batch.id }} – {{ batch.created_at.strftime('%Y-%m-%d %H:%M') }}</h3>
-          <a href="{{ url_for('routes.download_batch', batch_id=batch.id) }}"
-             class="text-sm bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl shadow transition">
-            ⬇️ Download Entire Batch
-          </a>
+          <div class="flex gap-2">
+            <a href="{{ url_for('routes.download_batch', batch_id=batch.id) }}"
+               class="text-sm bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl shadow transition">
+              ⬇️ Download
+            </a>
+            <form method="POST" action="{{ url_for('routes.delete_batch', batch_id=batch.id) }}"
+                  onsubmit="return confirm('Are you sure you want to delete this batch?')">
+              <button type="submit" class="text-sm bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-xl shadow transition">
+                🗑️ Delete
+              </button>
+            </form>
+          </div>
         </div>
 
+        <!-- QR Grid -->
         <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6">
           {% for qr in batch.qrcodes %}
             <div class="bg-white/40 backdrop-blur-md border border-white/30 rounded-xl p-3 shadow text-center hover:-translate-y-1 transition">
