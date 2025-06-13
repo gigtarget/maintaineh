@@ -22,11 +22,53 @@
       {% endfor %}
     {% endwith %}
 
+    <!-- Account Settings -->
+    <form method="POST" action="{{ url_for('routes.user_settings') }}" class="space-y-6">
+      <div class="bg-white/30 backdrop-blur-md border border-white/20 p-5 rounded-xl space-y-4 shadow">
+        <h2 class="text-lg font-semibold">🔐 Account Settings</h2>
+
+        <div>
+          <label class="block text-sm mb-1">Change Email</label>
+          <input type="email" name="email" value="{{ current_user.email }}"
+                 class="w-full px-4 py-2 rounded-xl bg-white/60 border border-white/30 text-slate-800 shadow-inner">
+        </div>
+
+        <div>
+          <label class="block text-sm mb-1">New Password</label>
+          <input type="password" name="password"
+                 class="w-full px-4 py-2 rounded-xl bg-white/60 border border-white/30 text-slate-800 shadow-inner">
+        </div>
+      </div>
+
+      <!-- Machine Preferences -->
+      <div class="bg-white/30 backdrop-blur-md border border-white/20 p-5 rounded-xl space-y-4 shadow">
+        <h2 class="text-lg font-semibold">📦 Machine Preferences</h2>
+
+        <div>
+          <label class="block text-sm mb-1">Default Machine Name</label>
+          <input type="text" name="default_machine_name" value="{{ current_user.default_machine_name or '' }}"
+                 class="w-full px-4 py-2 rounded-xl bg-white/60 border border-white/30 text-slate-800 shadow-inner">
+        </div>
+
+        <div>
+          <label class="block text-sm mb-1">Default Location / Department</label>
+          <input type="text" name="default_machine_location" value="{{ current_user.default_machine_location or '' }}"
+                 class="w-full px-4 py-2 rounded-xl bg-white/60 border border-white/30 text-slate-800 shadow-inner">
+        </div>
+      </div>
+
+      <button type="submit"
+              class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl py-2 shadow">
+        Save Account Settings
+      </button>
+    </form>
+
+    <!-- Machine Updates -->
     {% for machine in machines %}
     <form method="POST" class="space-y-4 bg-white/40 border border-white/30 p-4 rounded-xl shadow">
       <input type="hidden" name="machine_id" value="{{ machine.id }}">
 
-      <h2 class="text-lg font-semibold">🛠️ Machine #{{ machine.id }}</h2>
+      <h2 class="text-lg font-semibold">🧵 Machine</h2>
 
       <div>
         <label class="block text-sm mb-1">Machine Name</label>
