@@ -2,59 +2,74 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Needle Tracker</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    .needle-shape {
+      @apply relative w-14 sm:w-16 h-28 sm:h-32 flex flex-col items-center justify-center bg-white border-2 text-sm font-bold rounded-full transition;
+      border-radius: 40% 40% 60% 60% / 50% 50% 70% 70%;
+    }
+    .needle-shape::after {
+      content: "";
+      position: absolute;
+      bottom: -12px;
+      left: 50%;
+      transform: translateX(-50%);
+      border-left: 10px solid transparent;
+      border-right: 10px solid transparent;
+      border-top: 12px solid #444;
+    }
+    .needle-selected {
+      @apply bg-green-500 border-green-600 text-white;
+    }
+    .needle-stale {
+      @apply bg-yellow-100 border-yellow-400 text-yellow-900;
+    }
+  </style>
 </head>
 <body class="bg-gradient-to-br from-blue-100 to-white min-h-screen px-4 py-6">
 
   <!-- Logo -->
   <div class="text-center mb-4">
-    <img src="{{ url_for('static', filename='logo/logo.svg') }}" class="h-12 sm:h-14 mx-auto" alt="Logo">
+    <img src="{{ url_for('static', filename='img/logo.png') }}" class="h-12 mx-auto" alt="Logo" />
   </div>
 
   <!-- Header -->
-  <div class="text-center sm:text-left mb-6 px-2">
-    <h2 class="text-lg sm:text-xl font-semibold text-slate-800">
-      Batch {{ sub_tag.batch.id }} – Sub QR: {{ sub_tag.tag_type }}
-    </h2>
+  <div class="text-center mb-6">
+    <h2 class="text-xl font-semibold text-slate-800">Batch {{ sub_tag.batch.id }} – Sub QR: {{ sub_tag.tag_type }}</h2>
   </div>
 
-  <!-- Glass Form Card -->
+  <!-- Glass Form -->
   <div class="max-w-3xl mx-auto bg-white/30 backdrop-blur-xl p-6 sm:p-8 rounded-2xl shadow-lg">
 
     <form method="POST">
-      
-      <!-- Select Needle -->
-      <h3 class="text-base sm:text-lg font-semibold text-slate-800 mb-3">Select Needle Number</h3>
-      <div class="grid grid-cols-5 gap-4 sm:gap-6 mb-6">
+
+      <!-- Needle Grid -->
+      <h3 class="text-base font-semibold text-slate-800 mb-3">Select Needle Number</h3>
+      <div class="grid grid-cols-5 gap-4 mb-6 justify-items-center">
         {% for i in range(1, 16) %}
           {% set log = last_change_dict.get(i) %}
           {% set is_stale = log and (now - log.timestamp).days > 10 %}
-          <div class="flex flex-col items-center text-center cursor-pointer rounded-full p-2 w-16 h-32 transition 
-                      border-2 
-                      {% if is_stale %}bg-yellow-100 border-yellow-400 text-yellow-900
-                      {% else %}bg-white/70 border-slate-400 text-slate-800
-                      {% endif %}" 
-               data-id="{{ i }}" onclick="selectNeedle(this)">
-            <div class="font-bold text-lg">{{ i }}</div>
+          <div class="needle-shape {% if is_stale %}needle-stale{% endif %}" data-id="{{ i }}" onclick="selectNeedle(this)">
+            <div class="text-lg">{{ i }}</div>
             {% if log %}
-              <div class="text-xs mt-1 leading-tight">{{ log.timestamp.strftime('%d') }}<br>{{ log.timestamp.strftime('%b') }}</div>
+              <div class="text-xs mt-1">{{ log.timestamp.strftime('%d') }}<br>{{ log.timestamp.strftime('%b') }}</div>
             {% endif %}
           </div>
         {% endfor %}
       </div>
-      <input type="hidden" name="needle_number" id="needle_number" required>
 
-      <!-- Select Type -->
-      <h3 class="text-base sm:text-lg font-semibold text-slate-800 mb-3">Select Needle Type</h3>
+      <input type="hidden" name="needle_number" id="needle_number" required />
+
+      <!-- Type Selector -->
+      <h3 class="text-base font-semibold text-slate-800 mb-3">Select Needle Type</h3>
       <div class="flex justify-center gap-6 mb-6">
-        <button type="button" class="type-btn w-20 h-10 bg-white/60 border-2 border-slate-500 rounded-xl font-bold text-slate-700"
-                data-type="11" onclick="selectType(this)">11</button>
-        <button type="button" class="type-btn w-20 h-10 bg-white/60 border-2 border-slate-500 rounded-xl font-bold text-slate-700"
-                data-type="12" onclick="selectType(this)">12</button>
+        <button type="button" class="type-btn px-5 py-2 border-2 border-slate-400 rounded-xl font-semibold text-slate-700 bg-white/60" data-type="11" onclick="selectType(this)">11</button>
+        <button type="button" class="type-btn px-5 py-2 border-2 border-slate-400 rounded-xl font-semibold text-slate-700 bg-white/60" data-type="12" onclick="selectType(this)">12</button>
       </div>
-      <input type="hidden" name="needle_type" id="needle_type" required>
+
+      <input type="hidden" name="needle_type" id="needle_type" required />
 
       <button type="submit"
               class="w-full bg-slate-800 hover:bg-slate-900 text-white font-semibold py-2 rounded-xl shadow transition">
@@ -62,29 +77,22 @@
       </button>
     </form>
 
-    <!-- Log Display -->
+    <!-- Logs -->
     <div class="mt-10">
-      <h3 class="text-base sm:text-lg font-semibold text-slate-800 mb-3">Latest Changes:</h3>
+      <h3 class="text-base font-semibold text-slate-800 mb-3">Latest Changes:</h3>
       <ul class="space-y-2">
         {% for needle in range(1, 16) %}
-          <li class="p-3 rounded-lg text-sm shadow-sm
-                     {% if last_change_dict.get(needle) %}
-                       {% set log = last_change_dict.get(needle) %}
-                       {% set days_old = (now - log.timestamp).days %}
-                       {% if days_old > 10 %}
-                         bg-yellow-100 text-yellow-900
-                       {% else %}
-                         bg-white/50 text-slate-800
-                       {% endif %}
-                     {% else %}
-                       bg-white/40 text-slate-500
-                     {% endif %}">
-            {% if last_change_dict.get(needle) %}
+          {% set log = last_change_dict.get(needle) %}
+          {% if log %}
+            {% set days_old = (now - log.timestamp).days %}
+            <li class="p-3 rounded-xl text-sm shadow-sm {{ 'bg-yellow-100 text-yellow-900' if days_old > 10 else 'bg-white/50 text-slate-800' }}">
               Needle {{ needle }} (Type {{ log.needle_type }}) – {{ log.timestamp.strftime('%d %b %Y') }}
-            {% else %}
+            </li>
+          {% else %}
+            <li class="p-3 rounded-xl text-sm shadow-sm bg-white/40 text-slate-500">
               Needle {{ needle }} – No data available
-            {% endif %}
-          </li>
+            </li>
+          {% endif %}
         {% endfor %}
       </ul>
     </div>
@@ -93,15 +101,15 @@
   <!-- Script -->
   <script>
     function selectNeedle(elem) {
-      document.querySelectorAll('.needle-selected').forEach(e => e.classList.remove('needle-selected'));
-      elem.classList.add('ring-4', 'ring-green-400', 'needle-selected');
+      document.querySelectorAll('.needle-shape').forEach(e => e.classList.remove('needle-selected'));
+      elem.classList.add('needle-selected');
       document.getElementById('needle_number').value = elem.dataset.id;
     }
 
-    function selectType(elem) {
+    function selectType(btn) {
       document.querySelectorAll('.type-btn').forEach(e => e.classList.remove('bg-green-500', 'text-white', 'border-green-600'));
-      elem.classList.add('bg-green-500', 'text-white', 'border-green-600');
-      document.getElementById('needle_type').value = elem.dataset.type;
+      btn.classList.add('bg-green-500', 'text-white', 'border-green-600');
+      document.getElementById('needle_type').value = btn.dataset.type;
     }
   </script>
 
