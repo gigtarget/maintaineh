@@ -10,6 +10,7 @@
 
   <div class="bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl shadow-xl w-full max-w-sm p-6 sm:p-8">
     
+    <!-- Logo and Title -->
     <div class="text-center mb-4">
       <img src="{{ url_for('static', filename='logo/logo.svg') }}"
            alt="Logo"
@@ -17,12 +18,14 @@
       <h2 class="text-2xl font-semibold text-slate-800 mt-4">Sign In</h2>
     </div>
 
+    <!-- Flash Messages -->
     {% with messages = get_flashed_messages(with_categories=true) %}
       {% for category, message in messages %}
         <div class="text-sm text-red-600 mb-4 text-center">{{ message }}</div>
       {% endfor %}
     {% endwith %}
 
+    <!-- Login Form -->
     <form method="POST" class="mt-4 space-y-4">
       <div>
         <label class="block text-sm font-medium text-slate-600 mb-1">Email</label>
@@ -42,15 +45,24 @@
       </button>
     </form>
 
+    <!-- Signup Link -->
     <p class="text-sm text-center mt-6 text-slate-600">
       New user?
       <a href="{{ url_for('routes.user_signup') }}" class="text-blue-600 hover:underline">Sign up here</a>
     </p>
 
-    <p class="text-xs mt-6 text-center text-slate-600 bg-yellow-50 border border-yellow-300 rounded-xl px-4 py-3">
-      <strong>How to claim your machine:</strong><br>
-      1️⃣ Sign up first → 2️⃣ Log in to your dashboard → 3️⃣ Scan the Master QR code provided in your shipment to link the tag to your account.
-    </p>
+    <!-- Instruction Box -->
+    <div class="mt-6 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700">
+      <div class="flex items-center mb-1">
+        <span class="text-lg mr-2">🛠️</span>
+        <span class="font-semibold">How to activate your tag</span>
+      </div>
+      <ol class="list-decimal list-inside pl-2 space-y-1 text-xs mt-1">
+        <li>1️⃣ Create your account</li>
+        <li>2️⃣ Log in to your dashboard</li>
+        <li>3️⃣ Scan the Master QR code included in your shipment to connect the machine to your account.</li>
+      </ol>
+    </div>
   </div>
 
 </body>
