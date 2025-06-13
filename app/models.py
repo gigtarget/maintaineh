@@ -56,3 +56,16 @@ class ServiceLog(db.Model):
     description = db.Column(db.Text)
     warranty_till = db.Column(db.Date)  # instead of db.String or character
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)
+
+class Batch(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    # Link to the user who claimed the batch
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
+    user = db.relationship('User', backref='claimed_batches')
+
+    # One-to-One with machine (optional)
+    machine = db.relationship('Machine', backref='batch', uselist=False)
+
+    qrcodes = db.relationship('QRCode', backref='batch', lazy=True)
