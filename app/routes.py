@@ -148,7 +148,7 @@ def user_settings():
         flash("Settings updated successfully.", "success")
         return redirect(url_for("routes.user_settings"))
 
-    return render_template("settings.html")
+    return render_template("user_settings.html")
 
 @routes.route("/signup", methods=["GET", "POST"], endpoint="user_signup")
 def user_signup():
