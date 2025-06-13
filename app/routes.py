@@ -130,6 +130,26 @@ def claim_batch(batch_id):
 
     return redirect(url_for("routes.user_dashboard"))
 
+@routes.route("/settings", methods=["GET", "POST"])
+@login_required
+def user_settings():
+    if request.method == "POST":
+        email = request.form.get("email")
+        default_machine_name = request.form.get("default_machine_name")
+        default_machine_location = request.form.get("default_machine_location")
+
+        if email and email != current_user.email:
+            current_user.email = email
+
+        current_user.default_machine_name = default_machine_name
+        current_user.default_machine_location = default_machine_location
+
+        db.session.commit()
+        flash("Settings updated successfully.", "success")
+        return redirect(url_for("routes.user_settings"))
+
+    return render_template("settings.html")
+
 @routes.route("/signup", methods=["GET", "POST"], endpoint="user_signup")
 def user_signup():
     if request.method == "POST":
@@ -221,7 +241,6 @@ def admin_dashboard():
     total_batches = len(batches)
     total_qrcodes = QRCode.query.count()
 
-    # Attach qrcodes, user, machine info to each batch
     for batch in batches:
         batch.qrcodes = QRCode.query.filter_by(batch_id=batch.id).all()
         batch.user = User.query.filter_by(id=batch.owner_id).first()
