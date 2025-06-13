@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, redirect, url_for, flash, request, send_file, session
+from flask import Blueprint, render_template, redirect, url_for, flash, request, send_file, session, abort
 from flask_login import login_user, logout_user, login_required, current_user
 from app.models import User, QRBatch, QRCode, Machine, QRTag, NeedleChange, ServiceLog
 from app.utils import generate_and_store_qr_batch
@@ -10,11 +10,9 @@ import requests
 
 routes = Blueprint("routes", __name__)
 
-
 @routes.route("/")
 def home():
     return render_template("index.html")
-
 
 @routes.route("/scan/master/<int:batch_id>")
 def scan_master(batch_id):
@@ -23,7 +21,6 @@ def scan_master(batch_id):
         return redirect(url_for("routes.user_login", next=url_for("routes.claim_batch", batch_id=batch_id)))
     return redirect(url_for("routes.claim_batch", batch_id=batch_id))
 
-
 @routes.route("/scan/sub/<int:sub_tag_id>")
 def scan_sub(sub_tag_id):
     if not current_user.is_authenticated:
@@ -31,19 +28,16 @@ def scan_sub(sub_tag_id):
         return redirect(url_for("routes.user_login", next=url_for("routes.sub_tag_options", sub_tag_id=sub_tag_id)))
     return redirect(url_for("routes.sub_tag_options", sub_tag_id=sub_tag_id))
 
-
 @routes.route("/sub/<int:sub_tag_id>/choose")
 @login_required
 def sub_tag_options(sub_tag_id):
     sub_tag = QRTag.query.get_or_404(sub_tag_id)
     return render_template("sub_options.html", sub_tag=sub_tag)
 
-
 @routes.route("/sub/<int:sub_tag_id>/needle-change", methods=["GET", "POST"])
 @login_required
 def sub_tag_view(sub_tag_id):
     sub_tag = QRTag.query.get_or_404(sub_tag_id)
-
     if not sub_tag.tag_type.startswith("sub"):
         flash("Invalid QR Tag. Only Sub QR tags represent machine heads.", "danger")
         return redirect(url_for("routes.user_dashboard"))
@@ -72,12 +66,10 @@ def sub_tag_view(sub_tag_id):
 
     return render_template("sub_tag_view.html", sub_tag=sub_tag, last_change_dict=last_change_dict, now=datetime.utcnow().date())
 
-
 @routes.route("/sub/<int:sub_tag_id>/service-log", methods=["GET", "POST"])
 @login_required
 def sub_tag_service_log(sub_tag_id):
     sub_tag = QRTag.query.get_or_404(sub_tag_id)
-
     if not sub_tag.tag_type.startswith("sub"):
         flash("Invalid QR Tag for service logging.", "danger")
         return redirect(url_for("routes.user_dashboard"))
@@ -114,7 +106,6 @@ def sub_tag_service_log(sub_tag_id):
     service_logs = ServiceLog.query.filter_by(sub_tag_id=sub_tag.id).order_by(ServiceLog.timestamp.desc()).all()
     return render_template("sub_service_log.html", sub_tag=sub_tag, logs=service_logs, now=datetime.utcnow().date())
 
-
 @routes.route("/claim/<int:batch_id>")
 @login_required
 def claim_batch(batch_id):
@@ -139,7 +130,6 @@ def claim_batch(batch_id):
 
     return redirect(url_for("routes.user_dashboard"))
 
-
 @routes.route("/signup", methods=["GET", "POST"], endpoint="user_signup")
 def user_signup():
     if request.method == "POST":
@@ -157,7 +147,6 @@ def user_signup():
         return redirect(url_for("routes.user_login"))
     return render_template("signup.html")
 
-
 @routes.route("/login", methods=["GET", "POST"], endpoint="user_login")
 def user_login():
     next_url = request.args.get('next')
@@ -172,7 +161,6 @@ def user_login():
         else:
             flash("Invalid credentials", "danger")
     return render_template("login.html", next=next_url)
-
 
 @routes.route("/user/dashboard", methods=["GET", "POST"])
 @login_required
@@ -210,7 +198,6 @@ def user_dashboard():
 
     return render_template("user_dashboard.html", batches=batch_data)
 
-
 @routes.route("/admin/login", methods=["GET", "POST"], endpoint="admin_login")
 def admin_login():
     if request.method == "POST":
@@ -224,7 +211,6 @@ def admin_login():
             flash("Invalid credentials", "danger")
     return render_template("admin_login.html")
 
-
 @routes.route("/admin/dashboard")
 @login_required
 def admin_dashboard():
@@ -235,8 +221,10 @@ def admin_dashboard():
     for batch in batches:
         batch.qrcodes = QRCode.query.filter_by(batch_id=batch.id).all()
 
-    return render_template("admin_dashboard.html", batches=batches)
+    total_batches = QRBatch.query.count()
+    total_qrcodes = QRCode.query.count()
 
+    return render_template("admin_dashboard.html", batches=batches, total_batches=total_batches, total_qrcodes=total_qrcodes)
 
 @routes.route("/admin/create-batch")
 @login_required
@@ -245,7 +233,6 @@ def create_batch():
         return redirect(url_for("routes.admin_login"))
     batch_id = generate_and_store_qr_batch()
     return redirect(url_for("routes.admin_dashboard"))
-
 
 @routes.route("/admin/download-batch/<int:batch_id>")
 @login_required
@@ -269,6 +256,22 @@ def download_batch(batch_id):
         download_name=f"batch_{batch_id}.zip"
     )
 
+@routes.route("/admin/delete-batch/<int:batch_id>", methods=["POST"])
+@login_required
+def delete_batch(batch_id):
+    if current_user.role != "admin":
+        return redirect(url_for("routes.admin_login"))
+
+    batch = QRBatch.query.get_or_404(batch_id)
+
+    QRCode.query.filter_by(batch_id=batch.id).delete()
+    QRTag.query.filter_by(batch_id=batch.id).delete()
+    Machine.query.filter_by(batch_id=batch.id).delete()
+    db.session.delete(batch)
+    db.session.commit()
+
+    flash(f"Batch #{batch_id} deleted successfully.", "success")
+    return redirect(url_for("routes.admin_dashboard"))
 
 @routes.route("/logout")
 def logout():
