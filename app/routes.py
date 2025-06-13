@@ -136,22 +136,31 @@ def user_settings():
     if request.method == "POST":
         email = request.form.get("email")
         password = request.form.get("password")
-        default_machine_name = request.form.get("default_machine_name")
-        default_machine_location = request.form.get("default_machine_location")
+        new_name = request.form.get("default_machine_name")
+        new_type = request.form.get("default_machine_location")
 
+        # Update email or password
         if email and email != current_user.email:
             current_user.email = email
         if password:
             current_user.password = password
-        current_user.default_machine_name = default_machine_name
-        current_user.default_machine_location = default_machine_location
+
+        # Update all user's claimed machines
+        claimed_batches = QRBatch.query.filter_by(owner_id=current_user.id).all()
+        for batch in claimed_batches:
+            machine = Machine.query.filter_by(batch_id=batch.id).first()
+            if machine:
+                if new_name:
+                    machine.name = new_name
+                if new_type:
+                    machine.type = new_type
 
         db.session.commit()
-        flash("Settings updated successfully.", "success")
+        flash("✅ Settings and machine info updated successfully.", "success")
         return redirect(url_for("routes.user_settings"))
 
     return render_template("user_settings.html")
-
+    
 @routes.route("/signup", methods=["GET", "POST"], endpoint="user_signup")
 def user_signup():
     if request.method == "POST":
