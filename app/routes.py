@@ -218,11 +218,14 @@ def admin_dashboard():
         return redirect(url_for("routes.admin_login"))
 
     batches = QRBatch.query.order_by(QRBatch.created_at.desc()).all()
+    total_batches = len(batches)
+    total_qrcodes = QRCode.query.count()
+
+    # Attach qrcodes, user, machine info to each batch
     for batch in batches:
         batch.qrcodes = QRCode.query.filter_by(batch_id=batch.id).all()
-
-    total_batches = QRBatch.query.count()
-    total_qrcodes = QRCode.query.count()
+        batch.user = User.query.filter_by(id=batch.owner_id).first()
+        batch.machine = Machine.query.filter_by(batch_id=batch.id).first()
 
     return render_template("admin_dashboard.html", batches=batches, total_batches=total_batches, total_qrcodes=total_qrcodes)
 
