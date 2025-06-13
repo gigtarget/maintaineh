@@ -136,24 +136,18 @@ def user_settings():
     if request.method == "POST":
         email = request.form.get("email")
         password = request.form.get("password")
-        machine_name = request.form.get("machine_name")
-        location = request.form.get("location")
+        default_machine_name = request.form.get("default_machine_name")
+        default_machine_location = request.form.get("default_machine_location")
 
         if email and email != current_user.email:
-            if User.query.filter_by(email=email).first():
-                flash("Email already in use.", "danger")
-            else:
-                current_user.email = email
-                flash("Email updated.", "success")
-
+            current_user.email = email
         if password:
             current_user.password = password
-            flash("Password updated.", "success")
+        current_user.default_machine_name = default_machine_name
+        current_user.default_machine_location = default_machine_location
 
-        current_user.default_machine_name = machine_name
-        current_user.default_machine_location = location
         db.session.commit()
-
+        flash("Settings updated successfully.", "success")
         return redirect(url_for("routes.user_settings"))
 
     return render_template("user_settings.html")
