@@ -192,17 +192,21 @@ def user_dashboard():
 
     if request.method == "POST":
         batch_id = request.form.get("batch_id")
-        name = request.form.get("name")
-        mtype = request.form.get("type")
+
+        # Use default settings if machine name/type are not explicitly provided in form
+        name = request.form.get("name") or current_user.default_machine_name or "Unnamed Machine"
+        mtype = request.form.get("type") or current_user.default_machine_location or "General"
 
         existing = Machine.query.filter_by(batch_id=batch_id).first()
         if existing:
-            flash("A machine is already assigned to this batch.", "danger")
+            existing.name = name
+            existing.type = mtype
+            flash("Machine updated with your preferences.", "success")
         else:
             machine = Machine(batch_id=batch_id, name=name, type=mtype)
             db.session.add(machine)
-            db.session.commit()
             flash("Machine added successfully.", "success")
+        db.session.commit()
 
     user_batches = QRBatch.query.filter_by(owner_id=current_user.id).all()
     batch_data = []
