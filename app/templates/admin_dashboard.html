@@ -38,7 +38,6 @@
       <p class="text-sm uppercase tracking-wide text-slate-500 mb-1">Total Batches</p>
       <p class="text-3xl font-bold">{{ total_batches }}</p>
     </div>
-
     <div class="bg-white/30 backdrop-blur-lg border border-white/20 rounded-xl p-6 text-center">
       <p class="text-sm uppercase tracking-wide text-slate-500 mb-1">QR Codes Generated</p>
       <p class="text-3xl font-bold">{{ total_qrcodes }}</p>
@@ -48,20 +47,19 @@
   <!-- batches list -->
   <div class="max-w-6xl mx-auto space-y-8">
     {% for item in batches %}
-      {% set b = item.batch %}
       <div class="bg-white/30 backdrop-blur-lg border border-white/20 rounded-2xl shadow-lg p-6">
         <!-- header row -->
         <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-4">
           <h2 class="text-lg font-semibold">
-            Batch #{{ b.id }} · {{ b.created_at.strftime('%Y-%m-%d %H:%M') }}
+            Batch #{{ item.id }} · {{ item.created_at.strftime('%Y-%m-%d %H:%M') }}
           </h2>
           <div class="flex gap-3 flex-wrap">
-            <a href="{{ url_for('routes.download_batch', batch_id=b.id) }}"
+            <a href="{{ url_for('routes.download_batch', batch_id=item.id) }}"
                class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm">
               ⬇️ Download ZIP
             </a>
-            <form action="{{ url_for('routes.delete_batch', batch_id=b.id) }}" method="POST"
-                  onsubmit="return confirm('Delete batch #{{ b.id }}? This cannot be undone!');">
+            <form action="{{ url_for('routes.delete_batch', batch_id=item.id) }}" method="POST"
+                  onsubmit="return confirm('Delete batch #{{ item.id }}? This cannot be undone!');">
               <button type="submit"
                       class="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-xl text-sm">
                 🗑️ Delete
