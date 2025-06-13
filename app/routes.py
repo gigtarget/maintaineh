@@ -134,32 +134,30 @@ def claim_batch(batch_id):
 @login_required
 def user_settings():
     if request.method == "POST":
-        email = request.form.get("email")
-        password = request.form.get("password")
-        new_name = request.form.get("default_machine_name")
-        new_type = request.form.get("default_machine_location")
+        machine_id = request.form.get("machine_id")
+        new_name = request.form.get("machine_name")
+        new_type = request.form.get("machine_type")
 
-        # Update email or password
-        if email and email != current_user.email:
-            current_user.email = email
-        if password:
-            current_user.password = password
+        machine = Machine.query.filter_by(id=machine_id).first()
+        if machine and machine.batch.owner_id == current_user.id:
+            machine.name = new_name
+            machine.type = new_type
+            db.session.commit()
+            flash(f"Updated machine #{machine_id} successfully.", "success")
+        else:
+            flash("Machine update failed.", "danger")
 
-        # Update all user's claimed machines
-        claimed_batches = QRBatch.query.filter_by(owner_id=current_user.id).all()
-        for batch in claimed_batches:
-            machine = Machine.query.filter_by(batch_id=batch.id).first()
-            if machine:
-                if new_name:
-                    machine.name = new_name
-                if new_type:
-                    machine.type = new_type
-
-        db.session.commit()
-        flash("✅ Settings and machine info updated successfully.", "success")
         return redirect(url_for("routes.user_settings"))
 
-    return render_template("user_settings.html")
+    # Get all machines linked to the user’s batches
+    user_batches = QRBatch.query.filter_by(owner_id=current_user.id).all()
+    machines = []
+    for batch in user_batches:
+        m = Machine.query.filter_by(batch_id=batch.id).first()
+        if m:
+            machines.append(m)
+
+    return render_template("user_settings.html", machines=machines)
     
 @routes.route("/signup", methods=["GET", "POST"], endpoint="user_signup")
 def user_signup():
