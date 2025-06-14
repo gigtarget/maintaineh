@@ -138,16 +138,25 @@ def user_settings():
         new_name = request.form.get("machine_name")
         new_type = request.form.get("machine_type")
 
-        machine = Machine.query.filter_by(id=machine_id).first()
+        machine = Machine.query.get(machine_id)
         if machine and machine.batch.owner_id == current_user.id:
             machine.name = new_name
             machine.type = new_type
             db.session.commit()
-            flash(f"Updated machine #{machine_id} successfully.", "success")
+            flash(f"Updated machine '{new_name}' successfully.", "success")
         else:
-            flash("Machine update failed.", "danger")
-
+            flash("Machine update failed. You may not own this machine.", "danger")
         return redirect(url_for("routes.user_settings"))
+
+    # Fetch all batches claimed by current user
+    user_batches = QRBatch.query.filter_by(owner_id=current_user.id).all()
+    machines = []
+    for batch in user_batches:
+        batch_machines = Machine.query.filter_by(batch_id=batch.id).all()
+        machines.extend(batch_machines)
+
+    return render_template("user_settings.html", machines=machines)
+
 
     # Get all machines linked to the user’s batches
     user_batches = QRBatch.query.filter_by(owner_id=current_user.id).all()
