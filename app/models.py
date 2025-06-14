@@ -66,11 +66,12 @@ class Machine(db.Model):
 
 class SubUser(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(120))
     static_id = db.Column(db.String(10), unique=True)
-    machine_id = db.Column(db.Integer, db.ForeignKey('machine.id'))
-    parent_id = db.Column(db.Integer, db.ForeignKey('user.id'))  # renamed
+    name = db.Column(db.String(120))
+    parent_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    assigned_machine_id = db.Column(db.Integer, db.ForeignKey('machine.id'))
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
 
 class ServiceLog(db.Model):
     __tablename__ = 'servicelog'
