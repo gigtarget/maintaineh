@@ -6,71 +6,60 @@ from PIL import Image, ImageDraw, ImageFont
 from app import db
 from app.models import QRBatch, QRCode, QRTag
 
-# ✅ Updated domain
 BASE_URL = "https://www.tokatap.com"
 
-# ✅ Cloudinary setup
 cloudinary.config(
     cloud_name=os.getenv("CLOUDINARY_CLOUD_NAME"),
     api_key=os.getenv("CLOUDINARY_API_KEY"),
     api_secret=os.getenv("CLOUDINARY_API_SECRET")
 )
+
 def generate_custom_qr_image(data, tag_type, logo_path='app/static/logo/qr code logo.jpg'):
     img_width, img_height = 800, 1200
     base = Image.new('RGBA', (img_width, img_height), (255, 255, 255, 0))
 
-    # Rounded rectangle
+    # ✅ Rounded white card background
     card = Image.new('RGB', (img_width, img_height), 'white')
-    corner_radius = 40
     mask = Image.new('L', (img_width, img_height), 0)
     draw_mask = ImageDraw.Draw(mask)
-    draw_mask.rounded_rectangle([0, 0, img_width, img_height], radius=corner_radius, fill=255)
+    draw_mask.rounded_rectangle([0, 0, img_width, img_height], radius=40, fill=255)
     card.putalpha(mask)
     base.paste(card, (0, 0), mask)
 
     draw = ImageDraw.Draw(base)
 
-    # QR Code
-    qr = qrcode.QRCode(
-        version=2,
-        error_correction=qrcode.constants.ERROR_CORRECT_H,
-        box_size=10,
-        border=4
-    )
+    # ✅ QR Code with central hole
+    qr = qrcode.QRCode(version=2, error_correction=qrcode.constants.ERROR_CORRECT_H, box_size=10, border=4)
     qr.add_data(data)
     qr.make(fit=True)
     qr_img = qr.make_image(fill_color="black", back_color="white").convert('RGB')
     qr_img = qr_img.resize((600, 600))
 
-    # Circle hole
     qr_mask = Image.new('L', qr_img.size, 255)
     draw_qr_mask = ImageDraw.Draw(qr_mask)
-    cx, cy, r = qr_img.size[0] // 2, qr_img.size[1] // 2, 120
+    cx, cy, r = qr_img.size[0] // 2, qr_img.size[1] // 2, 150  # ⬅️ same as HTML
     draw_qr_mask.ellipse((cx - r, cy - r, cx + r, cy + r), fill=0)
     qr_img.putalpha(qr_mask)
 
     base.paste(qr_img, ((img_width - 600) // 2, 60), qr_img)
 
-    # Tag Text
+    # ✅ Tag type (larger font, bold)
     try:
         font = ImageFont.truetype("arial.ttf", 64)
     except:
         font = ImageFont.load_default()
-
     text = tag_type.upper()
     bbox = font.getbbox(text)
-    w, h = bbox[2] - bbox[0], bbox[3] - bbox[1]
+    w = bbox[2] - bbox[0]
     draw.text(((img_width - w) // 2, 700), text, font=font, fill="black")
 
-    # Logo
+    # ✅ Logo as box image
     try:
         logo_img = Image.open(logo_path).convert("RGBA")
-        logo_img.thumbnail((240, 240))
+        logo_img.thumbnail((260, 60))  # ⬅️ logo box
         base.paste(logo_img, ((img_width - logo_img.width) // 2, 800), logo_img)
     except Exception as e:
         print(f"❌ Logo error: {e}")
-
-    # 👇 Slogan REMOVED completely
 
     return base.convert("RGB")
 
