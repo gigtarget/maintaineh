@@ -239,7 +239,6 @@ def user_dashboard():
 
     if request.method == "POST":
         batch_id = request.form.get("batch_id")
-
         name = request.form.get("name") or current_user.default_machine_name or "Unnamed Machine"
         mtype = request.form.get("type") or current_user.default_machine_location or "General"
 
@@ -346,14 +345,23 @@ def create_subuser():
     machines = Machine.query.join(QRBatch).filter(QRBatch.owner_id == current_user.id).all()
 
     if request.method == "POST":
-        name = request.form.get("name")
+        name = request.form.get("name", "").strip()
         machine_id = request.form.get("machine_id")
 
-        if not machine_id:
-            flash("Please select a machine to assign.", "danger")
+        if not name or not machine_id:
+            flash("Please provide both sub-user name and machine.", "danger")
             return redirect(url_for("routes.create_subuser"))
 
-        # Generate a unique static 7-digit subuser code
+        # Check for duplicate
+        existing = SubUser.query.filter_by(
+            parent_id=current_user.id,
+            name=name,
+            assigned_machine_id=machine_id
+        ).first()
+        if existing:
+            flash(f"Sub-user already exists for this machine. Code: {existing.static_id}", "info")
+            return redirect(url_for("routes.user_dashboard"))
+
         while True:
             static_id = ''.join(random.choices(string.digits, k=7))
             if not SubUser.query.filter_by(static_id=static_id).first():
@@ -367,10 +375,11 @@ def create_subuser():
         )
         db.session.add(sub)
         db.session.commit()
-        flash(f"Sub-user created successfully! Their login code is {static_id}", "success")
+        flash(f"✅ Sub-user created successfully! Code: {static_id}", "success")
         return redirect(url_for("routes.user_dashboard"))
 
     return render_template("create_subuser.html", machines=machines)
+
 
 # ---- Sub-User Login ----
 @routes.route("/subuser/login", methods=["GET", "POST"])
