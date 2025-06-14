@@ -1,1 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Machine Overview</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gradient-to-br from-blue-50 to-white min-h-screen text-gray-800 p-6">
 
+  <!-- Header -->
+  <div class="max-w-3xl mx-auto mb-6">
+    <a href="{{ url_for('routes.user_dashboard') }}" class="text-blue-600 hover:underline text-sm">← Back to Dashboard</a>
+    <h1 class="text-3xl font-bold mt-2 mb-2">🖥️ Machine Overview</h1>
+    <p class="text-slate-600">Detailed performance and maintenance logs</p>
+  </div>
+
+  <!-- Machine Info -->
+  <div class="max-w-3xl mx-auto bg-white/80 backdrop-blur-md shadow rounded-xl p-6 border border-slate-200 mb-6">
+    <h2 class="text-xl font-semibold text-slate-800 mb-4">Machine Details</h2>
+    <ul class="text-sm space-y-2 text-slate-700">
+      <li><strong>Name:</strong> {{ machine.name or "N/A" }}</li>
+      <li><strong>Type:</strong> {{ machine.type or "N/A" }}</li>
+      <li><strong>Batch ID:</strong> {{ batch.id }}</li>
+      <li><strong>Claimed On:</strong> {{ batch.created_at.strftime('%Y-%m-%d') }}</li>
+      <li>
+        <strong>Assigned Sub-Users:</strong>
+        {% if subusers %}
+          <ul class="list-disc pl-5">
+            {% for s in subusers %}
+              <li>{{ s.name }} – <code class="text-blue-700">{{ s.static_id }}</code></li>
+            {% endfor %}
+          </ul>
+        {% else %}
+          N/A
+        {% endif %}
+      </li>
+      <li><strong>Number of Sub QR Heads:</strong> {{ tags|length }}</li>
+      <li><strong>Total Needle Changes:</strong> {{ needle_logs|length }}</li>
+      <li><strong>Total Service Logs:</strong> {{ service_logs|length }}</li>
+    </ul>
+  </div>
+
+  <!-- Last Activity -->
+  <div class="max-w-3xl mx-auto bg-white/80 backdrop-blur-md shadow rounded-xl p-6 border border-slate-200 mb-6">
+    <h2 class="text-xl font-semibold text-slate-800 mb-4">🧰 Latest Activity Summary</h2>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-slate-700">
+
+      <!-- Last Needle -->
+      <div class="bg-slate-100 p-4 rounded-lg border border-slate-200">
+        <h3 class="font-semibold text-slate-800 mb-2">Last Needle Change</h3>
+        {% if last_needle %}
+          <p><strong>Date:</strong> {{ last_needle.timestamp.strftime('%Y-%m-%d') }}</p>
+          <p><strong>Head:</strong> Sub{{ last_needle.sub_tag.tag_type[3:] }}</p>
+          <p><strong>Needle #:</strong> {{ last_needle.needle_number }}</p>
+          <p><strong>Type:</strong> {{ last_needle.needle_type }}</p>
+        {% else %}
+          <p>No needle changes recorded.</p>
+        {% endif %}
+      </div>
+
+      <!-- Last Service -->
+      <div class="bg-slate-100 p-4 rounded-lg border border-slate-200">
+        <h3 class="font-semibold text-slate-800 mb-2">Last Service Log</h3>
+        {% if last_service %}
+          <p><strong>Part:</strong> {{ last_service.part_name }}</p>
+          <p><strong>Description:</strong> {{ last_service.description }}</p>
+          <p><strong>Warranty Till:</strong>
+            {{ last_service.warranty_till }}
+            {% if last_service.warranty_till < now %}
+              <span class="text-red-600 ml-2">⚠️ Expired</span>
+            {% else %}
+              <span class="text-green-600 ml-2">✔️ OK</span>
+            {% endif %}
+          </p>
+          <p><strong>Logged On:</strong> {{ last_service.timestamp.strftime('%Y-%m-%d') }}</p>
+        {% else %}
+          <p>No service logs recorded.</p>
+        {% endif %}
+      </div>
+
+    </div>
+  </div>
+
+</body>
+</html>
