@@ -189,17 +189,28 @@ def user_signup():
     if request.method == "POST":
         email = request.form["email"]
         password = request.form["password"]
+        name = request.form["name"]
+        company_name = request.form.get("company_name")
+
         existing_user = User.query.filter_by(email=email).first()
         if existing_user:
             flash("Email already registered", "danger")
             return redirect(url_for("routes.user_signup"))
 
-        new_user = User(email=email, password=password, role="user")
+        new_user = User(
+            email=email,
+            password=password,  # In production, hash this!
+            name=name,
+            company_name=company_name,
+            role="user"
+        )
         db.session.add(new_user)
         db.session.commit()
         flash("Signup successful! Please login.", "success")
         return redirect(url_for("routes.user_login"))
+
     return render_template("signup.html")
+
 
 @routes.route("/login", methods=["GET", "POST"], endpoint="user_login")
 def user_login():
