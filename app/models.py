@@ -61,6 +61,7 @@ class Machine(db.Model):
     batch_id = db.Column(db.Integer, db.ForeignKey("qr_batch.id"), nullable=False)
     name = db.Column(db.String(100))
     type = db.Column(db.String(100))
+    under_maintenance = db.Column(db.Boolean, default=False)  # 🔧 New field
 
 
 class SubUser(db.Model):
