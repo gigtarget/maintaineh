@@ -8,13 +8,11 @@
 <body class="bg-gradient-to-br from-white to-sky-100 min-h-screen text-gray-900 p-6">
   <div class="max-w-5xl mx-auto bg-white rounded-xl shadow-xl p-6 space-y-6">
 
-    <!-- Back Button -->
-    <a href="{{ url_for('routes.user_dashboard') }}" class="inline-block mb-4 text-blue-600 hover:underline">&larr; Back to Dashboard</a>
+    <a href="{{ url_for('routes.user_dashboard') }}" class="inline-block text-blue-600 hover:underline mb-4">&larr; Back to Dashboard</a>
 
-    <!-- Title -->
     <h1 class="text-3xl font-bold mb-6">🖥️ Machine Dashboard</h1>
 
-    <!-- 🖥️ Machine Overview -->
+    <!-- 🧩 Machine Overview -->
     <div class="bg-gray-50 p-4 rounded-md shadow-sm">
       <h2 class="text-xl font-semibold mb-3">🧩 Machine Overview</h2>
       <ul class="space-y-1 text-gray-700">
@@ -23,11 +21,13 @@
         <li><strong>Batch ID:</strong> {{ batch.id }}</li>
         <li><strong>Claimed On:</strong> {{ batch.created_at.date() }}</li>
         <li><strong>Assigned Sub-Users:</strong>
-          {% for sub in subusers %}
-            {{ sub.name }} – {{ sub.static_id }}{% if not loop.last %}, {% endif %}
+          {% if subusers %}
+            {% for sub in subusers %}
+              {{ sub.name }} – {{ sub.static_id }}{% if not loop.last %}, {% endif %}
+            {% endfor %}
           {% else %}
             <span class="italic text-gray-500">N/A</span>
-          {% endfor %}
+          {% endif %}
         </li>
         <li><strong>Total Heads:</strong> {{ grouped_logs|length }}</li>
         <li><strong>Total Needle Changes:</strong> {{ needle_logs|length }}</li>
@@ -35,7 +35,7 @@
       </ul>
     </div>
 
-    <!-- 🧰 Latest Activity Summary -->
+    <!-- Activity Cards -->
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
       <div class="bg-green-50 p-4 rounded-md shadow-sm">
         <h2 class="text-lg font-semibold mb-2">🪡 Last Needle Change</h2>
@@ -45,7 +45,7 @@
           <p><strong>Needle #:</strong> {{ last_needle.needle_number }}</p>
           <p><strong>Type:</strong> {{ last_needle.needle_type }}</p>
         {% else %}
-          <p class="text-gray-500 italic">No needle changes recorded yet.</p>
+          <p class="italic text-gray-500">No needle changes recorded yet.</p>
         {% endif %}
       </div>
       <div class="bg-yellow-50 p-4 rounded-md shadow-sm">
@@ -56,40 +56,40 @@
           <p><strong>Warranty Till:</strong> {{ last_service.warranty_till }}</p>
           <p><strong>Logged On:</strong> {{ last_service.timestamp.date() }}</p>
         {% else %}
-          <p class="text-gray-500 italic">No service logs recorded yet.</p>
+          <p class="italic text-gray-500">No service logs recorded yet.</p>
         {% endif %}
       </div>
     </div>
 
-    <!-- ⚠️ Maintenance & Warranty Status -->
+    <!-- Alerts -->
     <div class="p-4 rounded-md shadow-sm {% if maintenance_ok %}bg-green-100{% else %}bg-red-100{% endif %}">
       <h2 class="text-lg font-semibold mb-2">🛠️ Maintenance Status</h2>
       {% if maintenance_ok %}
-        <p class="text-green-800">✅ All good. No upcoming warranty or service issues.</p>
+        <p class="text-green-800">✅ All systems normal. No maintenance or warranty concerns.</p>
       {% else %}
         <ul class="list-disc list-inside text-red-700">
           {% if warranty_warning %}
-            <li>⚠️ Warranty is expiring soon.</li>
+            <li>⚠️ Warranty for last serviced part <strong>{{ last_service.part_name }}</strong> expires on <strong>{{ last_service.warranty_till }}</strong>.</li>
           {% endif %}
           {% if stale_service_warning %}
-            <li>⚠️ No service logged in the past 60 days.</li>
+            <li>⚠️ No service has been logged in the last 60 days.</li>
           {% endif %}
         </ul>
       {% endif %}
     </div>
 
-    <!-- 🔽 Full Logs by Head -->
+    <!-- Grouped Logs -->
     <div class="bg-white rounded-md border p-4 shadow-sm">
-      <h2 class="text-xl font-semibold mb-4">🔽 Complete Logs (Grouped by Head)</h2>
+      <h2 class="text-xl font-semibold mb-4">📒 Complete Logs (Grouped by Head)</h2>
       {% for group in grouped_logs.values() %}
-        <details class="mb-3 border border-gray-300 rounded p-3 bg-gray-50">
-          <summary class="cursor-pointer font-semibold">🔧 {{ group.tag.tag_code }}</summary>
+        <details class="mb-4 border border-gray-300 rounded p-3 bg-gray-50">
+          <summary class="cursor-pointer font-semibold">🧵 {{ group.tag.tag_code }}</summary>
           <div class="mt-3 text-sm text-gray-700">
             {% if group.needle_logs %}
               <h3 class="font-semibold mb-1 mt-2">🪡 Needle Logs</h3>
               <ul class="list-disc list-inside">
                 {% for log in group.needle_logs %}
-                  <li>{{ log.timestamp.date() }} → Needle #{{ log.needle_number }}, Type {{ log.needle_type }}</li>
+                  <li>{{ log.timestamp.date() }} – Needle #{{ log.needle_number }}, Type {{ log.needle_type }}</li>
                 {% endfor %}
               </ul>
             {% else %}
@@ -100,7 +100,7 @@
               <h3 class="font-semibold mb-1 mt-4">🔧 Service Logs</h3>
               <ul class="list-disc list-inside">
                 {% for log in group.service_logs %}
-                  <li>{{ log.timestamp.date() }} → {{ log.part_name }} ({{ log.description }}) – Warranty till {{ log.warranty_till }}</li>
+                  <li>{{ log.timestamp.date() }} – {{ log.part_name }} ({{ log.description }}) – Warranty till {{ log.warranty_till }}</li>
                 {% endfor %}
               </ul>
             {% else %}
