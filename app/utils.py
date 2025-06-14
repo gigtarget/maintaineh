@@ -57,7 +57,7 @@ def generate_custom_qr_image(data, tag_type, logo_path='app/static/logo/qr code 
     try:
         # Force resize without keeping aspect ratio
         logo_img = Image.open(logo_path).convert("RGBA")
-        logo_img = logo_img.resize((360, 160))  # force size
+        logo_img = logo_img.resize((550, 160))  # force size
         base.paste(logo_img, ((img_width - logo_img.width) // 2, 800), logo_img)
 
     except Exception as e:
