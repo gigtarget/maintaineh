@@ -42,9 +42,10 @@ class QRTag(db.Model):
 
 class QRCode(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    batch_id = db.Column(db.Integer, db.ForeignKey("qr_batch.id"))
-    qr_type = db.Column(db.String(20))
-    image_url = db.Column(db.String(255))
+    batch_id = db.Column(db.Integer, db.ForeignKey('qr_batch.id'))
+    qr_type = db.Column(db.String(50))
+    image_url = db.Column(db.String(500))
+    qr_url = db.Column(db.String(500))  # ✅ This line is required
 
 
 class NeedleChange(db.Model):
