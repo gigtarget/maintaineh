@@ -43,15 +43,18 @@ def generate_custom_qr_image(data, tag_type, logo_path='app/static/logo/qr code 
 
     base.paste(qr_img, ((img_width - 600) // 2, 60), qr_img)
 
-    # ✅ Tag type (larger font, bold)
+    # ✅ Tag type (larger font, bold, custom Agrandir font)
     try:
-        font = ImageFont.truetype("arial.ttf", 64)
-    except:
+        font = ImageFont.truetype("app/fonts/Agrandir.ttf", 64)
+    except Exception as e:
+        print(f"⚠️ Font load failed: {e}")
         font = ImageFont.load_default()
+
     text = tag_type.upper()
     bbox = font.getbbox(text)
     w = bbox[2] - bbox[0]
     draw.text(((img_width - w) // 2, 700), text, font=font, fill="black")
+
 
     # ✅ Logo as box image
     try:
