@@ -6,12 +6,10 @@
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gradient-to-br from-white to-sky-100 min-h-screen text-gray-900 p-6">
-  <div class="max-w-5xl mx-auto bg-white rounded-xl shadow-xl p-6 space-y-6">
+  <div class="max-w-6xl mx-auto bg-white rounded-xl shadow-xl p-6 space-y-6">
 
-    <!-- Back Button -->
     <a href="{{ url_for('routes.user_dashboard') }}" class="inline-block mb-4 text-blue-600 hover:underline">&larr; Back to Dashboard</a>
 
-    <!-- Title -->
     <h1 class="text-3xl font-bold mb-6">🖥️ Machine Dashboard</h1>
 
     <!-- 🧩 Machine Overview -->
@@ -35,7 +33,7 @@
       </ul>
     </div>
 
-    <!-- 🧰 Latest Activity Summary -->
+    <!-- 🧰 Latest Activity -->
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
       <div class="bg-green-50 p-4 rounded-md shadow-sm">
         <h2 class="text-lg font-semibold mb-2">🪡 Last Needle Change</h2>
@@ -78,15 +76,12 @@
       {% endif %}
     </div>
 
-    <!-- 🔽 New Section: Complete Logs Grouped by Machine and Head -->
+    <!-- ✅ Logs Grouped by Heads (Open View) -->
     <div class="bg-white rounded-xl border p-4 shadow-md mt-10">
       <h2 class="text-xl font-bold mb-4">📁 Machine-Wise Logs (Grouped by Heads)</h2>
 
-      <!-- Machine Card -->
       <div class="bg-green-50 border border-green-200 rounded-xl p-4 mb-6 shadow-sm">
-        <h3 class="text-lg font-semibold text-green-900 flex items-center gap-2 mb-2">
-          🖥️ {{ machine.name }} ({{ machine.type }})
-        </h3>
+        <h3 class="text-lg font-semibold text-green-900 mb-2">🖥️ {{ machine.name }} ({{ machine.type }})</h3>
         <p class="text-sm text-gray-700">
           🔧 {{ grouped_logs|length }} Heads |
           🪡 {{ needle_logs|length }} Needle Logs |
@@ -96,41 +91,37 @@
         </p>
       </div>
 
-      <!-- Head Logs -->
-      <div class="space-y-3">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         {% for group in grouped_logs.values() %}
-        <details class="bg-gray-50 border border-gray-200 rounded-md p-3">
-          <summary class="cursor-pointer font-semibold text-gray-800 flex items-center gap-2">
-            🔹 {{ group.tag.tag_code }}
-          </summary>
-          <div class="mt-2 text-sm text-gray-700 space-y-2">
-            {% if group.needle_logs %}
-              <div>
-                <strong>🪡 Needle Logs:</strong>
-                <ul class="list-disc list-inside ml-4">
-                  {% for log in group.needle_logs %}
-                  <li>{{ log.timestamp.date() }} → Needle #{{ log.needle_number }}, Type {{ log.needle_type }}</li>
-                  {% endfor %}
-                </ul>
-              </div>
-            {% else %}
-              <p class="italic text-gray-500">❌ No needle logs for this head.</p>
-            {% endif %}
+        <div class="bg-gray-50 border border-gray-200 rounded-md p-4 shadow-sm">
+          <h4 class="font-semibold text-gray-800 mb-2">🔹 Head: {{ group.tag.tag_code }}</h4>
 
-            {% if group.service_logs %}
-              <div>
-                <strong>🔧 Service Logs:</strong>
-                <ul class="list-disc list-inside ml-4">
-                  {% for log in group.service_logs %}
-                  <li>{{ log.timestamp.date() }} → {{ log.part_name }} ({{ log.description }}) – Warranty till {{ log.warranty_till }}</li>
-                  {% endfor %}
-                </ul>
-              </div>
-            {% else %}
-              <p class="italic text-gray-500">❌ No service logs for this head.</p>
-            {% endif %}
+          {% if group.needle_logs %}
+          <div class="mb-3">
+            <strong>🪡 Needle Logs:</strong>
+            <ul class="list-disc list-inside text-sm ml-4">
+              {% for log in group.needle_logs %}
+              <li>{{ log.timestamp.date() }} – Needle #{{ log.needle_number }}, Type {{ log.needle_type }}</li>
+              {% endfor %}
+            </ul>
           </div>
-        </details>
+          {% else %}
+          <p class="italic text-gray-500 text-sm mb-3">❌ No needle logs</p>
+          {% endif %}
+
+          {% if group.service_logs %}
+          <div>
+            <strong>🔧 Service Logs:</strong>
+            <ul class="list-disc list-inside text-sm ml-4">
+              {% for log in group.service_logs %}
+              <li>{{ log.timestamp.date() }} – {{ log.part_name }} ({{ log.description }}) – Warranty till {{ log.warranty_till }}</li>
+              {% endfor %}
+            </ul>
+          </div>
+          {% else %}
+          <p class="italic text-gray-500 text-sm">❌ No service logs</p>
+          {% endif %}
+        </div>
         {% endfor %}
       </div>
     </div>
