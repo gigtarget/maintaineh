@@ -504,6 +504,31 @@ def view_machine_dashboard(machine_id):
         last_service=last_service
     )
 
+@routes.route("/machine/<int:machine_id>/dashboard")
+@login_required
+def machine_dashboard(machine_id):
+    machine = Machine.query.get_or_404(machine_id)
+
+    if machine.batch.owner_id != current_user.id:
+        flash("Unauthorized access to machine dashboard.", "danger")
+        return redirect(url_for("routes.user_dashboard"))
+
+    batch = machine.batch
+    subusers = SubUser.query.filter_by(assigned_machine_id=machine.id).all()
+    tags = QRTag.query.filter_by(batch_id=batch.id).filter(QRTag.tag_type.like("sub%")).all()
+    
+    needle_logs = NeedleChange.query.filter_by(batch_id=batch.id).order_by(NeedleChange.timestamp.desc()).all()
+    service_logs = ServiceLog.query.filter_by(batch_id=batch.id).order_by(ServiceLog.timestamp.desc()).all()
+
+    return render_template("machine_dashboard.html",
+        machine=machine,
+        batch=batch,
+        subusers=subusers,
+        tags=tags,
+        needle_logs=needle_logs,
+        service_logs=service_logs
+    )
+
 @routes.route("/logout")
 def logout():
     logout_user()
