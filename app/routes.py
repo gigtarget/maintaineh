@@ -504,78 +504,74 @@ def view_machine_dashboard(machine_id):
         last_service=last_service
     )
 
-@routes.route("/machine/<int:machine_id>/dashboard")
+@routes.route("/machine/dashboard")
 @login_required
-def machine_dashboard(machine_id):
-    machine = Machine.query.get_or_404(machine_id)
-    if machine.batch.owner_id != current_user.id:
+def machine_dashboard():
+    if current_user.role != "user":
         abort(403)
 
-    batch = QRBatch.query.get(machine.batch_id)
-    qr_tags = QRTag.query.filter_by(batch_id=batch.id).all()
-    subusers = SubUser.query.filter_by(assigned_machine_id=machine.id).all()
+    machines = Machine.query.join(QRBatch).filter(QRBatch.owner_id == current_user.id).all()
+    machine_data = []
 
-    needle_logs = NeedleChange.query.filter_by(batch_id=batch.id).order_by(NeedleChange.timestamp.desc()).all()
-    service_logs = ServiceLog.query.filter_by(batch_id=batch.id).order_by(ServiceLog.timestamp.desc()).all()
+    for machine in machines:
+        batch = machine.batch
+        subusers = SubUser.query.filter_by(assigned_machine_id=machine.id).all()
+        qr_tags = QRTag.query.filter_by(batch_id=batch.id).filter(QRTag.tag_type.startswith("sub")).all()
 
-    last_needle = needle_logs[0] if needle_logs else None
-    last_service = service_logs[0] if service_logs else None
+        needle_logs = NeedleChange.query.filter_by(batch_id=batch.id).order_by(NeedleChange.timestamp.desc()).all()
+        service_logs = ServiceLog.query.filter_by(batch_id=batch.id).order_by(ServiceLog.timestamp.desc()).all()
 
-    # Count logs for overview
-    total_needle_changes = len(needle_logs)
-    total_services_logged = len(service_logs)
+        last_needle = needle_logs[0] if needle_logs else None
+        last_service = service_logs[0] if service_logs else None
 
-    # Group logs by sub head tag
-    grouped_logs = {}
-    for tag in qr_tags:
-        if tag.tag_type.startswith("sub"):
-            grouped_logs[tag.id] = {
+        grouped_logs = {}
+        for tag in qr_tags:
+            grouped_logs[tag.tag_code] = {
                 "tag": tag,
                 "needle_logs": [],
                 "service_logs": []
             }
 
-    for nlog in needle_logs:
-        if nlog.sub_tag_id in grouped_logs:
-            grouped_logs[nlog.sub_tag_id]["needle_logs"].append(nlog)
+        for log in needle_logs:
+            tag = QRTag.query.get(log.sub_tag_id)
+            if tag and tag.tag_code in grouped_logs:
+                grouped_logs[tag.tag_code]["needle_logs"].append(log)
 
-    for slog in service_logs:
-        if slog.sub_tag_id in grouped_logs:
-            grouped_logs[slog.sub_tag_id]["service_logs"].append(slog)
+        for log in service_logs:
+            tag = QRTag.query.get(log.sub_tag_id)
+            if tag and tag.tag_code in grouped_logs:
+                grouped_logs[tag.tag_code]["service_logs"].append(log)
 
-    # Maintenance notifications
-    warranty_warning = False
-    stale_service_warning = False
-    maintenance_ok = True
-    warning_part = None
+        # Status warnings
+        warranty_warning = False
+        stale_service_warning = False
+        maintenance_ok = True
 
-    if last_service and last_service.warranty_till:
-        days_left = (last_service.warranty_till - datetime.utcnow().date()).days
-        if days_left < 30:
-            warranty_warning = True
+        if last_service and last_service.warranty_till:
+            days_left = (last_service.warranty_till - datetime.utcnow().date()).days
+            if days_left < 30:
+                warranty_warning = True
+                maintenance_ok = False
+
+        if last_service and (datetime.utcnow() - last_service.timestamp).days > 60:
+            stale_service_warning = True
             maintenance_ok = False
-            warning_part = last_service.part_name
 
-    if last_service and (datetime.utcnow() - last_service.timestamp).days > 60:
-        stale_service_warning = True
-        maintenance_ok = False
+        machine_data.append({
+            "machine": machine,
+            "batch": batch,
+            "subusers": subusers,
+            "last_needle": last_needle,
+            "last_service": last_service,
+            "grouped_logs": grouped_logs,
+            "total_needle_changes": len(needle_logs),
+            "total_services_logged": len(service_logs),
+            "maintenance_ok": maintenance_ok,
+            "warranty_warning": warranty_warning,
+            "stale_service_warning": stale_service_warning
+        })
 
-    return render_template(
-        "machine_dashboard.html",
-        machine=machine,
-        batch=batch,
-        qr_tags=qr_tags,
-        subusers=subusers,
-        last_needle=last_needle,
-        last_service=last_service,
-        grouped_logs=grouped_logs,
-        total_needle_changes=total_needle_changes,
-        total_services_logged=total_services_logged,
-        warranty_warning=warranty_warning,
-        stale_service_warning=stale_service_warning,
-        maintenance_ok=maintenance_ok,
-        warning_part=warning_part
-    )
+    return render_template("machine_dashboard.html", machines_data=machine_data)
 
 
 @routes.route("/logout")
