@@ -3,6 +3,7 @@ from flask_login import login_user, logout_user, login_required, current_user
 from app.models import User, QRBatch, QRCode, Machine, QRTag, NeedleChange, ServiceLog
 from app.utils import generate_and_store_qr_batch
 from app import db
+from app.models import SubUser
 from datetime import datetime
 import io
 import zipfile
