@@ -22,10 +22,8 @@ class QRBatch(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
-    # Foreign key to User who claimed the batch
     owner_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=True)
 
-    # Relationships
     qr_tags = db.relationship("QRTag", backref="batch", lazy=True)
     needle_changes = db.relationship("NeedleChange", backref="batch", lazy=True)
     qr_codes = db.relationship("QRCode", backref="batch", lazy=True)
@@ -64,6 +62,7 @@ class Machine(db.Model):
     name = db.Column(db.String(100))
     type = db.Column(db.String(100))
 
+
 class SubUser(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     static_id = db.Column(db.String(10), unique=True)
@@ -71,6 +70,9 @@ class SubUser(db.Model):
     parent_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     assigned_machine_id = db.Column(db.Integer, db.ForeignKey('machine.id'))
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    # ✅ Relationship to access assigned machine
+    assigned_machine = db.relationship('Machine', backref='subusers', foreign_keys=[assigned_machine_id])
 
 
 class ServiceLog(db.Model):
