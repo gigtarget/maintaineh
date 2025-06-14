@@ -14,7 +14,9 @@
 
     {% with messages = get_flashed_messages(with_categories=true) %}
       {% for category, message in messages %}
-        <div class="text-sm text-red-600 mb-4 text-center">{{ message }}</div>
+        <div class="text-sm text-{{ 'green-600' if category == 'success' else 'red-600' }} mb-4 text-center">
+          {{ message }}
+        </div>
       {% endfor %}
     {% endwith %}
 
@@ -43,6 +45,21 @@
       </button>
     </form>
   </div>
+
+  {% if subusers %}
+    <div class="max-w-md mx-auto mt-6 p-4 bg-white/10 backdrop-blur-xl rounded-xl border border-white/20 shadow">
+      <h2 class="text-lg font-semibold mb-2 text-center">Existing Sub-users</h2>
+      <ul class="text-sm text-slate-700 space-y-2">
+        {% for sub in subusers %}
+          <li class="bg-white/60 px-3 py-2 rounded-xl">
+            <strong>{{ sub.name }}</strong> — 
+            Assigned to <em>{{ sub.machine.name }}</em><br>
+            Login Code: <code class="text-blue-700 font-mono">{{ sub.static_id }}</code>
+          </li>
+        {% endfor %}
+      </ul>
+    </div>
+  {% endif %}
 
 </body>
 </html>
