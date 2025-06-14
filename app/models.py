@@ -11,15 +11,10 @@ class User(UserMixin, db.Model):
     role = db.Column(db.String(20), nullable=False, default="user")
     name = db.Column(db.String(100), nullable=False)
     company_name = db.Column(db.String(100))
-    subuser_id = db.Column(db.String(10), unique=True, nullable=True)
-    machine_id = db.Column(db.Integer, db.ForeignKey('machine.id'), nullable=True)
 
-    
-    # New preferences
     default_machine_name = db.Column(db.String(100))
     default_machine_location = db.Column(db.String(100))
 
-    # One-to-many: user -> claimed batches
     claimed_batches = db.relationship("QRBatch", backref="owner", lazy=True)
 
 
@@ -74,7 +69,8 @@ class SubUser(db.Model):
     name = db.Column(db.String(120))
     static_id = db.Column(db.String(10), unique=True)
     machine_id = db.Column(db.Integer, db.ForeignKey('machine.id'))
-    created_by = db.Column(db.Integer, db.ForeignKey('user.id'))
+    parent_id = db.Column(db.Integer, db.ForeignKey('user.id'))  # renamed
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
 class ServiceLog(db.Model):
     __tablename__ = 'servicelog'
