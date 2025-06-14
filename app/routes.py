@@ -68,7 +68,7 @@ def sub_tag_view(sub_tag_id):
         if log.needle_number not in last_change_dict:
             last_change_dict[log.needle_number] = log
 
-    return render_template("sub_tag_view.html", sub_tag=sub_tag, last_change_dict=last_change_dict, now=datetime.utcnow().date())
+    return render_template("sub_tag_view.html", sub_tag=sub_tag, last_change_dict=last_change_dict, now=datetime.utcnow())
 
 @routes.route("/sub/<int:sub_tag_id>/service-log", methods=["GET", "POST"])
 @login_required
