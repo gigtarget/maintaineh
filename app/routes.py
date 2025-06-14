@@ -526,21 +526,19 @@ def machine_dashboard():
 
         grouped_logs = {}
         for tag in qr_tags:
-            grouped_logs[tag.tag_code] = {
+            grouped_logs[tag.id] = {
                 "tag": tag,
                 "needle_logs": [],
                 "service_logs": []
             }
 
         for log in needle_logs:
-            tag = QRTag.query.get(log.sub_tag_id)
-            if tag and tag.tag_code in grouped_logs:
-                grouped_logs[tag.tag_code]["needle_logs"].append(log)
+            if log.sub_tag_id in grouped_logs:
+                grouped_logs[log.sub_tag_id]["needle_logs"].append(log)
 
         for log in service_logs:
-            tag = QRTag.query.get(log.sub_tag_id)
-            if tag and tag.tag_code in grouped_logs:
-                grouped_logs[tag.tag_code]["service_logs"].append(log)
+            if log.sub_tag_id in grouped_logs:
+                grouped_logs[log.sub_tag_id]["service_logs"].append(log)
 
         # Status warnings
         warranty_warning = False
