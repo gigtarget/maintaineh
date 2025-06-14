@@ -24,7 +24,7 @@
   <div class="max-w-2xl mx-auto mb-6">
     <div class="bg-white/10 backdrop-blur-xl border border-white/20 shadow-xl rounded-2xl p-4 sm:p-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
       <div>
-        <h1 class="text-xl sm:text-2xl font-bold text-slate-800 break-words">Welcome, {{ current_user.name }}</h1>
+        <h1 class="text-xl sm:text-2xl font-bold text-slate-800 break-words">Welcome, {{ current_user.name or 'Unnamed' }}</h1>
         <p class="text-xs text-slate-600 mt-1 bg-white/20 rounded-lg px-3 py-2 border border-white/10">
           🛠️ Tip: To activate your machine, scan the Master QR code that came with your shipment.
         </p>
@@ -84,6 +84,12 @@
           <div class="bg-white/10 p-4 border border-white/20 rounded-xl text-center shadow">
             <img src="{{ qr.image_url }}" class="h-24 mx-auto mb-2" />
             <p class="font-medium capitalize">{{ qr.qr_type }}</p>
+            {% if qr.qr_type == 'master' and batch.machine %}
+              <a href="{{ url_for('routes.machine_dashboard') }}#machine-{{ batch.machine.id }}"
+                 class="text-xs text-blue-600 underline mt-1 inline-block">
+                 View Full Dashboard
+              </a>
+            {% endif %}
           </div>
           {% endfor %}
         </div>
@@ -116,7 +122,7 @@
                 <p class="text-xs text-green-600 font-semibold mt-1">✅ All Good</p>
               {% endif %}
             </div>
-            <a href="{{ url_for('routes.machine_dashboard', machine_id=batch.machine.id) }}" class="text-sm mt-3 sm:mt-0 px-4 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700">View Dashboard</a>
+            <a href="{{ url_for('routes.machine_dashboard') }}#machine-{{ batch.machine.id }}" class="text-sm mt-3 sm:mt-0 px-4 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700">View Dashboard</a>
           </div>
         </div>
         {% else %}
