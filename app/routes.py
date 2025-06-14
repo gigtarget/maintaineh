@@ -327,6 +327,81 @@ def download_batch(batch_id):
         download_name=f"batch_{batch_id}.zip"
     )
 
+@routes.route("/user/create-subuser", methods=["GET", "POST"])
+@login_required
+def create_subuser():
+    if current_user.role != "user":
+        abort(403)
+
+    machines = Machine.query.join(QRBatch).filter(QRBatch.owner_id == current_user.id).all()
+
+    if request.method == "POST":
+        name = request.form["name"]
+        machine_id = request.form["machine_id"]
+
+        # Generate a 7-digit unique static subuser_id
+        while True:
+            subuser_id = ''.join(random.choices(string.digits, k=7))
+            if not User.query.filter_by(subuser_id=subuser_id).first():
+                break
+
+        new_subuser = User(
+            name=name,
+            role="subuser",
+            subuser_id=subuser_id,
+            machine_id=machine_id
+        )
+        db.session.add(new_subuser)
+        db.session.commit()
+        flash(f"Sub-user created! Their login ID is: {subuser_id}", "success")
+        return redirect(url_for("routes.user_dashboard"))
+
+    return render_template("create_subuser.html", machines=machines)
+
+@routes.route("/subuser/login", methods=["GET", "POST"])
+def subuser_login():
+    if request.method == "POST":
+        subuser_id = request.form["subuser_id"]
+        subuser = User.query.filter_by(role="subuser", subuser_id=subuser_id).first()
+        if subuser:
+            session["subuser_id"] = subuser_id
+            return redirect(url_for("routes.subuser_machine"))
+        else:
+            flash("Invalid Sub-user ID", "danger")
+
+    return render_template("subuser_login.html")
+
+@routes.route("/subuser/machine")
+def subuser_machine():
+    subuser_id = session.get("subuser_id")
+    if not subuser_id:
+        return redirect(url_for("routes.subuser_login"))
+
+    subuser = User.query.filter_by(role="subuser", subuser_id=subuser_id).first()
+    if not subuser:
+        return redirect(url_for("routes.subuser_login"))
+
+    machine = Machine.query.get(subuser.machine_id)
+    if not machine:
+        flash("Machine not found", "danger")
+        return redirect(url_for("routes.subuser_login"))
+
+    return render_template("subuser_machine.html", machine=machine, subuser=subuser)
+
+@routes.route("/settings/delete-subuser/<int:subuser_id>", methods=["POST"])
+@login_required
+def delete_subuser(subuser_id):
+    subuser = User.query.get_or_404(subuser_id)
+    if subuser.role != "subuser":
+        flash("Invalid action.", "danger")
+        return redirect(url_for("routes.user_settings"))
+
+    db.session.delete(subuser)
+    db.session.commit()
+    flash("Sub-user deleted.", "success")
+    return redirect(url_for("routes.user_settings"))
+    
+
 @routes.route("/machine/<int:machine_id>/update", methods=["POST"])
 @login_required
 def update_machine(machine_id):
