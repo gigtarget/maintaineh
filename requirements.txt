@@ -9,3 +9,7 @@ cloudinary
 qrcode
 Pillow
 requests
+qrcode
+Pillow
+cairosvg
+cloudinary
