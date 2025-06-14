@@ -336,6 +336,7 @@ def download_batch(batch_id):
 
 
 # ---- Sub-User Creation (by main user) ----
+# ---- Sub-User Creation (by main user) ----
 @routes.route("/create-subuser", methods=["GET", "POST"])
 @login_required
 def create_subuser():
@@ -353,7 +354,7 @@ def create_subuser():
             flash("Please provide both sub-user name and machine.", "danger")
             return render_template("create_subuser.html", machines=machines, subusers=subusers)
 
-        # Check for duplicate sub-user
+        # Check for duplicate
         existing = SubUser.query.filter_by(
             parent_id=current_user.id,
             name=name,
@@ -363,13 +364,12 @@ def create_subuser():
             flash(f"⚠️ Sub-user already exists for this machine. Code: {existing.static_id}", "info")
             return render_template("create_subuser.html", machines=machines, subusers=subusers)
 
-        # Generate unique 7-digit code
+        # Generate unique static ID
         while True:
             static_id = ''.join(random.choices(string.digits, k=7))
             if not SubUser.query.filter_by(static_id=static_id).first():
                 break
 
-        # Create and store new sub-user
         sub = SubUser(
             parent_id=current_user.id,
             name=name,
@@ -378,14 +378,13 @@ def create_subuser():
         )
         db.session.add(sub)
         db.session.commit()
-
         flash(f"✅ Sub-user created successfully! Code: {static_id}", "success")
+
+        # Refresh subusers list after creation
         subusers = SubUser.query.filter_by(parent_id=current_user.id).all()
         return render_template("create_subuser.html", machines=machines, subusers=subusers)
 
     return render_template("create_subuser.html", machines=machines, subusers=subusers)
-
-
 
 # ---- Sub-User Login ----
 @routes.route("/subuser/login", methods=["GET", "POST"])
