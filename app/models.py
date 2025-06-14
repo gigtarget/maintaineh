@@ -9,7 +9,9 @@ class User(UserMixin, db.Model):
     email = db.Column(db.String(150), unique=True, nullable=False)
     password = db.Column(db.String(150), nullable=False)
     role = db.Column(db.String(20), nullable=False, default="user")
-
+    name = db.Column(db.String(100), nullable=False)
+    company_name = db.Column(db.String(100))
+    
     # New preferences
     default_machine_name = db.Column(db.String(100))
     default_machine_location = db.Column(db.String(100))
