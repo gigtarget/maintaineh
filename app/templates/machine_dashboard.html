@@ -6,9 +6,70 @@
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gradient-to-br from-white to-sky-100 min-h-screen text-gray-900 p-6">
-  <div class="max-w-4xl mx-auto bg-white rounded-xl shadow-xl p-6">
-    <h1 class="text-2xl font-bold mb-4">🖥️ Machine Dashboard</h1>
-    <p class="text-gray-700">Machine view coming soon...</p>
+
+  <div class="max-w-4xl mx-auto bg-white rounded-xl shadow-xl p-6 space-y-6">
+    <h1 class="text-2xl font-bold text-slate-800">🖥️ Machine Dashboard</h1>
+
+    <!-- 🖥️ Machine Overview -->
+    <div class="bg-white/40 backdrop-blur p-4 rounded-xl border border-white/30">
+      <h2 class="text-xl font-semibold text-slate-800 mb-3">🖥️ Machine Overview</h2>
+      <ul class="text-sm text-slate-700 ml-4 space-y-1">
+        <li><strong>Machine Name:</strong> {{ machine.name }}</li>
+        <li><strong>Machine Type:</strong> {{ machine.type }}</li>
+        <li><strong>Batch ID:</strong> {{ batch.id }}</li>
+        <li><strong>Claimed On:</strong> {{ batch.created_at.date() }}</li>
+        <li><strong>Assigned Sub-Users:</strong>
+          {% if subusers %}
+            <ul class="ml-4 list-disc">
+              {% for sub in subusers %}
+                <li>{{ sub.name }} – <code class="text-blue-700 font-mono">{{ sub.static_id }}</code></li>
+              {% endfor %}
+            </ul>
+          {% else %}
+            <span class="italic text-gray-500">None assigned yet</span>
+          {% endif %}
+        </li>
+        <li><strong>Number of Sub QR Heads:</strong> {{ qr_tags|length }}</li>
+        <li><strong>Total Needle Changes Logged:</strong> {{ needle_logs|length }}</li>
+        <li><strong>Total Services Logged:</strong> {{ service_logs|length }}</li>
+      </ul>
+    </div>
+
+    <!-- 🧰 Latest Activity Summary -->
+    <div class="bg-white/40 backdrop-blur p-4 rounded-xl border border-white/30">
+      <h2 class="text-xl font-semibold text-slate-800 mb-3">🧰 Latest Activity Summary</h2>
+
+      <!-- Last Needle Change -->
+      {% if last_needle %}
+        <div class="mb-4">
+          <p class="font-medium">🪡 Last Needle Change:</p>
+          <ul class="text-sm text-slate-700 ml-4 list-disc">
+            <li><strong>Date:</strong> {{ last_needle.timestamp.date() }}</li>
+            <li><strong>Head:</strong> {{ last_needle.sub_tag.tag_type.title() }}</li>
+            <li><strong>Needle #:</strong> {{ last_needle.needle_number }}</li>
+            <li><strong>Type:</strong> {{ last_needle.needle_type }}</li>
+          </ul>
+        </div>
+      {% else %}
+        <p class="text-sm text-gray-600 italic">No needle changes recorded yet.</p>
+      {% endif %}
+
+      <!-- Last Service Log -->
+      {% if last_service %}
+        <div class="mt-4">
+          <p class="font-medium">🔧 Last Service Log:</p>
+          <ul class="text-sm text-slate-700 ml-4 list-disc">
+            <li><strong>Part:</strong> {{ last_service.part_name }}</li>
+            <li><strong>Description:</strong> {{ last_service.description }}</li>
+            <li><strong>Warranty Till:</strong> {{ last_service.warranty_till }}</li>
+            <li><strong>Logged on:</strong> {{ last_service.timestamp.date() }}</li>
+          </ul>
+        </div>
+      {% else %}
+        <p class="text-sm text-gray-600 italic">No service logs recorded yet.</p>
+      {% endif %}
+    </div>
   </div>
+
 </body>
 </html>
