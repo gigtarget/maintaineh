@@ -91,8 +91,8 @@
             <div class="bg-white rounded-xl border border-slate-200 p-4 shadow flex flex-col items-center">
               <img src="{{ qr.image_url }}" alt="" class="w-full h-auto max-h-[360px] object-contain rounded-lg">
               <p class="mt-2 text-sm font-semibold text-center uppercase">{{ qr.qr_type }}</p>
-              <a href="{{ qr.image_url }}" download class="mt-2 inline-block text-blue-600 text-xs underline">⬇️ Download</a>
-              <a href="{{ qr.qr_url or '' }}" target="_blank" class="text-xs mt-1 break-all text-blue-500 hover:underline">🔗 {{ qr.qr_url }}</a>
+              <a href="{{ qr.qr_url }}" target="_blank" class="text-xs text-blue-500 break-all underline mt-1">🔗 {{ qr.qr_url }}</a>
+              <p class="text-xs font-bold text-slate-700 mt-2">TokiTap</p>
             </div>
           {% endfor %}
         </div>
