@@ -108,7 +108,7 @@ def generate_and_store_qr_batch():
             qr_tag.qr_url = qr_url
             db.session.commit()
 
-            qr_code = QRCode(batch_id=batch.id, qr_type=qr_type, image_url=image_url, qr_url=qr_url)
+            qr_code = QRCode(batch_id=batch.id, qr_type=qr_type, image_url=image_url)
             db.session.add(qr_code)
 
         except Exception as e:
