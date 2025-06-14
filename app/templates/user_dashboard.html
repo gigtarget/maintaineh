@@ -29,6 +29,11 @@
         <p class="text-xs text-slate-600 mt-1 bg-white/20 rounded-lg px-3 py-2 border border-white/10">
           🛠️ Tip: To activate your machine, scan the Master QR code that came with your shipment.
         </p>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% for category, message in messages %}
+            <p class="mt-2 text-sm text-{{ 'green' if category == 'success' else 'red' }}-600">{{ message }}</p>
+          {% endfor %}
+        {% endwith %}
       </div>
       <div class="flex gap-3 flex-wrap justify-center sm:justify-end">
         <a href="{{ url_for('routes.create_subuser') }}" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-xl text-sm shadow-md">Create Sub-User</a>
@@ -58,7 +63,6 @@
   <div class="max-w-2xl mx-auto">
     {% for batch in batches %}
     <div class="mb-6">
-
       <!-- Batch Header -->
       <div onclick="toggleBatch({{ batch.id }})"
            class="cursor-pointer flex justify-between items-center px-4 py-3 bg-white/10 hover:bg-white/20 backdrop-blur-xl border border-white/20 shadow-md rounded-xl transition-all duration-200 group">
@@ -66,6 +70,21 @@
           Batch ID: {{ batch.id }}
           {% if batch.machine %}
             – {{ batch.machine.name }} ({{ batch.machine.type }})
+
+            {% set subuser_codes = [] %}
+            {% for subuser in subusers %}
+              {% if subuser.assigned_machine_id == batch.machine.id %}
+                {% set _ = subuser_codes.append(subuser.static_id) %}
+              {% endif %}
+            {% endfor %}
+            
+            {% if subuser_codes %}
+              <span class="text-xs text-slate-600 ml-2">🔑
+                {% for code in subuser_codes %}
+                  <span class="bg-slate-200 text-slate-800 px-2 py-0.5 rounded-full text-xs mx-0.5">{{ code }}</span>
+                {% endfor %}
+              </span>
+            {% endif %}
           {% endif %}
         </div>
         <svg id="chevron-{{ batch.id }}"
@@ -80,63 +99,50 @@
       <div id="batch-{{ batch.id }}" class="p-4 hidden bg-white/10 backdrop-blur-xl border border-white/20 rounded-b-2xl shadow-md mt-1">
         <p class="text-sm text-slate-600 mb-4">Claimed on {{ batch.created_at.strftime('%Y-%m-%d %H:%M') }}</p>
 
-        <!-- Master + Service QR -->
+        <!-- Master & Service -->
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
-          {% for qr in batch.qr_codes %}
-            {% if qr.qr_type in ['master', 'service'] %}
-            <div class="group bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl p-4 shadow-xl transition hover:shadow-2xl hover:-translate-y-1">
-              <div class="flex justify-center mb-2">
-                <div class="p-2 bg-white rounded-xl shadow-inner">
-                  <img src="{{ qr.image_url }}" alt="{{ qr.qr_type }} QR" class="h-20 w-20 sm:h-24 sm:w-24 object-contain" />
-                </div>
-              </div>
-              <div class="text-center">
-                <p class="text-slate-800 font-medium text-base capitalize">{{ qr.qr_type }}</p>
+          {% for qr in batch.qr_codes if qr.qr_type in ['master', 'service'] %}
+          <div class="group bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl p-4 shadow-xl transition hover:shadow-2xl hover:-translate-y-1">
+            <div class="flex justify-center mb-2">
+              <div class="p-2 bg-white rounded-xl shadow-inner">
+                <img src="{{ qr.image_url }}" alt="{{ qr.qr_type }} QR" class="h-20 w-20 sm:h-24 sm:w-24 object-contain" />
               </div>
             </div>
-            {% endif %}
+            <div class="text-center">
+              <p class="text-slate-800 font-medium text-base capitalize">{{ qr.qr_type }}</p>
+            </div>
+          </div>
           {% endfor %}
         </div>
 
-        <!-- Sub QR Tags -->
+        <!-- Sub QR -->
         <div class="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-6">
-          {% for qr in batch.qr_codes %}
-            {% if qr.qr_type.startswith('sub') %}
-            <div class="group bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl p-4 shadow-xl transition hover:shadow-2xl hover:-translate-y-1">
-              <div class="flex justify-center mb-2">
-                <div class="p-2 bg-white rounded-xl shadow-inner">
-                  <img src="{{ qr.image_url }}" alt="{{ qr.qr_type }} QR" class="h-20 w-20 object-contain" />
-                </div>
-              </div>
-              <div class="text-center">
-                <p class="text-slate-800 font-medium text-base capitalize">{{ qr.qr_type }}</p>
-                {% set tag = batch.tags | selectattr("tag_type", "equalto", qr.qr_type) | list | first %}
-                {% if tag %}
-                  <a href="{{ url_for('routes.sub_tag_options', sub_tag_id=tag.id) }}"
-                     class="text-xs text-blue-600 underline block mt-1 group-hover:text-blue-800 transition">
-                    Open Sub QR
-                  </a>
-                {% endif %}
+          {% for qr in batch.qr_codes if qr.qr_type.startswith('sub') %}
+          <div class="group bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl p-4 shadow-xl transition hover:shadow-2xl hover:-translate-y-1">
+            <div class="flex justify-center mb-2">
+              <div class="p-2 bg-white rounded-xl shadow-inner">
+                <img src="{{ qr.image_url }}" alt="{{ qr.qr_type }} QR" class="h-20 w-20 object-contain" />
               </div>
             </div>
-            {% endif %}
+            <div class="text-center">
+              <p class="text-slate-800 font-medium text-base capitalize">{{ qr.qr_type }}</p>
+              {% set tag = batch.tags | selectattr("tag_type", "equalto", qr.qr_type) | list | first %}
+              {% if tag %}
+              <a href="{{ url_for('routes.sub_tag_options', sub_tag_id=tag.id) }}"
+                 class="text-xs text-blue-600 underline block mt-1 group-hover:text-blue-800 transition">
+                Open Sub QR
+              </a>
+              {% endif %}
+            </div>
+          </div>
           {% endfor %}
         </div>
 
-        <!-- Machine Info or Add Form -->
+        <!-- Machine Info -->
         {% if batch.machine %}
         <div class="bg-white/20 backdrop-blur-md border border-white/20 rounded-xl p-4 shadow mb-4">
           <h3 class="font-medium text-slate-700 mb-2">Machine:</h3>
-          <p class="text-sm">
-            {{ batch.machine.name }} ({{ batch.machine.type }})
-            {% if batch.subusers %}
-              <br><span class="text-xs text-slate-600">🔑 Sub-user Code(s):
-                {% for sub in batch.subusers %}
-                  <span class="inline-block px-2 py-0.5 bg-slate-200 text-slate-700 rounded-md text-xs font-mono">{{ sub.static_id }}</span>{% if not loop.last %}, {% endif %}
-                {% endfor %}
-              </span>
-            {% endif %}
-          </p>
+          <p class="text-sm">{{ batch.machine.name }} ({{ batch.machine.type }})</p>
         </div>
         {% else %}
         <div class="bg-white/20 backdrop-blur-md border border-white/20 rounded-xl p-4 shadow mb-4">
@@ -159,6 +165,5 @@
     </div>
     {% endfor %}
   </div>
-
 </body>
 </html>
