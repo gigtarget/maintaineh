@@ -327,7 +327,9 @@ def download_batch(batch_id):
         download_name=f"batch_{batch_id}.zip"
     )
 
-@routes.route("/user/create-subuser", methods=["GET", "POST"])
+
+# ---- Sub-User Creation (by main user) ----
+@routes.route("/create-subuser", methods=["GET", "POST"])
 @login_required
 def create_subuser():
     if current_user.role != "user":
@@ -336,70 +338,89 @@ def create_subuser():
     machines = Machine.query.join(QRBatch).filter(QRBatch.owner_id == current_user.id).all()
 
     if request.method == "POST":
-        name = request.form["name"]
-        machine_id = request.form["machine_id"]
+        name = request.form.get("name")
+        machine_id = request.form.get("machine_id")
 
-        # Generate a 7-digit unique static subuser_id
+        if not machine_id:
+            flash("Please select a machine to assign.", "danger")
+            return redirect(url_for("routes.create_subuser"))
+
+        # Generate a unique static 7-digit subuser code
         while True:
-            subuser_id = ''.join(random.choices(string.digits, k=7))
-            if not User.query.filter_by(subuser_id=subuser_id).first():
+            static_id = ''.join(random.choices(string.digits, k=7))
+            if not SubUser.query.filter_by(static_id=static_id).first():
                 break
 
-        new_subuser = User(
+        sub = SubUser(
+            parent_id=current_user.id,
             name=name,
-            role="subuser",
-            subuser_id=subuser_id,
-            machine_id=machine_id
+            assigned_machine_id=machine_id,
+            static_id=static_id
         )
-        db.session.add(new_subuser)
+        db.session.add(sub)
         db.session.commit()
-        flash(f"Sub-user created! Their login ID is: {subuser_id}", "success")
+        flash(f"Sub-user created successfully! Their login code is {static_id}", "success")
         return redirect(url_for("routes.user_dashboard"))
 
     return render_template("create_subuser.html", machines=machines)
 
+# ---- Sub-User Login ----
 @routes.route("/subuser/login", methods=["GET", "POST"])
 def subuser_login():
     if request.method == "POST":
-        subuser_id = request.form["subuser_id"]
-        subuser = User.query.filter_by(role="subuser", subuser_id=subuser_id).first()
-        if subuser:
-            session["subuser_id"] = subuser_id
-            return redirect(url_for("routes.subuser_machine"))
-        else:
-            flash("Invalid Sub-user ID", "danger")
-
+        code = request.form.get("subuser_code")
+        sub = SubUser.query.filter_by(static_id=code).first()
+        if sub:
+            session['subuser_id'] = sub.id
+            return redirect(url_for("routes.subuser_dashboard"))
+        flash("Invalid code", "danger")
     return render_template("subuser_login.html")
 
-@routes.route("/subuser/machine")
-def subuser_machine():
-    subuser_id = session.get("subuser_id")
-    if not subuser_id:
+# ---- Sub-User Dashboard ----
+@routes.route("/subuser/dashboard")
+def subuser_dashboard():
+    sub_id = session.get('subuser_id')
+    if not sub_id:
         return redirect(url_for("routes.subuser_login"))
 
-    subuser = User.query.filter_by(role="subuser", subuser_id=subuser_id).first()
-    if not subuser:
-        return redirect(url_for("routes.subuser_login"))
+    sub = SubUser.query.get_or_404(sub_id)
+    machine = Machine.query.get(sub.assigned_machine_id)
+    batch = QRBatch.query.get(machine.batch_id)
+    qr_codes = QRCode.query.filter_by(batch_id=batch.id).all()
+    tags = QRTag.query.filter_by(batch_id=batch.id).all()
 
-    machine = Machine.query.get(subuser.machine_id)
-    if not machine:
-        flash("Machine not found", "danger")
-        return redirect(url_for("routes.subuser_login"))
+    return render_template("subuser_dashboard.html", subuser=sub, machine=machine, batch=batch, qr_codes=qr_codes, tags=tags)
 
-    return render_template("subuser_machine.html", machine=machine, subuser=subuser)
-
-@routes.route("/settings/delete-subuser/<int:subuser_id>", methods=["POST"])
+# ---- Manage Sub-Users (Settings Page for Main User) ----
+@routes.route("/settings/subusers", methods=["GET", "POST"])
 @login_required
-def delete_subuser(subuser_id):
-    subuser = User.query.get_or_404(subuser_id)
-    if subuser.role != "subuser":
-        flash("Invalid action.", "danger")
-        return redirect(url_for("routes.user_settings"))
+def manage_subusers():
+    if current_user.role != "user":
+        abort(403)
 
-    db.session.delete(subuser)
-    db.session.commit()
-    flash("Sub-user deleted.", "success")
-    return redirect(url_for("routes.user_settings"))
+    if request.method == "POST":
+        action = request.form.get("action")
+        sub_id = request.form.get("sub_id")
+
+        subuser = SubUser.query.filter_by(id=sub_id, parent_id=current_user.id).first_or_404()
+
+        if action == "delete":
+            db.session.delete(subuser)
+            db.session.commit()
+            flash("Sub-user deleted (data retained).", "success")
+
+        elif action == "update":
+            subuser.name = request.form.get("name")
+            subuser.assigned_machine_id = request.form.get("machine_id")
+            db.session.commit()
+            flash("Sub-user updated successfully.", "success")
+
+        return redirect(url_for("routes.manage_subusers"))
+
+    subusers = SubUser.query.filter_by(parent_id=current_user.id).all()
+    machines = Machine.query.join(QRBatch).filter(QRBatch.owner_id == current_user.id).all()
+
+    return render_template("manage_subusers.html", subusers=subusers, machines=machines)
     
 
 @routes.route("/machine/<int:machine_id>/update", methods=["POST"])
