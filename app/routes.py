@@ -343,6 +343,7 @@ def create_subuser():
         abort(403)
 
     machines = Machine.query.join(QRBatch).filter(QRBatch.owner_id == current_user.id).all()
+    subusers = SubUser.query.filter_by(parent_id=current_user.id).all()
 
     if request.method == "POST":
         name = request.form.get("name", "").strip()
@@ -350,23 +351,25 @@ def create_subuser():
 
         if not name or not machine_id:
             flash("Please provide both sub-user name and machine.", "danger")
-            return redirect(url_for("routes.create_subuser"))
+            return render_template("create_subuser.html", machines=machines, subusers=subusers)
 
-        # Check for duplicate
+        # Check for duplicate sub-user
         existing = SubUser.query.filter_by(
             parent_id=current_user.id,
             name=name,
             assigned_machine_id=machine_id
         ).first()
         if existing:
-            flash(f"Sub-user already exists for this machine. Code: {existing.static_id}", "info")
-            return redirect(url_for("routes.user_dashboard"))
+            flash(f"⚠️ Sub-user already exists for this machine. Code: {existing.static_id}", "info")
+            return render_template("create_subuser.html", machines=machines, subusers=subusers)
 
+        # Generate unique 7-digit code
         while True:
             static_id = ''.join(random.choices(string.digits, k=7))
             if not SubUser.query.filter_by(static_id=static_id).first():
                 break
 
+        # Create and store new sub-user
         sub = SubUser(
             parent_id=current_user.id,
             name=name,
@@ -375,10 +378,13 @@ def create_subuser():
         )
         db.session.add(sub)
         db.session.commit()
-        flash(f"✅ Sub-user created successfully! Code: {static_id}", "success")
-        return redirect(url_for("routes.user_dashboard"))
 
-    return render_template("create_subuser.html", machines=machines)
+        flash(f"✅ Sub-user created successfully! Code: {static_id}", "success")
+        subusers = SubUser.query.filter_by(parent_id=current_user.id).all()
+        return render_template("create_subuser.html", machines=machines, subusers=subusers)
+
+    return render_template("create_subuser.html", machines=machines, subusers=subusers)
+
 
 
 # ---- Sub-User Login ----
