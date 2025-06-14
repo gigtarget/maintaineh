@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Sub-user Login</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gradient-to-br from-blue-100 to-white min-h-screen flex justify-center pt-16 p-4">
+
+  <div class="bg-white/30 backdrop-blur-xl border border-white/20 rounded-2xl shadow-xl w-full max-w-sm p-6 text-center">
+    <h2 class="text-2xl font-bold text-slate-800 mb-4">Sub-user Login</h2>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% for category, message in messages %}
+        <div class="text-sm text-red-600 mb-4">{{ message }}</div>
+      {% endfor %}
+    {% endwith %}
+
+    <form method="POST" class="space-y-4">
+      <input type="text" name="subuser_code" placeholder="Enter Sub-user Code"
+             class="w-full px-4 py-2 rounded-xl bg-white/60 border border-white/20 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-800 shadow-inner">
+      <button type="submit"
+              class="w-full py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl shadow-md transition">
+        Login
+      </button>
+    </form>
+  </div>
+
+</body>
+</html>
