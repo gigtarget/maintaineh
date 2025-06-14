@@ -27,7 +27,7 @@ def generate_custom_qr_image(data, tag_type, svg_logo_path='app/static/logo/logo
     qr_img = qr.make_image(fill_color="black", back_color="white").convert('RGB')
     qr_img = qr_img.resize((600, 600))
 
-    # Create circle hole
+    # Create circle hole in center
     mask = Image.new('L', qr_img.size, 255)
     draw_mask = ImageDraw.Draw(mask)
     cx, cy, r = qr_img.size[0] // 2, qr_img.size[1] // 2, 120
@@ -36,13 +36,16 @@ def generate_custom_qr_image(data, tag_type, svg_logo_path='app/static/logo/logo
 
     base.paste(qr_img, ((img_width - 600) // 2, 60), qr_img)
 
-    # Text (MASTER, SERVICE, etc.)
+    # Font for tag type (e.g. MASTER)
     try:
         font = ImageFont.truetype("arial.ttf", 50)
     except:
         font = ImageFont.load_default()
-    w, h = draw.textsize(tag_type.upper(), font=font)
-    draw.text(((img_width - w) // 2, 700), tag_type.upper(), font=font, fill="black")
+
+    text = tag_type.upper()
+    bbox = font.getbbox(text)
+    w, h = bbox[2] - bbox[0], bbox[3] - bbox[1]
+    draw.text(((img_width - w) // 2, 700), text, font=font, fill="black")
 
     # Convert SVG to PNG in-memory
     logo_png = BytesIO()
@@ -57,8 +60,10 @@ def generate_custom_qr_image(data, tag_type, svg_logo_path='app/static/logo/logo
         small_font = ImageFont.truetype("arial.ttf", 24)
     except:
         small_font = ImageFont.load_default()
+
     slogan = "So Simple. So Obviously Useful."
-    sw, _ = draw.textsize(slogan, font=small_font)
+    sbbox = small_font.getbbox(slogan)
+    sw = sbbox[2] - sbbox[0]
     draw.text(((img_width - sw) // 2, 1070), slogan, font=small_font, fill="black")
 
     return base
