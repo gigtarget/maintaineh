@@ -89,10 +89,10 @@
         <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
           {% for qr in item.qrcodes %}
             <div class="bg-white rounded-xl border border-slate-200 p-4 shadow flex flex-col items-center">
-              <img src="{{ qr.image_url }}" alt="" class="w-full h-auto max-h-[360px] object-contain rounded-lg">
-              <p class="mt-2 text-sm font-semibold text-center uppercase">{{ qr.qr_type }}</p>
+              <img src="{{ qr.image_url }}" alt="" class="w-full h-auto max-h-[360px] object-contain rounded-xl">
+              <a href="{{ qr.image_url }}" download class="mt-2 px-2 py-1 text-xs rounded bg-slate-200 text-blue-800 hover:underline">⬇️ Download</a>
+              <p class="mt-1 text-sm font-semibold text-center uppercase">{{ qr.qr_type }}</p>
               <a href="{{ qr.qr_url }}" target="_blank" class="text-xs text-blue-500 break-all underline mt-1">🔗 {{ qr.qr_url }}</a>
-              <p class="text-xs font-bold text-slate-700 mt-2">TokiTap</p>
             </div>
           {% endfor %}
         </div>
