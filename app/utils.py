@@ -1,13 +1,12 @@
 import os
 import qrcode
-import cloudinary
-import cloudinary.uploader
 from io import BytesIO
+import cloudinary.uploader
+import cairosvg
 from PIL import Image, ImageDraw, ImageFont
 from app import db
 from app.models import QRBatch, QRCode, QRTag
 
-# Cloudinary config
 cloudinary.config(
     cloud_name=os.getenv("CLOUDINARY_CLOUD_NAME"),
     api_key=os.getenv("CLOUDINARY_API_KEY"),
@@ -16,52 +15,51 @@ cloudinary.config(
 
 BASE_URL = "https://web-production-a8c0.up.railway.app"
 
-def generate_custom_qr_image(data, tag_type, logo_path='app/static/logo/logo.png'):
+def generate_custom_qr_image(data, tag_type, svg_logo_path='app/static/logo/logo.svg'):
     img_width, img_height = 800, 1200
     base = Image.new('RGB', (img_width, img_height), 'white')
     draw = ImageDraw.Draw(base)
 
-    # Generate QR
-    qr = qrcode.QRCode(
-        version=2,
-        error_correction=qrcode.constants.ERROR_CORRECT_H,
-        box_size=10,
-        border=4,
-    )
+    # QR code
+    qr = qrcode.QRCode(version=2, error_correction=qrcode.constants.ERROR_CORRECT_H, box_size=10, border=4)
     qr.add_data(data)
     qr.make(fit=True)
     qr_img = qr.make_image(fill_color="black", back_color="white").convert('RGB')
     qr_img = qr_img.resize((600, 600))
 
-    # Cut circular center
+    # Create circle hole
     mask = Image.new('L', qr_img.size, 255)
     draw_mask = ImageDraw.Draw(mask)
-    cx, cy, r = qr_img.size[0]//2, qr_img.size[1]//2, 120
+    cx, cy, r = qr_img.size[0] // 2, qr_img.size[1] // 2, 120
     draw_mask.ellipse((cx - r, cy - r, cx + r, cy + r), fill=0)
     qr_img.putalpha(mask)
 
-    # Paste onto base
-    base.paste(qr_img, ((img_width - 600) // 2, 80), qr_img)
+    base.paste(qr_img, ((img_width - 600) // 2, 60), qr_img)
 
-    # Add tag text (e.g. MASTER)
+    # Text (MASTER, SERVICE, etc.)
     try:
-        font = ImageFont.truetype("arial.ttf", 48)
+        font = ImageFont.truetype("arial.ttf", 50)
     except:
         font = ImageFont.load_default()
-    tag_label = tag_type.upper()
-    tw, th = draw.textsize(tag_label, font=font)
-    draw.text(((img_width - tw) // 2, 720), tag_label, fill="black", font=font)
+    w, h = draw.textsize(tag_type.upper(), font=font)
+    draw.text(((img_width - w) // 2, 700), tag_type.upper(), font=font, fill="black")
 
-    # Add "TokiTap" brand
-    brand_font = ImageFont.truetype("arial.ttf", 42) if os.path.exists("arial.ttf") else ImageFont.load_default()
-    bw, bh = draw.textsize("TokiTap", font=brand_font)
-    draw.text(((img_width - bw) // 2, 790), "TokiTap", fill="black", font=brand_font)
+    # Convert SVG to PNG in-memory
+    logo_png = BytesIO()
+    cairosvg.svg2png(url=svg_logo_path, write_to=logo_png)
+    logo_png.seek(0)
+    logo_img = Image.open(logo_png).convert("RGBA")
+    logo_img.thumbnail((240, 240))
+    base.paste(logo_img, ((img_width - logo_img.width) // 2, 800), logo_img)
 
-    # Logo (optional visual, not needed if brand name is present)
-    if os.path.exists(logo_path):
-        logo = Image.open(logo_path).convert("RGBA")
-        logo.thumbnail((300, 300))
-        base.paste(logo, ((img_width - logo.width) // 2, 900), logo)
+    # Slogan
+    try:
+        small_font = ImageFont.truetype("arial.ttf", 24)
+    except:
+        small_font = ImageFont.load_default()
+    slogan = "So Simple. So Obviously Useful."
+    sw, _ = draw.textsize(slogan, font=small_font)
+    draw.text(((img_width - sw) // 2, 1070), slogan, font=small_font, fill="black")
 
     return base
 
@@ -105,12 +103,7 @@ def generate_and_store_qr_batch():
             qr_tag.qr_url = qr_url
             db.session.commit()
 
-            qr_code = QRCode(
-                batch_id=batch.id,
-                qr_type=qr_type,
-                image_url=image_url,
-                qr_url=qr_url
-            )
+            qr_code = QRCode(batch_id=batch.id, qr_type=qr_type, image_url=image_url, qr_url=qr_url)
             db.session.add(qr_code)
 
         except Exception as e:
