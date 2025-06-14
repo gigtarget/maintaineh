@@ -48,13 +48,13 @@
 
   {% if subusers %}
     <div class="max-w-md mx-auto mt-6 p-4 bg-white/10 backdrop-blur-xl rounded-xl border border-white/20 shadow">
-      <h2 class="text-lg font-semibold mb-2 text-center">Existing Sub-users</h2>
-      <ul class="text-sm text-slate-700 space-y-2">
+      <h2 class="text-lg font-semibold mb-3 text-center">Existing Sub-users</h2>
+      <ul class="text-sm text-slate-800 space-y-3">
         {% for sub in subusers %}
-          <li class="bg-white/60 px-3 py-2 rounded-xl">
-            <strong>{{ sub.name }}</strong> — 
-            Assigned to <em>{{ sub.machine.name }}</em><br>
-            Login Code: <code class="text-blue-700 font-mono">{{ sub.static_id }}</code>
+          <li class="bg-white/60 px-4 py-3 rounded-xl shadow">
+            <div><strong>{{ sub.name }}</strong></div>
+            <div>Assigned to: <em>{{ sub.assigned_machine.name if sub.assigned_machine else 'N/A' }}</em></div>
+            <div>Login Code: <code class="text-blue-700 font-mono">{{ sub.static_id }}</code></div>
           </li>
         {% endfor %}
       </ul>
