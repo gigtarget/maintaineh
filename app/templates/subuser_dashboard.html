@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Sub-user Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gradient-to-br from-blue-100 to-white min-h-screen text-gray-800 p-4">
+
+  <div class="max-w-3xl mx-auto">
+
+    <!-- Header -->
+    <div class="text-center mb-8">
+      <h1 class="text-2xl sm:text-3xl font-bold text-slate-800 mb-2">Welcome, {{ subuser.name }}</h1>
+      <p class="text-sm text-slate-600">Machine Access Panel for: <strong>{{ machine.name }}</strong> ({{ machine.type }})</p>
+    </div>
+
+    <!-- QR Code Grid -->
+    <div class="grid grid-cols-2 sm:grid-cols-3 gap-4">
+
+      {% for qr in qr_codes %}
+      <div class="bg-white/20 backdrop-blur-xl border border-white/20 p-4 rounded-xl shadow hover:shadow-lg transition">
+        <div class="flex justify-center mb-2">
+          <img src="{{ qr.image_url }}" alt="{{ qr.qr_type }} QR" class="h-20 w-20 object-contain bg-white rounded-xl p-2 shadow-inner">
+        </div>
+        <div class="text-center">
+          <p class="capitalize font-medium text-slate-800">{{ qr.qr_type }}</p>
+
+          {% if qr.qr_type.startswith("sub") %}
+            {% set tag = tags | selectattr("qr_code_id", "equalto", qr.id) | list | first %}
+            {% if tag %}
+              <a href="{{ url_for('routes.sub_tag_options', sub_tag_id=tag.id) }}"
+                 class="text-xs text-blue-600 underline block mt-1 hover:text-blue-800">
+                Open
+              </a>
+            {% endif %}
+          {% endif %}
+        </div>
+      </div>
+      {% endfor %}
+
+    </div>
+
+  </div>
+
+</body>
+</html>
