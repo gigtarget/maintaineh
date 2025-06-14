@@ -16,14 +16,14 @@
 
     {% with messages = get_flashed_messages(with_categories=true) %}
       {% for category, message in messages %}
-        <div class="rounded-xl px-4 py-3 text-sm text-center {{ 'bg-green-100 text-green-800' if category == 'success' else 'bg-red-100 text-red-800' }}">
+        <div class="text-sm text-white text-center rounded-lg px-4 py-2 mb-4 {{ 'bg-green-500' if category == 'success' else 'bg-red-500' }}">
           {{ message }}
         </div>
       {% endfor %}
     {% endwith %}
 
     <!-- Account Settings -->
-    <form method="POST" action="{{ url_for('routes.user_settings') }}" class="space-y-6">
+    <form method="POST" action="{{ url_for('routes.user_settings') }}">
       <div class="bg-white/30 backdrop-blur-md border border-white/20 p-5 rounded-xl space-y-4 shadow">
         <h2 class="text-lg font-semibold">🔐 Account Settings</h2>
 
@@ -38,57 +38,39 @@
           <input type="password" name="password"
                  class="w-full px-4 py-2 rounded-xl bg-white/60 border border-white/30 text-slate-800 shadow-inner">
         </div>
+
+        <button type="submit"
+                class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl py-2 shadow">
+          Save Account Settings
+        </button>
       </div>
-
-      <!-- Machine Preferences -->
-      <div class="bg-white/30 backdrop-blur-md border border-white/20 p-5 rounded-xl space-y-4 shadow">
-        <h2 class="text-lg font-semibold">📦 Machine Preferences</h2>
-
-        <div>
-          <label class="block text-sm mb-1">Default Machine Name</label>
-          <input type="text" name="default_machine_name" value="{{ current_user.default_machine_name or '' }}"
-                 class="w-full px-4 py-2 rounded-xl bg-white/60 border border-white/30 text-slate-800 shadow-inner">
-        </div>
-
-        <div>
-          <label class="block text-sm mb-1">Default Location / Department</label>
-          <input type="text" name="default_machine_location" value="{{ current_user.default_machine_location or '' }}"
-                 class="w-full px-4 py-2 rounded-xl bg-white/60 border border-white/30 text-slate-800 shadow-inner">
-        </div>
-      </div>
-
-      <button type="submit"
-              class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl py-2 shadow">
-        Save Account Settings
-      </button>
     </form>
 
-    <!-- Machine Updates -->
+    <!-- Machine Settings -->
     {% for machine in machines %}
-    <form method="POST" class="space-y-4 bg-white/40 border border-white/30 p-4 rounded-xl shadow">
-      <input type="hidden" name="machine_id" value="{{ machine.id }}">
+      <form method="POST" action="{{ url_for('routes.update_machine', machine_id=machine.id) }}">
+        <div class="bg-white/30 backdrop-blur-md border border-white/20 p-5 rounded-xl space-y-4 shadow">
+          <h2 class="text-lg font-semibold">🧵 Machine</h2>
 
-      <h2 class="text-lg font-semibold">🧵 Machine</h2>
+          <div>
+            <label class="block text-sm mb-1">Machine Name</label>
+            <input type="text" name="name" value="{{ machine.name }}"
+                   class="w-full px-4 py-2 rounded-xl bg-white/60 border border-white/30 text-slate-800 shadow-inner">
+          </div>
 
-      <div>
-        <label class="block text-sm mb-1">Machine Name</label>
-        <input type="text" name="machine_name" value="{{ machine.name }}"
-               class="w-full px-4 py-2 rounded-xl bg-white/60 border border-white/30 text-slate-800 shadow-inner">
-      </div>
+          <div>
+            <label class="block text-sm mb-1">Machine Type</label>
+            <input type="text" name="type" value="{{ machine.type }}"
+                   class="w-full px-4 py-2 rounded-xl bg-white/60 border border-white/30 text-slate-800 shadow-inner">
+          </div>
 
-      <div>
-        <label class="block text-sm mb-1">Machine Type</label>
-        <input type="text" name="machine_type" value="{{ machine.type }}"
-               class="w-full px-4 py-2 rounded-xl bg-white/60 border border-white/30 text-slate-800 shadow-inner">
-      </div>
-
-      <button type="submit"
-              class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl py-2 shadow">
-        Save Machine
-      </button>
-    </form>
+          <button type="submit"
+                  class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl py-2 shadow">
+            Save Machine
+          </button>
+        </div>
+      </form>
     {% endfor %}
-
   </div>
 </body>
 </html>
