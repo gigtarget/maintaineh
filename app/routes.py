@@ -142,14 +142,28 @@ def user_settings():
             current_user.email = email
 
         if password:
-            current_user.password = password  # Make sure to hash it in real app
+            current_user.password = password  # Make sure to hash in production
 
-        # Update all machines
+        # Collect machine data
         machine_ids = request.form.getlist("machine_ids")
+        machine_names = []
+        duplicate_found = False
+
+        for mid in machine_ids:
+            name = request.form.get(f"machine_name_{mid}", "").strip()
+            if name.lower() in [n.lower() for n in machine_names]:
+                flash(f"Machine name '{name}' is duplicated. Please use unique names.", "danger")
+                duplicate_found = True
+                break
+            machine_names.append(name)
+
+        if duplicate_found:
+            return redirect(url_for("routes.user_settings"))
+
+        # Update machine info
         for mid in machine_ids:
             name = request.form.get(f"machine_name_{mid}")
             mtype = request.form.get(f"machine_type_{mid}")
-
             machine = Machine.query.filter_by(id=mid).first()
             if machine and machine.batch.owner_id == current_user.id:
                 machine.name = name
@@ -159,7 +173,7 @@ def user_settings():
         flash("All settings updated successfully.", "success")
         return redirect(url_for("routes.user_settings"))
 
-    # Load user machines
+    # Load machines
     user_batches = QRBatch.query.filter_by(owner_id=current_user.id).all()
     machines = []
     for batch in user_batches:
