@@ -518,9 +518,41 @@ def machine_dashboard(machine_id):
     needle_logs = NeedleChange.query.filter_by(batch_id=batch.id).order_by(NeedleChange.timestamp.desc()).all()
     service_logs = ServiceLog.query.filter_by(batch_id=batch.id).order_by(ServiceLog.timestamp.desc()).all()
 
-    # Get latest entries
     last_needle = needle_logs[0] if needle_logs else None
     last_service = service_logs[0] if service_logs else None
+
+    # Step 4: Group logs by Sub QR head
+    grouped_logs = {}
+    for tag in qr_tags:
+        if tag.tag_type.startswith("sub"):
+            grouped_logs[tag.id] = {
+                "tag": tag,
+                "needle_logs": [],
+                "service_logs": []
+            }
+
+    for nlog in needle_logs:
+        if nlog.sub_tag_id in grouped_logs:
+            grouped_logs[nlog.sub_tag_id]["needle_logs"].append(nlog)
+
+    for slog in service_logs:
+        if slog.sub_tag_id in grouped_logs:
+            grouped_logs[slog.sub_tag_id]["service_logs"].append(slog)
+
+    # Step 5: Maintenance alert
+    warranty_warning = False
+    stale_service_warning = False
+    maintenance_ok = True
+
+    if last_service and last_service.warranty_till:
+        days_left = (last_service.warranty_till - datetime.utcnow().date()).days
+        if days_left < 30:
+            warranty_warning = True
+            maintenance_ok = False
+
+    if last_service and (datetime.utcnow() - last_service.timestamp).days > 60:
+        stale_service_warning = True
+        maintenance_ok = False
 
     return render_template(
         "machine_dashboard.html",
@@ -528,11 +560,14 @@ def machine_dashboard(machine_id):
         batch=batch,
         qr_tags=qr_tags,
         subusers=subusers,
-        needle_logs=needle_logs,
-        service_logs=service_logs,
         last_needle=last_needle,
-        last_service=last_service
+        last_service=last_service,
+        grouped_logs=grouped_logs,
+        warranty_warning=warranty_warning,
+        stale_service_warning=stale_service_warning,
+        maintenance_ok=maintenance_ok
     )
+
 
 
 @routes.route("/logout")
