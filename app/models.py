@@ -11,6 +11,9 @@ class User(UserMixin, db.Model):
     role = db.Column(db.String(20), nullable=False, default="user")
     name = db.Column(db.String(100), nullable=False)
     company_name = db.Column(db.String(100))
+    subuser_id = db.Column(db.String(10), unique=True, nullable=True)
+    machine_id = db.Column(db.Integer, db.ForeignKey('machine.id'), nullable=True)
+
     
     # New preferences
     default_machine_name = db.Column(db.String(100))
