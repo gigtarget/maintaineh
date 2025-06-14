@@ -134,31 +134,32 @@ def claim_batch(batch_id):
 @login_required
 def user_settings():
     if request.method == "POST":
-        machine_id = request.form.get("machine_id")
-        new_name = request.form.get("machine_name")
-        new_type = request.form.get("machine_type")
+        # Account Settings
+        email = request.form.get("email")
+        password = request.form.get("password")
 
-        machine = Machine.query.get(machine_id)
-        if machine and machine.batch.owner_id == current_user.id:
-            machine.name = new_name
-            machine.type = new_type
-            db.session.commit()
-            flash(f"Updated machine '{new_name}' successfully.", "success")
-        else:
-            flash("Machine update failed. You may not own this machine.", "danger")
+        if email and email != current_user.email:
+            current_user.email = email
+
+        if password:
+            current_user.password = password  # Make sure to hash it in real app
+
+        # Update all machines
+        machine_ids = request.form.getlist("machine_ids")
+        for mid in machine_ids:
+            name = request.form.get(f"machine_name_{mid}")
+            mtype = request.form.get(f"machine_type_{mid}")
+
+            machine = Machine.query.filter_by(id=mid).first()
+            if machine and machine.batch.owner_id == current_user.id:
+                machine.name = name
+                machine.type = mtype
+
+        db.session.commit()
+        flash("All settings updated successfully.", "success")
         return redirect(url_for("routes.user_settings"))
 
-    # Fetch all batches claimed by current user
-    user_batches = QRBatch.query.filter_by(owner_id=current_user.id).all()
-    machines = []
-    for batch in user_batches:
-        batch_machines = Machine.query.filter_by(batch_id=batch.id).all()
-        machines.extend(batch_machines)
-
-    return render_template("user_settings.html", machines=machines)
-
-
-    # Get all machines linked to the user’s batches
+    # Load user machines
     user_batches = QRBatch.query.filter_by(owner_id=current_user.id).all()
     machines = []
     for batch in user_batches:
@@ -167,6 +168,7 @@ def user_settings():
             machines.append(m)
 
     return render_template("user_settings.html", machines=machines)
+
     
 @routes.route("/signup", methods=["GET", "POST"], endpoint="user_signup")
 def user_signup():
