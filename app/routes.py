@@ -291,6 +291,20 @@ def download_batch(batch_id):
         download_name=f"batch_{batch_id}.zip"
     )
 
+@routes.route("/machine/<int:machine_id>/update", methods=["POST"])
+@login_required
+def update_machine(machine_id):
+    machine = Machine.query.get_or_404(machine_id)
+    if machine.batch.owner_id != current_user.id:
+        flash("Unauthorized", "danger")
+        return redirect(url_for("routes.user_dashboard"))
+
+    machine.name = request.form.get("name")
+    machine.type = request.form.get("type")
+    db.session.commit()
+    flash("Machine updated successfully!", "success")
+    return redirect(url_for("routes.user_settings"))
+
 @routes.route("/admin/delete-batch/<int:batch_id>", methods=["POST"])
 @login_required
 def delete_batch(batch_id):
