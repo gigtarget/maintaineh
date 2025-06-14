@@ -40,7 +40,6 @@ class QRTag(db.Model):
     tag_type = db.Column(db.String(20))
     batch_id = db.Column(db.Integer, db.ForeignKey("qr_batch.id"))
     qr_url = db.Column(db.String(255))
-
     needle_changes = db.relationship("NeedleChange", backref="sub_tag", lazy=True)
     service_logs = db.relationship("ServiceLog", backref="sub_tag", lazy=True)
 
@@ -63,13 +62,16 @@ class NeedleChange(db.Model):
 
 class Machine(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    
-    # ✅ This fixes the error — machine must point to qr_batch
     batch_id = db.Column(db.Integer, db.ForeignKey("qr_batch.id"), nullable=False)
-
     name = db.Column(db.String(100))
     type = db.Column(db.String(100))
 
+class SubUser(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(120))
+    static_id = db.Column(db.String(10), unique=True)
+    machine_id = db.Column(db.Integer, db.ForeignKey('machine.id'))
+    created_by = db.Column(db.Integer, db.ForeignKey('user.id'))
 
 class ServiceLog(db.Model):
     __tablename__ = 'servicelog'
