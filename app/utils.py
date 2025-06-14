@@ -56,7 +56,7 @@ def generate_custom_qr_image(data, tag_type, logo_path='app/static/logo/qr code 
     # ✅ Logo as box image
     try:
         logo_img = Image.open(logo_path).convert("RGBA")
-        logo_img.thumbnail((260, 60))  # ⬅️ logo box
+        logo_img.thumbnail((260, 190))  # ⬅️ logo box
         base.paste(logo_img, ((img_width - logo_img.width) // 2, 800), logo_img)
     except Exception as e:
         print(f"❌ Logo error: {e}")
