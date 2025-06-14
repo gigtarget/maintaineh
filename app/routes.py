@@ -240,7 +240,6 @@ def user_dashboard():
     if request.method == "POST":
         batch_id = request.form.get("batch_id")
 
-        # Use default settings if machine name/type are not explicitly provided in form
         name = request.form.get("name") or current_user.default_machine_name or "Unnamed Machine"
         mtype = request.form.get("type") or current_user.default_machine_location or "General"
 
@@ -261,12 +260,17 @@ def user_dashboard():
         machine = Machine.query.filter_by(batch_id=batch.id).first()
         qr_codes = QRCode.query.filter_by(batch_id=batch.id).all()
         tags = QRTag.query.filter_by(batch_id=batch.id).all()
+        subusers = []
+        if machine:
+            subusers = SubUser.query.filter_by(assigned_machine_id=machine.id).all()
+
         batch_data.append({
             "id": batch.id,
             "created_at": batch.created_at,
             "machine": machine,
             "qr_codes": qr_codes,
-            "tags": tags
+            "tags": tags,
+            "subusers": subusers
         })
 
     return render_template("user_dashboard.html", batches=batch_data)
