@@ -13,7 +13,7 @@ cloudinary.config(
     api_secret=os.getenv("CLOUDINARY_API_SECRET")
 )
 
-BASE_URL = "https://web-production-a8c0.up.railway.app"
+BASE_URL = "https://www.tokatap.com"
 
 def generate_custom_qr_image(data, tag_type, svg_logo_path='app/static/logo/logo.svg'):
     img_width, img_height = 800, 1200
