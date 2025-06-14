@@ -85,12 +85,14 @@
           </div>
         </div>
 
-        <!-- thumbnails -->
-        <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-4">
+        <!-- QR Cards -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
           {% for qr in item.qrcodes %}
-            <div class="text-center space-y-1">
-              <img src="{{ qr.image_url }}" class="mx-auto h-24 w-24 object-contain border rounded-lg shadow" alt="">
-              <p class="text-xs capitalize">{{ qr.qr_type }}</p>
+            <div class="bg-white rounded-xl border border-slate-200 p-4 shadow flex flex-col items-center">
+              <img src="{{ qr.image_url }}" alt="" class="w-full h-auto max-h-[360px] object-contain rounded-lg">
+              <p class="mt-2 text-sm font-semibold text-center uppercase">{{ qr.qr_type }}</p>
+              <a href="{{ qr.image_url }}" download class="mt-2 inline-block text-blue-600 text-xs underline">⬇️ Download</a>
+              <a href="{{ qr.qr_url or '' }}" target="_blank" class="text-xs mt-1 break-all text-blue-500 hover:underline">🔗 {{ qr.qr_url }}</a>
             </div>
           {% endfor %}
         </div>
