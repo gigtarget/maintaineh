@@ -10,7 +10,7 @@
   <h1 class="text-3xl font-bold mb-8">🖥️ Machine Dashboard</h1>
 
   {% for data in machines_data %}
-  <div class="mb-14 bg-white rounded-xl shadow-xl p-6 border border-gray-200">
+  <div id="machine-{{ data.machine.id }}" class="mb-14 bg-white rounded-xl shadow-xl p-6 border border-gray-200">
 
     <!-- Machine Overview -->
     <div class="bg-gray-50 p-4 rounded-md shadow-sm mb-4">
@@ -41,7 +41,7 @@
         <h3 class="font-semibold mb-2">🪡 Last Needle Change</h3>
         {% if data.last_needle %}
           <p><strong>Date:</strong> {{ data.last_needle.timestamp.date() }}</p>
-          <p><strong>Head:</strong> {{ data.last_needle.sub_tag.tag_code }}</p>
+          <p><strong>Head:</strong> {{ data.last_needle.sub_tag.tag_type }}</p>
           <p><strong>Needle #:</strong> {{ data.last_needle.needle_number }}</p>
           <p><strong>Type:</strong> {{ data.last_needle.needle_type }}</p>
         {% else %}
@@ -84,7 +84,7 @@
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         {% for head_id, group in data.grouped_logs.items() %}
         <div class="bg-gray-50 border border-gray-200 rounded-md p-4 shadow-sm">
-          <h4 class="font-semibold text-gray-800 mb-2">🔹 Head: {{ group.tag.tag_code }}</h4>
+          <h4 class="font-semibold text-gray-800 mb-2">🔹 Head: {{ group.tag.tag_type }}</h4>
 
           {% if group.needle_logs %}
           <div class="mb-3">
