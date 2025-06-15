@@ -41,7 +41,7 @@ def generate_custom_qr_image(data, tag_type, logo_path='app/static/logo/qr code 
     draw_qr_mask.ellipse((cx - r, cy - r, cx + r, cy + r), fill=0)
     qr_img.putalpha(qr_mask)
 
-    base.paste(qr_img, ((img_width - 600) // 2, 60), qr_img)
+    base.paste(qr_img, ((img_width - qr_img.width) // 2, 60), qr_img)
 
     # ✅ Tag type (larger font, bold, custom Agrandir font)
     try:
