@@ -33,7 +33,7 @@ def generate_custom_qr_image(data, tag_type, logo_path='app/static/logo/qr code 
     qr.add_data(data)
     qr.make(fit=True)
     qr_img = qr.make_image(fill_color="black", back_color="white").convert('RGB')
-    qr_img = qr_img.resize((600, 600))
+    qr_img = qr_img.resize((800, 800))
 
     qr_mask = Image.new('L', qr_img.size, 255)
     draw_qr_mask = ImageDraw.Draw(qr_mask)
