@@ -45,7 +45,7 @@ def generate_custom_qr_image(data, tag_type, logo_path='app/static/logo/qr code 
 
     # ✅ Tag type (larger font, bold, custom Agrandir font)
     try:
-        font = ImageFont.truetype("app/fonts/Agrandir.ttf", 64)
+        font = ImageFont.truetype("app/fonts/Agrandir.ttf", 70)
     except Exception as e:
         print(f"⚠️ Font load failed: {e}")
         font = ImageFont.load_default()
@@ -53,15 +53,15 @@ def generate_custom_qr_image(data, tag_type, logo_path='app/static/logo/qr code 
     text = tag_type.upper()
     bbox = font.getbbox(text)
     w = bbox[2] - bbox[0]
-    draw.text(((img_width - w) // 2, 800), text, font=font, fill="black")
+    draw.text(((img_width - w) // 2, 850), text, font=font, fill="black")
 
 
     # ✅ Logo as box image
     try:
         # Force resize without keeping aspect ratio
         logo_img = Image.open(logo_path).convert("RGBA")
-        logo_img = logo_img.resize((550, 180))  # force size
-        base.paste(logo_img, ((img_width - logo_img.width) // 2, 1000), logo_img)
+        logo_img = logo_img.resize((550, 140))  # force size
+        base.paste(logo_img, ((img_width - logo_img.width) // 2, 980), logo_img)
 
     except Exception as e:
         print(f"❌ Logo error: {e}")
