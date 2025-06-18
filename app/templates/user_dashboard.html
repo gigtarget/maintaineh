@@ -1,4 +1,3 @@
-<!-- Save this as templates/user_dashboard.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -7,6 +6,20 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
+    function toggleMachineDashboard() {
+      const machinesBox = document.getElementById("machines-box");
+      const batchesBox = document.getElementById("batches-box");
+      const machineDashboard = document.getElementById("machine-dashboard");
+
+      machinesBox.classList.toggle("col-span-2");
+      batchesBox.classList.toggle("hidden");
+      machineDashboard.classList.toggle("hidden");
+    }
+
+    function closeMachineDashboard() {
+      toggleMachineDashboard();
+    }
+
     function toggleBatch(id) {
       const box = document.getElementById(`batch-${id}`);
       const arrow = document.getElementById(`chevron-${id}`);
@@ -39,102 +52,87 @@
 
   {% set machine_count = batches | selectattr('machine') | list | length %}
   {% set batch_count = batches | length %}
+
+  <!-- Stats Grid -->
   <div class="max-w-2xl mx-auto grid grid-cols-2 gap-4 mb-6">
-    <div class="bg-green-50 text-green-700 border-green-400 border rounded-2xl shadow-md p-4 flex flex-col items-center">
+    <!-- Machines -->
+    <div onclick="toggleMachineDashboard()" id="machines-box"
+         class="cursor-pointer bg-green-50 text-green-700 border-green-400 border rounded-2xl shadow-md p-4 flex flex-col items-center transition-all duration-500 ease-in-out hover:scale-[1.01] col-span-1">
       <img src="{{ url_for('static', filename='emb assets/machine.png') }}" class="h-10 w-10 mb-2" alt="Machine Icon" />
       <p class="font-semibold text-sm">Total Machines</p>
       <p class="text-2xl font-bold text-black">{{ machine_count }}</p>
+      <p class="text-xs text-slate-600 mt-1">Click to view details</p>
     </div>
-    <div class="bg-green-50 text-green-700 border-green-400 border rounded-2xl shadow-md p-4 flex flex-col items-center">
+
+    <!-- Batches -->
+    <div id="batches-box" class="bg-green-50 text-green-700 border-green-400 border rounded-2xl shadow-md p-4 flex flex-col items-center">
       <img src="{{ url_for('static', filename='emb assets/batch.png') }}" class="h-10 w-10 mb-2" alt="Batch Icon" />
       <p class="font-semibold text-sm">Claimed Batches</p>
       <p class="text-2xl font-bold text-black">{{ batch_count }}</p>
     </div>
   </div>
 
-  <div class="max-w-2xl mx-auto">
-    {% for batch in batches %}
-    <div class="mb-6">
-      <div onclick="toggleBatch({{ batch.id }})"
-           class="cursor-pointer flex justify-between items-center px-4 py-3 bg-white/10 hover:bg-white/20 backdrop-blur-xl border border-white/20 shadow-md rounded-xl transition-all duration-200 group">
-        <div class="text-slate-800 font-medium text-base sm:text-lg">
-          Batch ID: {{ batch.id }}
-          {% if batch.machine %}
-            – {{ batch.machine.name }} ({{ batch.machine.type }})
-            {% if batch.subusers and batch.subusers|length > 0 %}
-              <span class="text-xs text-gray-600 ml-2">🔑 
-                {% for sub in batch.subusers %}
-                  <span class="bg-gray-200 text-gray-800 px-2 py-0.5 rounded-md text-xs font-mono">{{ sub.static_id }}</span>{% if not loop.last %},{% endif %}
-                {% endfor %}
-              </span>
-            {% endif %}
-          {% endif %}
-        </div>
-        <svg id="chevron-{{ batch.id }}" class="w-5 h-5 text-blue-600 transition-transform duration-200 group-hover:scale-110" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
-        </svg>
+  <!-- Machine Dashboard Expanded View -->
+  <div id="machine-dashboard" class="hidden max-w-2xl mx-auto mt-4">
+    <div class="flex justify-between items-center mb-4">
+      <h2 class="text-2xl font-bold text-slate-800">🖥 Machine Dashboard</h2>
+      <button onclick="closeMachineDashboard()" class="text-blue-600 text-sm underline">← Back</button>
+    </div>
+
+    {% for data in machines_data %}
+    <div id="machine-{{ data.machine.id }}" class="mb-6 bg-white rounded-xl shadow-md p-4 border border-gray-200">
+
+      <div class="bg-gray-50 p-3 rounded-md mb-3">
+        <h3 class="text-lg font-semibold mb-2">🧩 Machine Overview</h3>
+        <ul class="text-sm text-gray-700">
+          <li><strong>Name:</strong> {{ data.machine.name }}</li>
+          <li><strong>Type:</strong> {{ data.machine.type }}</li>
+          <li><strong>Batch ID:</strong> {{ data.batch.id }}</li>
+          <li><strong>Claimed On:</strong> {{ data.batch.created_at.date() }}</li>
+          <li><strong>Total Heads:</strong> {{ data.grouped_logs|length }}</li>
+          <li><strong>Total Needle Changes:</strong> {{ data.total_needle_changes }}</li>
+          <li><strong>Total Services Logged:</strong> {{ data.total_services_logged }}</li>
+        </ul>
       </div>
 
-      <div id="batch-{{ batch.id }}" class="p-4 hidden bg-white/10 backdrop-blur-xl border border-white/20 rounded-b-2xl shadow-md mt-1">
-        <p class="text-sm text-slate-600 mb-4">Claimed on {{ batch.created_at.strftime('%Y-%m-%d %H:%M') }}</p>
-
-        <!-- Master & Service -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
-          {% for qr in batch.qr_codes if qr.qr_type in ['master', 'service'] %}
-          <div class="bg-white/10 p-4 border border-white/20 rounded-xl text-center shadow">
-            <img src="{{ qr.image_url }}" class="h-24 mx-auto mb-2" />
-            <p class="font-medium capitalize">{{ qr.qr_type }}</p>
-            {% if qr.qr_type == 'master' and batch.machine %}
-              <a href="{{ url_for('routes.machine_dashboard') }}#machine-{{ batch.machine.id }}"
-                 class="text-xs text-blue-600 underline mt-1 inline-block">
-                 View Full Dashboard
-              </a>
-            {% endif %}
-          </div>
-          {% endfor %}
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
+        <div class="bg-green-100 p-3 rounded-md">
+          <h4 class="font-medium mb-1">🪡 Last Needle Change</h4>
+          {% if data.last_needle %}
+            <p><strong>Date:</strong> {{ data.last_needle.timestamp.date() }}</p>
+            <p><strong>Head:</strong> {{ data.last_needle.sub_tag.tag_type }}</p>
+            <p><strong>Needle #:</strong> {{ data.last_needle.needle_number }}</p>
+            <p><strong>Type:</strong> {{ data.last_needle.needle_type }}</p>
+          {% else %}
+            <p class="italic text-gray-500">No needle changes.</p>
+          {% endif %}
         </div>
-
-        <!-- Sub QR -->
-        <div class="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-6">
-          {% for qr in batch.qr_codes if qr.qr_type.startswith('sub') %}
-          <div class="bg-white/10 p-4 border border-white/20 rounded-xl text-center shadow">
-            <img src="{{ qr.image_url }}" class="h-20 mx-auto mb-1" />
-            <p class="font-medium capitalize">{{ qr.qr_type }}</p>
-            {% set tag = batch.tags | selectattr("tag_type", "equalto", qr.qr_type) | list | first %}
-            {% if tag %}
-              <a href="{{ url_for('routes.sub_tag_options', sub_tag_id=tag.id) }}" class="text-xs text-blue-600 underline">Open Sub QR</a>
-            {% endif %}
-          </div>
-          {% endfor %}
+        <div class="bg-yellow-100 p-3 rounded-md">
+          <h4 class="font-medium mb-1">🔧 Last Service Log</h4>
+          {% if data.last_service %}
+            <p><strong>Part:</strong> {{ data.last_service.part_name }}</p>
+            <p><strong>Description:</strong> {{ data.last_service.description }}</p>
+            <p><strong>Warranty Till:</strong> {{ data.last_service.warranty_till }}</p>
+            <p><strong>Logged On:</strong> {{ data.last_service.timestamp.date() }}</p>
+          {% else %}
+            <p class="italic text-gray-500">No service logs.</p>
+          {% endif %}
         </div>
+      </div>
 
-        <!-- Machine Section -->
-        {% if batch.machine %}
-        <div class="bg-white/20 p-4 border border-white/20 rounded-xl mb-4 shadow">
-          <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center">
-            <div>
-              <p class="font-medium">{{ batch.machine.name }} ({{ batch.machine.type }})</p>
-              {% if batch.machine.under_maintenance %}
-                <p class="text-xs text-red-600 font-semibold mt-1">⚠️ Under Maintenance</p>
-              {% elif batch.machine.warranty_expiry and batch.machine.warranty_expiry < now().date() %}
-                <p class="text-xs text-yellow-600 font-semibold mt-1">⚠️ Warranty Expired</p>
-              {% else %}
-                <p class="text-xs text-green-600 font-semibold mt-1">✅ All Good</p>
-              {% endif %}
-            </div>
-            <a href="{{ url_for('routes.machine_dashboard') }}#machine-{{ batch.machine.id }}" class="text-sm mt-3 sm:mt-0 px-4 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700">View Dashboard</a>
-          </div>
-        </div>
+      <div class="p-3 rounded-md {% if data.maintenance_ok %}bg-green-50{% else %}bg-red-50{% endif %}">
+        <h4 class="font-semibold text-sm mb-2">🛠️ Maintenance Status</h4>
+        {% if data.maintenance_ok %}
+          <p class="text-green-800">✅ All good.</p>
         {% else %}
-        <div class="bg-white/20 p-4 border border-white/20 rounded-xl shadow">
-          <h3 class="font-medium mb-2">Add Machine for this Batch</h3>
-          <form method="POST">
-            <input type="hidden" name="batch_id" value="{{ batch.id }}">
-            <input type="text" name="name" placeholder="Machine Name" required class="mb-2 w-full px-3 py-2 border rounded-xl bg-white/50 placeholder-slate-500" />
-            <input type="text" name="type" placeholder="Machine Type" required class="mb-2 w-full px-3 py-2 border rounded-xl bg-white/50 placeholder-slate-500" />
-            <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-xl hover:bg-blue-700">Add Machine</button>
-          </form>
-        </div>
+          <ul class="list-disc list-inside text-red-700 text-sm">
+            {% if data.warranty_warning %}
+              <li>⚠️ Warranty expiring soon.</li>
+            {% endif %}
+            {% if data.stale_service_warning %}
+              <li>⚠️ No service in 60+ days.</li>
+            {% endif %}
+          </ul>
         {% endif %}
       </div>
     </div>
