@@ -105,29 +105,27 @@
           <li><strong>Total Services Logged:</strong> {{ data.total_services_logged }}</li>
         </ul>
 
-        <!-- Beautiful QR Button -->
-        <div class="flex justify-end mt-4">
-          <button onclick="document.getElementById('qr-{{ data.machine.id }}').classList.toggle('hidden')"
-                  class="flex items-center gap-2 bg-blue-50 text-blue-700 border border-blue-200 rounded-lg px-3 py-1.5 text-xs font-medium hover:bg-blue-100 transition-all">
-            <img src="{{ url_for('static', filename='emb assets/qr.png') }}" class="h-4 w-4" alt="QR Icon">
-            View QR Codes
-          </button>
-        </div>
+        <button onclick="document.getElementById('qr-{{ data.machine.id }}').classList.toggle('hidden')"
+                class="text-sm mt-3 text-blue-600 underline">
+          📎 View QR Codes
+        </button>
 
-        <!-- QR Grid -->
         <div id="qr-{{ data.machine.id }}" class="hidden mt-3">
           <div class="grid grid-cols-2 sm:grid-cols-3 gap-4">
             {% for qr in data.qr_codes %}
             <div class="bg-white border rounded-xl p-3 text-center shadow">
               <img src="{{ qr.image_url }}" class="h-24 mx-auto mb-2" alt="QR">
               <p class="capitalize font-medium text-sm">{{ qr.qr_type }}</p>
+              <a href="{{ qr.image_url }}" download="{{ qr.qr_type }}.png"
+                 class="mt-2 inline-block text-xs bg-blue-600 text-white px-3 py-1 rounded-md hover:bg-blue-700 transition">
+                ⬇ Download
+              </a>
             </div>
             {% endfor %}
           </div>
         </div>
       </div>
 
-      <!-- Needle & Service Logs -->
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
         <div class="bg-green-50 p-4 rounded-md shadow-sm">
           <h3 class="font-semibold mb-2">🪡 Last Needle Change</h3>
@@ -205,6 +203,7 @@
           {% endfor %}
         </div>
       </div>
+
     </div>
     {% endfor %}
   </div>
