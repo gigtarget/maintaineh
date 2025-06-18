@@ -332,6 +332,7 @@ def user_dashboard():
             "maintenance_ok": maintenance_ok,
             "warranty_warning": warranty_warning,
             "stale_service_warning": stale_service_warning
+            "qr_codes": QRCode.query.filter_by(batch_id=batch.id).all()
         })
 
     return render_template("user_dashboard.html", batches=batch_data, machines_data=machines_data)
