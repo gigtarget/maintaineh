@@ -10,7 +10,6 @@
       const machinesBox = document.getElementById("machines-box");
       const batchesBox = document.getElementById("batches-box");
       const machineDashboard = document.getElementById("machine-dashboard");
-
       machinesBox.classList.toggle("col-span-2");
       batchesBox.classList.toggle("hidden");
       machineDashboard.classList.toggle("hidden");
@@ -76,7 +75,6 @@
     </div>
   </div>
 
-  <!-- Machine Dashboard (Full View from machine_dashboard.html) -->
   <div id="machine-dashboard" class="hidden max-w-2xl mx-auto mt-4">
     <div class="flex justify-between items-center mb-4">
       <h2 class="text-2xl font-bold text-slate-800">🖥 Machine Dashboard</h2>
@@ -86,7 +84,6 @@
     {% for data in machines_data %}
     <div id="machine-{{ data.machine.id }}" class="mb-14 bg-white rounded-xl shadow-xl p-6 border border-gray-200">
 
-      <!-- Machine Overview -->
       <div class="bg-gray-50 p-4 rounded-md shadow-sm mb-4">
         <h2 class="text-xl font-semibold mb-3">🧩 Machine Overview</h2>
         <ul class="space-y-1 text-gray-700">
@@ -107,9 +104,24 @@
           <li><strong>Total Needle Changes:</strong> {{ data.total_needle_changes }}</li>
           <li><strong>Total Services Logged:</strong> {{ data.total_services_logged }}</li>
         </ul>
+
+        <button onclick="document.getElementById('qr-{{ data.machine.id }}').classList.toggle('hidden')"
+                class="text-sm mt-3 text-blue-600 underline">
+          📎 View QR Codes
+        </button>
+
+        <div id="qr-{{ data.machine.id }}" class="hidden mt-3">
+          <div class="grid grid-cols-2 sm:grid-cols-3 gap-4">
+            {% for qr in data.qr_codes %}
+            <div class="bg-white border rounded-xl p-3 text-center shadow">
+              <img src="{{ qr.image_url }}" class="h-24 mx-auto mb-2" alt="QR">
+              <p class="capitalize font-medium text-sm">{{ qr.qr_type }}</p>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
       </div>
 
-      <!-- Latest Activities -->
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
         <div class="bg-green-50 p-4 rounded-md shadow-sm">
           <h3 class="font-semibold mb-2">🪡 Last Needle Change</h3>
@@ -135,7 +147,6 @@
         </div>
       </div>
 
-      <!-- Maintenance Status -->
       <div class="p-4 rounded-md shadow-sm {% if data.maintenance_ok %}bg-green-100{% else %}bg-red-100{% endif %} mb-4">
         <h3 class="text-lg font-semibold mb-2">🛠️ Maintenance Status</h3>
         {% if data.maintenance_ok %}
@@ -152,9 +163,7 @@
         {% endif %}
       </div>
 
-      <!-- Toggle Head Logs -->
       <button onclick="toggleLogs({{ data.machine.id }})" class="text-blue-600 text-sm underline">📁 View Logs by Head</button>
-
       <div id="logs-{{ data.machine.id }}" class="hidden mt-4">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           {% for head_id, group in data.grouped_logs.items() %}
@@ -190,7 +199,6 @@
           {% endfor %}
         </div>
       </div>
-
     </div>
     {% endfor %}
   </div>
