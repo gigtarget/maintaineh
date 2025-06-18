@@ -253,6 +253,7 @@ def user_dashboard():
             flash("Machine added successfully.", "success")
         db.session.commit()
 
+    # ✅ Load batch data for frontend dropdown and QR cards
     user_batches = QRBatch.query.filter_by(owner_id=current_user.id).all()
     batch_data = []
     for batch in user_batches:
@@ -272,7 +273,69 @@ def user_dashboard():
             "subusers": subusers
         })
 
-    return render_template("user_dashboard.html", batches=batch_data)
+    # ✅ Build full machines_data used in embedded dashboard
+    machines = Machine.query.join(QRBatch).filter(QRBatch.owner_id == current_user.id).all()
+    machines_data = []
+
+    for machine in machines:
+        batch = machine.batch
+        subusers = SubUser.query.filter_by(assigned_machine_id=machine.id).all()
+        qr_tags = QRTag.query.filter_by(batch_id=batch.id).filter(QRTag.tag_type.startswith("sub")).all()
+
+        needle_logs = NeedleChange.query.filter_by(batch_id=batch.id).order_by(NeedleChange.timestamp.desc()).all()
+        service_logs = ServiceLog.query.filter_by(batch_id=batch.id).order_by(ServiceLog.timestamp.desc()).all()
+
+        last_needle = needle_logs[0] if needle_logs else None
+        last_service = service_logs[0] if service_logs else None
+
+        # Group logs by sub-tag
+        grouped_logs = {}
+        for tag in qr_tags:
+            grouped_logs[tag.id] = {
+                "tag": tag,
+                "needle_logs": [],
+                "service_logs": []
+            }
+
+        for log in needle_logs:
+            if log.sub_tag_id in grouped_logs:
+                grouped_logs[log.sub_tag_id]["needle_logs"].append(log)
+
+        for log in service_logs:
+            if log.sub_tag_id in grouped_logs:
+                grouped_logs[log.sub_tag_id]["service_logs"].append(log)
+
+        # Maintenance status flags
+        warranty_warning = False
+        stale_service_warning = False
+        maintenance_ok = True
+
+        if last_service and last_service.warranty_till:
+            days_left = (last_service.warranty_till - datetime.utcnow().date()).days
+            if days_left < 30:
+                warranty_warning = True
+                maintenance_ok = False
+
+        if last_service and (datetime.utcnow() - last_service.timestamp).days > 60:
+            stale_service_warning = True
+            maintenance_ok = False
+
+        machines_data.append({
+            "machine": machine,
+            "batch": batch,
+            "subusers": subusers,
+            "last_needle": last_needle,
+            "last_service": last_service,
+            "grouped_logs": grouped_logs,
+            "total_needle_changes": len(needle_logs),
+            "total_services_logged": len(service_logs),
+            "maintenance_ok": maintenance_ok,
+            "warranty_warning": warranty_warning,
+            "stale_service_warning": stale_service_warning
+        })
+
+    return render_template("user_dashboard.html", batches=batch_data, machines_data=machines_data)
+
 
 @routes.route("/admin/login", methods=["GET", "POST"], endpoint="admin_login")
 def admin_login():
