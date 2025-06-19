@@ -195,7 +195,13 @@
         {% endif %}
       </div>
 
-      <button onclick="toggleLogs({{ data.machine.id }})" class="text-blue-600 text-sm underline">📁 View Logs by Head</button>
+      <div class="flex justify-start mt-4">
+        <button onclick="toggleLogs({{ data.machine.id }})"
+          class="flex items-center gap-2 text-sm px-4 py-2 bg-white hover:bg-blue-50 text-blue-700 border border-blue-200 rounded-lg shadow-sm transition">
+          <img src="{{ url_for('static', filename='emb assets/folder.png') }}" class="w-4 h-4" alt="Folder Icon">
+          View Logs by Head
+        </button>
+      </div>
       <div id="logs-{{ data.machine.id }}" class="hidden mt-4">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           {% for head_id, group in data.grouped_logs.items() %}
