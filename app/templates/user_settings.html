@@ -1,14 +1,26 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>User Settings</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    function showTab(tab) {
+      const sections = document.querySelectorAll('[data-section]');
+      sections.forEach(s => s.classList.add('hidden'));
+      document.getElementById(`section-${tab}`).classList.remove('hidden');
+
+      const tabs = document.querySelectorAll('[data-tab]');
+      tabs.forEach(t => t.classList.remove('border-blue-500', 'text-blue-700'));
+      document.getElementById(`tab-${tab}`).classList.add('border-blue-500', 'text-blue-700');
+    }
+  </script>
 </head>
 <body class="bg-gradient-to-br from-blue-100 to-white min-h-screen text-slate-800 p-4">
   <div class="max-w-2xl mx-auto space-y-6">
 
+    <!-- Header -->
     <div class="flex justify-between items-center">
       <h1 class="text-2xl font-bold">Settings</h1>
       <a href="{{ url_for('routes.user_dashboard') }}"
@@ -17,6 +29,7 @@
       </a>
     </div>
 
+    <!-- Flash Messages -->
     {% with messages = get_flashed_messages(with_categories=true) %}
       {% for category, message in messages %}
         <div class="text-sm text-center px-4 py-2 rounded-xl {{ 'bg-green-100 text-green-800' if category == 'success' else 'bg-red-100 text-red-800' }}">
@@ -25,69 +38,95 @@
       {% endfor %}
     {% endwith %}
 
+    <!-- Tab Buttons -->
+    <div class="flex space-x-4 border-b mb-4">
+      <button id="tab-profile" data-tab onclick="showTab('profile')"
+              class="py-2 px-4 border-b-2 font-medium text-sm text-blue-700 border-blue-500">
+        👤 Profile
+      </button>
+      <button id="tab-machines" data-tab onclick="showTab('machines')"
+              class="py-2 px-4 border-b-2 font-medium text-sm text-gray-500 hover:text-blue-700">
+        🛠️ Machines
+      </button>
+      <!-- Future Tabs -->
+      <!-- <button onclick="showTab('notifications')" ...>🔔 Notifications</button> -->
+    </div>
+
+    <!-- Settings Form -->
     <form method="POST" action="{{ url_for('routes.user_settings') }}" class="space-y-6">
 
-      <!-- Account Section -->
-      <div class="bg-white/30 backdrop-blur-md border border-white/20 p-5 rounded-xl space-y-4 shadow">
-        <h2 class="text-lg font-semibold">🔐 Account Settings</h2>
+      <!-- Profile Section -->
+      <div id="section-profile" data-section class="">
+        <div class="bg-white/30 backdrop-blur-md border border-white/20 p-5 rounded-xl space-y-4 shadow">
+          <h2 class="text-lg font-semibold mb-2">🔐 Account Settings</h2>
 
-        <div>
-          <label class="block text-sm mb-1">Name</label>
-          <input type="text" name="name" value="{{ current_user.name or '' }}"
-                 class="w-full px-4 py-2 rounded-xl bg-white/60 border border-white/30 shadow-inner">
-        </div>
+          <div>
+            <label class="block text-sm mb-1">Name</label>
+            <input type="text" name="name" value="{{ current_user.name or '' }}"
+                   class="w-full px-4 py-2 rounded-xl bg-white/60 border border-white/30 shadow-inner">
+          </div>
 
-        <div>
-          <label class="block text-sm mb-1">Company Name</label>
-          <input type="text" name="company_name" value="{{ current_user.company_name or '' }}"
-                 class="w-full px-4 py-2 rounded-xl bg-white/60 border border-white/30 shadow-inner">
-        </div>
+          <div>
+            <label class="block text-sm mb-1">Company Name</label>
+            <input type="text" name="company_name" value="{{ current_user.company_name or '' }}"
+                   class="w-full px-4 py-2 rounded-xl bg-white/60 border border-white/30 shadow-inner">
+          </div>
 
-        <div>
-          <label class="block text-sm mb-1">Mobile Number</label>
-          <input type="text" name="mobile" value="{{ current_user.mobile or '' }}"
-                 class="w-full px-4 py-2 rounded-xl bg-white/60 border border-white/30 shadow-inner">
-        </div>
+          <div>
+            <label class="block text-sm mb-1">Mobile Number</label>
+            <input type="text" name="mobile" value="{{ current_user.mobile or '' }}"
+                   class="w-full px-4 py-2 rounded-xl bg-white/60 border border-white/30 shadow-inner">
+          </div>
 
-        <div>
-          <label class="block text-sm mb-1">Change Email</label>
-          <input type="email" name="email" value="{{ current_user.email }}"
-                 class="w-full px-4 py-2 rounded-xl bg-white/60 border border-white/30 shadow-inner">
-        </div>
+          <div>
+            <label class="block text-sm mb-1">Change Email</label>
+            <input type="email" name="email" value="{{ current_user.email }}"
+                   class="w-full px-4 py-2 rounded-xl bg-white/60 border border-white/30 shadow-inner">
+          </div>
 
-        <div>
-          <label class="block text-sm mb-1">New Password</label>
-          <input type="password" name="password"
-                 class="w-full px-4 py-2 rounded-xl bg-white/60 border border-white/30 shadow-inner">
-        </div>
-      </div>
-
-      <!-- Machines -->
-      {% for machine in machines %}
-      <div class="bg-white/30 backdrop-blur-md border border-white/20 p-5 rounded-xl space-y-4 shadow">
-        <h2 class="text-lg font-semibold">🛠️ Machine</h2>
-
-        <input type="hidden" name="machine_ids" value="{{ machine.id }}">
-
-        <div>
-          <label class="block text-sm mb-1">Machine Name</label>
-          <input type="text" name="machine_name_{{ machine.id }}" value="{{ machine.name }}"
-                 class="w-full px-4 py-2 rounded-xl bg-white/60 border border-white/30 shadow-inner">
-        </div>
-
-        <div>
-          <label class="block text-sm mb-1">Machine Type</label>
-          <input type="text" name="machine_type_{{ machine.id }}" value="{{ machine.type }}"
-                 class="w-full px-4 py-2 rounded-xl bg-white/60 border border-white/30 shadow-inner">
+          <div>
+            <label class="block text-sm mb-1">New Password</label>
+            <input type="password" name="password"
+                   class="w-full px-4 py-2 rounded-xl bg-white/60 border border-white/30 shadow-inner">
+          </div>
         </div>
       </div>
-      {% endfor %}
 
+      <!-- Machines Section -->
+      <div id="section-machines" data-section class="hidden">
+        {% for machine in machines %}
+        <div class="bg-white/30 backdrop-blur-md border border-white/20 p-5 rounded-xl space-y-4 shadow mb-4">
+          <h2 class="text-lg font-semibold">🛠️ Machine</h2>
+          <input type="hidden" name="machine_ids" value="{{ machine.id }}">
+
+          <div>
+            <label class="block text-sm mb-1">Machine Name</label>
+            <input type="text" name="machine_name_{{ machine.id }}" value="{{ machine.name }}"
+                   class="w-full px-4 py-2 rounded-xl bg-white/60 border border-white/30 shadow-inner">
+          </div>
+
+          <div>
+            <label class="block text-sm mb-1">Machine Type</label>
+            <input type="text" name="machine_type_{{ machine.id }}" value="{{ machine.type }}"
+                   class="w-full px-4 py-2 rounded-xl bg-white/60 border border-white/30 shadow-inner">
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+
+      <!-- Save Button -->
       <button type="submit"
               class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl py-2 shadow">
         Save All Settings
       </button>
     </form>
   </div>
+
+  <script>
+    // Set default tab on page load
+    document.addEventListener('DOMContentLoaded', () => {
+      showTab('profile');
+    });
+  </script>
 </body>
 </html>
