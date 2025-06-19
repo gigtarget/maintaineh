@@ -11,6 +11,7 @@ class User(UserMixin, db.Model):
     role = db.Column(db.String(20), nullable=False, default="user")
     name = db.Column(db.String(100), nullable=False)
     company_name = db.Column(db.String(100))
+    mobile = db.Column(db.String(20))  # ✅ Added to support mobile number
 
     default_machine_name = db.Column(db.String(100))
     default_machine_location = db.Column(db.String(100))
@@ -45,7 +46,7 @@ class QRCode(db.Model):
     batch_id = db.Column(db.Integer, db.ForeignKey('qr_batch.id'))
     qr_type = db.Column(db.String(50))
     image_url = db.Column(db.String(500))
-    qr_url = db.Column(db.String(500))  # ✅ This line is required
+    qr_url = db.Column(db.String(500))  # ✅ Required
 
 
 class NeedleChange(db.Model):
@@ -73,7 +74,6 @@ class SubUser(db.Model):
     assigned_machine_id = db.Column(db.Integer, db.ForeignKey('machine.id'))
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
-    # ✅ Relationship to access assigned machine
     assigned_machine = db.relationship('Machine', backref='subusers', foreign_keys=[assigned_machine_id])
 
 
