@@ -14,8 +14,11 @@
     <div class="text-center mb-4">
       <img src="{{ url_for('static', filename='logo/logo.svg') }}"
            alt="Tokatap Logo"
-           class="w-40 h-auto mx-auto object-contain shadow-none bg-transparent">
+           class="w-40 h-auto mx-auto object-contain">
       <h2 class="text-2xl font-semibold text-slate-800 mt-4">Welcome</h2>
+      <p class="text-xs text-slate-600 mt-2 leading-relaxed">
+        No more paperwork or guesswork — imagine knowing your machine’s full service history, upcoming maintenance needs, and past component changes, all in one place — accessible with just one tap or scan.
+      </p>
     </div>
 
     <!-- Flash Messages -->
@@ -51,13 +54,11 @@
       <a href="{{ url_for('routes.user_signup') }}" class="text-blue-600 hover:underline">Sign up here</a>
     </p>
 
-    <!-- Instruction Box -->
-    <div class="mt-6 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700">
-      <div class="flex items-center mb-1">
-      <p class="text-xs leading-relaxed mt-1">
-        No more paperwork or guesswork — imagine knowing your machine’s full service history, upcoming maintenance needs, and past component changes, all in one place — accessible with just one tap or scan.
-      </p>
+    <!-- Octopus Mascot -->
+    <div class="mt-6 flex justify-center">
+      <img src="{{ url_for('static', filename='logo/octatoka.png') }}" alt="Tokatap Mascot" class="w-36 h-auto">
     </div>
+    
   </div>
 
 </body>
