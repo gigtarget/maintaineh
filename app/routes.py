@@ -5,6 +5,7 @@ from app.utils import generate_and_store_qr_batch
 from app import db
 from app.models import SubUser
 from datetime import datetime
+from datetime import date, timedelta
 import io
 import zipfile
 import requests
@@ -335,7 +336,7 @@ def user_dashboard():
             "qr_codes": QRCode.query.filter_by(batch_id=batch.id).all()  # ✅ this line MUST be inside the dictionary
         })
 
-    return render_template("user_dashboard.html", batches=batch_data, machines_data=machines_data)
+    return render_template("user_dashboard.html", batches=batch_data, machines_data=machines_data, now=datetime.utcnow(), timedelta=timedelta)
 
 
 @routes.route("/admin/login", methods=["GET", "POST"], endpoint="admin_login")
