@@ -155,7 +155,7 @@ def user_settings():
         if email and email != current_user.email:
             current_user.email = email
         if password:
-            current_user.password = password  # ⚠️ Hash in production
+            current_user.password = password  # ⚠️ Hash this in production
 
         # --- Machine Section ---
         machine_ids = request.form.getlist("machine_ids")
@@ -185,7 +185,7 @@ def user_settings():
         flash("All settings updated successfully.", "success")
         return redirect(url_for("routes.user_settings"))
 
-    # --- GET: Load Data ---
+    # --- GET: Load machines ---
     user_batches = QRBatch.query.filter_by(owner_id=current_user.id).all()
     machines = []
     for batch in user_batches:
