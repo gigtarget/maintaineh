@@ -12,10 +12,11 @@
     <div class="flex justify-between items-center">
       <h1 class="text-2xl font-bold">Settings</h1>
       <a href="{{ url_for('routes.user_dashboard') }}"
-         class="inline-flex items-center px-4 py-1.5 border border-blue-300 text-blue-700 hover:text-blue-900 text-sm rounded-xl shadow-sm bg-white hover:bg-blue-50 transition">
+         class="inline-flex items-center px-4 py-1.5 border border-blue-400 text-blue-600 hover:text-blue-800 rounded-xl text-sm font-medium hover:bg-blue-50 transition shadow-sm">
         ← Back to Dashboard
       </a>
     </div>
+
     {% with messages = get_flashed_messages(with_categories=true) %}
       {% for category, message in messages %}
         <div class="text-sm text-center px-4 py-2 rounded-xl {{ 'bg-green-100 text-green-800' if category == 'success' else 'bg-red-100 text-red-800' }}">
