@@ -2,32 +2,20 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Logit.Eh - Login</title>
+  <title>Tokatap - Login</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <script src="https://cdn.tailwindcss.com"></script>
-  <style>
-    @keyframes fadeSlideIn {
-      0% { opacity: 0; transform: translateY(-10px); }
-      100% { opacity: 1; transform: translateY(0); }
-    }
-    .fade-in {
-      animation: fadeSlideIn 0.8s ease-out forwards;
-    }
-  </style>
 </head>
 <body class="bg-gradient-to-br from-blue-100 to-white min-h-screen flex justify-center pt-12 sm:pt-20 p-4">
 
-  <div class="bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl shadow-xl w-full max-w-sm p-6 sm:p-8 fade-in">
-
+  <div class="bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl shadow-xl w-full max-w-sm p-6 sm:p-8">
+    
     <!-- Logo and Title -->
     <div class="text-center mb-4">
       <img src="{{ url_for('static', filename='logo/logo.svg') }}"
-           alt="Logo"
-           class="w-44 h-auto mx-auto object-contain shadow-none bg-transparent">
-      <h2 class="text-3xl font-bold text-slate-800 mt-4 animate-pulse">Welcome</h2>
-      <p class="text-sm text-slate-600 mt-1 px-2">
-        No more paperwork or guesswork — imagine knowing your machine’s full service history, upcoming maintenance needs, and past component changes, all in one place — accessible with just one tap or scan.
-      </p>
+           alt="Tokatap Logo"
+           class="w-40 h-auto mx-auto object-contain shadow-none bg-transparent">
+      <h2 class="text-2xl font-semibold text-slate-800 mt-4">Welcome</h2>
     </div>
 
     <!-- Flash Messages -->
@@ -67,13 +55,11 @@
     <div class="mt-6 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700">
       <div class="flex items-center mb-1">
         <span class="text-lg mr-2">🛠️</span>
-        <span class="font-semibold">How to activate your tag</span>
+        <span class="font-semibold">No more paperwork or guesswork</span>
       </div>
-      <ol class="list-decimal list-inside pl-2 space-y-1 text-xs mt-1">
-        <li>Create your account</li>
-        <li>Log in to your dashboard</li>
-        <li>Scan the Master QR code included in your shipment to connect the machine to your account.</li>
-      </ol>
+      <p class="text-xs leading-relaxed mt-1">
+        No more paperwork or guesswork — imagine knowing your machine’s full service history, upcoming maintenance needs, and past component changes, all in one place — accessible with just one tap or scan.
+      </p>
     </div>
   </div>
 
