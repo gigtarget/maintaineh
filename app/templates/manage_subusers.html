@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8">
   <title>Manage Sub-users</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <script src="https://cdn.tailwindcss.com"></script>
@@ -9,16 +9,10 @@
 <body class="bg-gradient-to-br from-blue-100 to-white min-h-screen text-gray-800 p-4">
 
   <!-- Header -->
-  <div class="max-w-2xl mx-auto mb-6 space-y-4">
-    <div class="flex justify-between items-center">
-      <h1 class="text-2xl font-bold text-slate-800">Manage Sub-users</h1>
-      <a href="{{ url_for('routes.user_dashboard') }}"
-         class="inline-flex items-center px-4 py-1.5 border border-blue-400 text-blue-600 hover:text-blue-800 rounded-xl text-sm font-medium hover:bg-blue-50 transition shadow-sm">
-        ← Back to Dashboard
-      </a>
-    </div>
-
+  <div class="max-w-2xl mx-auto mb-6">
     <div class="bg-white/10 backdrop-blur-xl border border-white/20 shadow-xl rounded-2xl p-6">
+      <h1 class="text-2xl font-bold mb-4 text-slate-800">Manage Sub-users</h1>
+
       {% if subusers %}
         <div class="space-y-6">
           {% for sub in subusers %}
@@ -33,8 +27,7 @@
 
                 <div class="flex-1">
                   <label class="block text-sm font-medium mb-1">Assigned Machine</label>
-                  <select name="machine_id"
-                          class="w-full px-3 py-2 border rounded-xl bg-white/50 backdrop-blur border-white/20 text-slate-800 text-sm" required>
+                  <select name="machine_id" class="w-full px-3 py-2 border rounded-xl bg-white/50 backdrop-blur border-white/20 text-slate-800 text-sm" required>
                     <option value="">Select a machine</option>
                     {% for m in machines %}
                       <option value="{{ m.id }}" {% if sub.assigned_machine_id == m.id %}selected{% endif %}>
