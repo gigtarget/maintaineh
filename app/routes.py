@@ -139,17 +139,25 @@ def claim_batch(batch_id):
 @login_required
 def user_settings():
     if request.method == "POST":
-        # Account Settings
+        # --- User Account Fields ---
+        name = request.form.get("name")
+        company_name = request.form.get("company_name")
+        mobile = request.form.get("mobile")
         email = request.form.get("email")
         password = request.form.get("password")
 
+        if name:
+            current_user.name = name
+        if company_name:
+            current_user.company_name = company_name
+        if mobile:
+            current_user.mobile = mobile
         if email and email != current_user.email:
             current_user.email = email
-
         if password:
-            current_user.password = password  # Make sure to hash in production
+            current_user.password = password  # ⚠️ Hash in production
 
-        # Collect machine data
+        # --- Machine Section ---
         machine_ids = request.form.getlist("machine_ids")
         machine_names = []
         duplicate_found = False
@@ -165,7 +173,6 @@ def user_settings():
         if duplicate_found:
             return redirect(url_for("routes.user_settings"))
 
-        # Update machine info
         for mid in machine_ids:
             name = request.form.get(f"machine_name_{mid}")
             mtype = request.form.get(f"machine_type_{mid}")
@@ -178,7 +185,7 @@ def user_settings():
         flash("All settings updated successfully.", "success")
         return redirect(url_for("routes.user_settings"))
 
-    # Load machines
+    # --- GET: Load Data ---
     user_batches = QRBatch.query.filter_by(owner_id=current_user.id).all()
     machines = []
     for batch in user_batches:
@@ -188,7 +195,6 @@ def user_settings():
 
     return render_template("user_settings.html", machines=machines)
 
-    
 @routes.route("/signup", methods=["GET", "POST"], endpoint="user_signup")
 def user_signup():
     if request.method == "POST":
