@@ -32,6 +32,13 @@
         logSection.classList.toggle("hidden");
       }
     }
+
+    function toggleWarrantyDetails(id) {
+      const detail = document.getElementById(`warranty-detail-${id}`);
+      if (detail) {
+        detail.classList.toggle("hidden");
+      }
+    }
   </script>
 </head>
 <body class="bg-gradient-to-br from-blue-100 to-white min-h-screen text-gray-800 p-4">
@@ -105,7 +112,7 @@
           <li><strong>Total Needle Changes:</strong> {{ data.total_needle_changes }}</li>
           <li><strong>Total Services Logged:</strong> {{ data.total_services_logged }}</li>
         </ul>
-        
+
         <!-- View QR Button -->
         <div class="flex justify-end mt-3">
           <button onclick="document.getElementById('qr-{{ data.machine.id }}').classList.toggle('hidden')"
@@ -131,6 +138,7 @@
         </div>
       </div>
 
+      <!-- Last Activities Section -->
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
         <div class="bg-green-50 p-4 rounded-md shadow-sm">
           <h3 class="font-semibold mb-2">🪡 Last Needle Change</h3>
@@ -156,6 +164,7 @@
         </div>
       </div>
 
+      <!-- Maintenance Status -->
       <div class="p-4 rounded-md shadow-sm {% if data.maintenance_ok %}bg-green-100{% else %}bg-red-100{% endif %} mb-4">
         <h3 class="text-lg font-semibold mb-2">🛠️ Maintenance Status</h3>
         {% if data.maintenance_ok %}
@@ -163,7 +172,21 @@
         {% else %}
           <ul class="list-disc list-inside text-red-700">
             {% if data.warranty_warning %}
-              <li>⚠️ Warranty is expiring soon.</li>
+              <li>
+                ⚠️ Warranty is expiring soon.
+                <button onclick="toggleWarrantyDetails({{ data.machine.id }})" class="ml-2 text-xs underline text-blue-800">
+                  (View Details ⌄)
+                </button>
+              </li>
+              <ul id="warranty-detail-{{ data.machine.id }}" class="hidden ml-6 mt-2 text-sm text-red-700 list-disc">
+                {% for head_id, group in data.grouped_logs.items() %}
+                  {% for log in group.service_logs %}
+                    {% if log.warranty_till and log.warranty_till <= (now + timedelta(days=30)).date() %}
+                      <li>{{ log.part_name }} (Head: {{ group.tag.tag_type }}) – Warranty till {{ log.warranty_till }}</li>
+                    {% endif %}
+                  {% endfor %}
+                {% endfor %}
+              </ul>
             {% endif %}
             {% if data.stale_service_warning %}
               <li>⚠️ No service logged in the past 60 days.</li>
