@@ -77,7 +77,7 @@
 
   <div id="machine-dashboard" class="hidden max-w-2xl mx-auto mt-4">
     <div class="flex justify-between items-center mb-4">
-      <h2 class="text-2xl font-bold text-slate-800">🖥 Machine Dashboard</h2>
+      <h2 class="text-2xl font-bold text-slate-800">Machine Dashboard</h2>
       <button onclick="closeMachineDashboard()" class="text-blue-600 text-sm underline">← Back</button>
     </div>
 
@@ -85,17 +85,18 @@
     <div id="machine-{{ data.machine.id }}" class="mb-14 bg-white rounded-xl shadow-xl p-6 border border-gray-200">
 
       <div class="bg-gray-50 p-4 rounded-md shadow-sm mb-4">
-        <h2 class="text-xl font-semibold mb-3">🧩 Machine Overview</h2>
+        <h2 class="text-xl font-semibold mb-3">{{ data.machine.name }}</h2>
         <ul class="space-y-1 text-gray-700">
-          <li><strong>Name:</strong> {{ data.machine.name }}</li>
           <li><strong>Type:</strong> {{ data.machine.type }}</li>
           <li><strong>Batch ID:</strong> {{ data.batch.id }}</li>
           <li><strong>Claimed On:</strong> {{ data.batch.created_at.date() }}</li>
           <li><strong>Assigned Sub-Users:</strong>
             {% if data.subusers %}
-              {% for sub in data.subusers %}
-                {{ sub.name }} – {{ sub.static_id }}{% if not loop.last %}, {% endif %}
-              {% endfor %}
+              <span class="bg-blue-50 text-blue-700 text-xs font-medium px-2 py-1 rounded-md">
+                {% for sub in data.subusers %}
+                  {{ sub.name }} – {{ sub.static_id }}{% if not loop.last %}, {% endif %}
+                {% endfor %}
+              </span>
             {% else %}
               <span class="italic text-gray-500">N/A</span>
             {% endif %}
