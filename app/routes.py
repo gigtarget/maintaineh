@@ -500,15 +500,15 @@ def manage_subusers():
         if action == "delete":
             db.session.delete(subuser)
             db.session.commit()
-            flash("Sub-user deleted (data retained).", "success")
+            flash("Sub-user deleted successfully.", "success")
+            return redirect(url_for("routes.create_subuser"))  # ✅ Redirect after delete
 
         elif action == "update":
             subuser.name = request.form.get("name")
             subuser.assigned_machine_id = request.form.get("machine_id")
             db.session.commit()
             flash("Sub-user updated successfully.", "success")
-
-        return redirect(url_for("routes.manage_subusers"))
+            return redirect(url_for("routes.manage_subusers"))  # ✅ Stay here after update
 
     subusers = SubUser.query.filter_by(parent_id=current_user.id).all()
     machines = Machine.query.join(QRBatch).filter(QRBatch.owner_id == current_user.id).all()
