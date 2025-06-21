@@ -109,3 +109,12 @@ class ServiceRequest(db.Model):
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)
     message = db.Column(db.String(200))
     resolved = db.Column(db.Boolean, default=False)
+
+class SubUserAction(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    subuser_id = db.Column(db.Integer, db.ForeignKey('sub_user.id'), nullable=False)
+    machine_id = db.Column(db.Integer, db.ForeignKey('machine.id'), nullable=False)
+    action_type = db.Column(db.String(20))  # "oiling", "lube", "service"
+    status = db.Column(db.String(20))       # "done", "pending", "completed"
+    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
+
