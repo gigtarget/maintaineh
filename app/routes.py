@@ -498,7 +498,34 @@ def subuser_dashboard():
     qr_codes = QRCode.query.filter_by(batch_id=batch.id).all()
     tags = QRTag.query.filter_by(batch_id=batch.id).all()
 
-    return render_template("subuser_dashboard.html", subuser=sub, machine=machine, batch=batch, qr_codes=qr_codes, tags=tags)
+    # ✅ Check today's oiling status
+    today = date.today()
+    oil_done = SubUserAction.query.filter_by(
+        subuser_id=sub.id,
+        machine_id=machine.id,
+        action_type="oil",
+        status="done"
+    ).filter(db.func.date(SubUserAction.timestamp) == today).first() is not None
+
+    # ✅ Check weekly lube status (reset every Monday)
+    start_of_week = today - timedelta(days=today.weekday())
+    lube_done = SubUserAction.query.filter_by(
+        subuser_id=sub.id,
+        machine_id=machine.id,
+        action_type="lube",
+        status="done"
+    ).filter(SubUserAction.timestamp >= start_of_week).first() is not None
+
+    return render_template(
+        "subuser_dashboard.html",
+        subuser=sub,
+        machine=machine,
+        batch=batch,
+        qr_codes=qr_codes,
+        tags=tags,
+        oil_done=oil_done,
+        lube_done=lube_done
+    )
 
 # ---- Manage Sub-Users (Settings Page for Main User) ----
 @routes.route("/settings/subusers", methods=["GET", "POST"])
@@ -658,43 +685,63 @@ def machine_dashboard():
 
     return render_template("machine_dashboard.html", machines_data=machine_data)
 
-@routes.route("/subuser/action/<string:type>", methods=["POST"])
+@routes.route("/subuser/action/<type>", methods=["POST"])
+@login_required
 def subuser_action(type):
-    sub_id = session.get('subuser_id')
-    if not sub_id:
-        abort(403)
+    subuser = SubUser.query.get(current_user.id)
+    if not subuser:
+        flash("Unauthorized", "error")
+        return redirect(url_for("routes.user_login"))
 
-    subuser = SubUser.query.get_or_404(sub_id)
     machine_id = subuser.assigned_machine_id
-
-    # Remove previous entry of same type for today/week
     now = datetime.utcnow()
-    today = now.date()
-    start_of_week = today - timedelta(days=today.weekday())
 
-    query = SubUserAction.query.filter_by(subuser_id=sub_id, machine_id=machine_id, action_type=type)
-
+    # Determine reset logic
     if type == "oil":
-        query = query.filter(SubUserAction.timestamp >= datetime.combine(today, datetime.min.time()))
-    elif type == "lube":
-        query = query.filter(SubUserAction.timestamp >= datetime.combine(start_of_week, datetime.min.time()))
-    elif type == "service":
-        query = query.filter_by(status="pending")
-
-    # Only insert if no recent entry
-    if not query.first():
-        new_action = SubUserAction(
-            subuser_id=sub_id,
+        # Reset daily
+        existing = SubUserAction.query.filter_by(
+            subuser_id=subuser.id,
             machine_id=machine_id,
-            action_type=type,
-            status="done" if type in ["oil", "lube"] else "pending"
-        )
-        db.session.add(new_action)
-        db.session.commit()
-        flash(f"{type.capitalize()} marked successfully!", "success")
-    else:
-        flash(f"{type.capitalize()} already marked!", "info")
+            action_type="oil"
+        ).filter(db.func.date(SubUserAction.timestamp) == date.today()).first()
 
+        if not existing:
+            action = SubUserAction(
+                subuser_id=subuser.id,
+                machine_id=machine_id,
+                action_type="oil",
+                status="done"
+            )
+            db.session.add(action)
+
+    elif type == "lube":
+        # Reset weekly (Monday)
+        start_of_week = date.today() - timedelta(days=date.today().weekday())
+        existing = SubUserAction.query.filter_by(
+            subuser_id=subuser.id,
+            machine_id=machine_id,
+            action_type="lube"
+        ).filter(SubUserAction.timestamp >= start_of_week).first()
+
+        if not existing:
+            action = SubUserAction(
+                subuser_id=subuser.id,
+                machine_id=machine_id,
+                action_type="lube",
+                status="done"
+            )
+            db.session.add(action)
+
+    elif type == "service":
+        req = ServiceRequest(
+            machine_id=machine_id,
+            subuser_id=subuser.id,
+            message="Raised by sub-user",
+            resolved=False
+        )
+        db.session.add(req)
+
+    db.session.commit()
     return redirect(url_for("routes.subuser_dashboard"))
 
 @routes.route("/logout")
