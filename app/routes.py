@@ -1396,7 +1396,12 @@ def subuser_action(type):
 
     if type == "oil":
         today = date.today()
-        existing = DailyMaintenance.query.filter_by(machine_id=machine.id, date=today).first()
+        existing = SubUserAction.query.filter_by(
+        subuser_id=sub.id,
+        machine_id=machine.id,
+        action_type=type,
+        status="done"
+    ).filter(db.func.date(SubUserAction.timestamp) == today).first()
         if not existing:
             log = DailyMaintenance(machine_id=machine.id, date=today, oiled=True)
             db.session.add(log)
