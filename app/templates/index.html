@@ -6,6 +6,19 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
+    @keyframes rise {
+      0% {
+        opacity: 0;
+        transform: translateY(40px);
+      }
+      100% {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    .logo-rise {
+      animation: rise 1.8s ease-out forwards;
+    }
     @keyframes float {
       0%, 100% {
         transform: translateY(0px) translateX(0px);
@@ -14,9 +27,6 @@
         transform: translateY(-6px) translateX(6px);
       }
     }
-    .logo-animate {
-      animation: float 3.5s ease-in-out infinite;
-    }
     .mascot-float {
       animation: float 4s ease-in-out infinite;
     }
@@ -24,13 +34,19 @@
 </head>
 <body class="bg-gradient-to-br from-blue-100 to-white min-h-screen p-4 relative overflow-x-hidden">
 
+  <!-- Admin Login Top Right -->
+  <a href="{{ url_for('routes.admin_login') }}"
+     class="absolute top-4 right-6 text-xs text-slate-500 hover:text-slate-700 underline transition duration-200 z-50">
+    Admin Login
+  </a>
+
   <!-- Main Box -->
   <div class="bg-white/30 backdrop-blur-xl border border-white/20 rounded-2xl shadow-xl w-full max-w-lg mx-auto mt-10 text-center px-6 sm:px-10 py-10 relative overflow-hidden">
 
-    <!-- Larger Logo -->
+    <!-- Logo with Rise Effect -->
     <img src="{{ url_for('static', filename='logo/logo.svg') }}"
          alt="Tokatap Logo"
-         class="w-48 sm:w-56 h-auto mx-auto mb-2 object-contain logo-animate z-10 relative">
+         class="w-48 sm:w-56 h-auto mx-auto mb-2 object-contain logo-rise z-10 relative">
 
     <!-- Tagline -->
     <p class="text-sm text-slate-600 mb-6 z-10 relative">
@@ -58,11 +74,6 @@
         Sub-User Login (using code)
       </a>
 
-      <!-- Admin Login -->
-      <a href="{{ url_for('routes.admin_login') }}"
-         class="text-xs text-slate-500 hover:text-slate-700 underline transition duration-200">
-        Admin Login
-      </a>
     </div>
 
     <!-- Mascot Half Inside Box -->
