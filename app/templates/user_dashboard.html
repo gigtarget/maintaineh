@@ -111,7 +111,7 @@
       <h2 class="text-2xl font-bold text-slate-800">Machine Dashboard</h2>
       <button onclick="closeMachineDashboard()" class="text-blue-600 text-sm underline">← Back</button>
     </div>
-
+    
     {% for data in machines_data %}
     <!-- Each Machine Block -->
     <div class="mb-14 bg-white rounded-xl shadow-xl p-6 border border-gray-200">
@@ -188,6 +188,30 @@
         </div>
       </div>
 
+      <!-- Quick Overview Section -->
+<div class="max-w-5xl mx-auto mt-10">
+  <h2 class="text-xl font-bold text-slate-800 mb-4">Quick Machine Overview</h2>
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+    {% for machine in quick_overview %}
+      <div class="rounded-xl border shadow bg-white p-4 relative">
+        <!-- Status Dot -->
+        <span class="absolute top-3 right-3 w-3 h-3 rounded-full {{ 'bg-green-500' if machine.status_ok else 'bg-red-500' }}"></span>
+
+        <h3 class="text-lg font-semibold text-gray-800 mb-1">{{ machine.name }}</h3>
+
+        {% if machine.assigned_subuser %}
+          <p class="text-sm text-slate-500 mb-2">Assigned to: {{ machine.assigned_subuser }}</p>
+        {% endif %}
+
+        <div class="text-sm space-y-1">
+          <p><strong>Oiled Today:</strong> {{ 'Yes' if machine.oiled_today else 'No' }}</p>
+          <p><strong>Service Request:</strong> {{ 'Yes' if machine.service_requested else 'No' }}</p>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+</div>
+      
       <!-- Maintenance Status -->
       <div class="p-4 rounded-md shadow-sm {% if data.maintenance_ok %}bg-green-100{% else %}bg-red-100{% endif %} mb-4">
         <h3 class="text-lg font-semibold mb-2">🛠️ Maintenance Status</h3>
