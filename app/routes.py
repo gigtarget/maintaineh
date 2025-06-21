@@ -244,10 +244,8 @@ def user_dashboard():
     if current_user.role != "user":
         return redirect(url_for("routes.user_login"))
 
-    # ✅ Show toast only once after login
     show_toast = session.pop('show_login_success', False)
 
-    # ✅ Handle form submission to update or create machine
     if request.method == "POST":
         batch_id = request.form.get("batch_id")
         name = request.form.get("name") or current_user.default_machine_name or "Unnamed Machine"
@@ -264,7 +262,6 @@ def user_dashboard():
             flash("Machine added successfully.", "success")
         db.session.commit()
 
-    # ✅ Load batch data for dropdowns and cards
     user_batches = QRBatch.query.filter_by(owner_id=current_user.id).all()
     batch_data = []
     for batch in user_batches:
@@ -281,7 +278,6 @@ def user_dashboard():
             "subusers": subusers
         })
 
-    # ✅ Build detailed machine data for dashboard
     machines = Machine.query.join(QRBatch).filter(QRBatch.owner_id == current_user.id).all()
     machines_data = []
 
@@ -296,7 +292,6 @@ def user_dashboard():
         last_needle = needle_logs[0] if needle_logs else None
         last_service = service_logs[0] if service_logs else None
 
-        # ✅ Group logs by sub-tag
         grouped_logs = {tag.id: {"tag": tag, "needle_logs": [], "service_logs": []} for tag in qr_tags}
 
         for log in needle_logs:
@@ -307,7 +302,6 @@ def user_dashboard():
             if log.sub_tag_id in grouped_logs:
                 grouped_logs[log.sub_tag_id]["service_logs"].append(log)
 
-        # ✅ Maintenance indicators
         warranty_warning = False
         stale_service_warning = False
         maintenance_ok = True
@@ -337,17 +331,23 @@ def user_dashboard():
             "qr_codes": QRCode.query.filter_by(batch_id=batch.id).all()
         })
 
-    # ✅ Build quick machine overview data
     quick_overview = []
     for machine in machines:
         subuser = SubUser.query.filter_by(assigned_machine_id=machine.id).first()
         last_service = ServiceLog.query.filter_by(batch_id=machine.batch_id).order_by(ServiceLog.timestamp.desc()).first()
 
+        weekly_lube_done = False
+        if last_service and "lube" in last_service.part_name.lower():
+            days_since = (datetime.utcnow().date() - last_service.timestamp.date()).days
+            if days_since <= 7:
+                weekly_lube_done = True
+
         quick_overview.append({
             "name": machine.name,
             "assigned_subuser": subuser.name if subuser else None,
-            "oiled_today": False,  # 🔧 Future: Update based on actual input
-            "service_requested": False,  # 🔧 Future: Update based on actual requests
+            "oiled_today": False,
+            "service_requested": False,
+            "weekly_lube_done": weekly_lube_done,
             "status_ok": True if not last_service or (last_service.warranty_till and (last_service.warranty_till - datetime.utcnow().date()).days >= 30) else False
         })
 
