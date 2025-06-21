@@ -2,81 +2,94 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Login</title>
+  <title>Tokatap - Login</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
-    @keyframes fade-in-down {
+    .tick-animate {
+      animation: popFade 0.6s ease-out forwards;
+    }
+
+    @keyframes popFade {
       0% {
+        transform: scale(0.5);
         opacity: 0;
-        transform: translateY(-20px);
+      }
+      50% {
+        transform: scale(1.2);
+        opacity: 1;
       }
       100% {
+        transform: scale(1);
         opacity: 1;
-        transform: translateY(0);
       }
-    }
-    .animate-fade-in-down {
-      animation: fade-in-down 0.4s ease-out;
     }
   </style>
 </head>
-<body class="min-h-screen bg-gray-100 flex items-center justify-center">
+<body class="bg-gradient-to-br from-blue-100 to-white min-h-screen p-4">
 
-  <div class="max-w-md w-full space-y-6 bg-white p-8 rounded-2xl shadow-lg border border-gray-200 relative">
+  <div class="bg-white/30 backdrop-blur-xl border border-white/20 rounded-2xl shadow-xl w-full max-w-sm mx-auto mt-10 text-center">
+
     <!-- Logo -->
-    <div class="flex justify-center">
-      <img src="{{ url_for('static', filename='img/logo.png') }}" class="h-16 w-auto" alt="Logo" />
-    </div>
+    <img src="{{ url_for('static', filename='logo/logo.svg') }}" alt="Tokatap Logo" class="w-20 h-auto mx-auto mt-4 object-contain">
+
+    <!-- Welcome Heading -->
+    <h2 class="text-2xl font-bold text-slate-800 mt-2">Welcome</h2>
+
+    <!-- Tagline -->
+    <p class="text-sm text-slate-600 mt-2 mb-6 px-4 leading-relaxed">
+      Know your machine’s full service history, upcoming maintenance needs, and past component changes — all in one place with just one tap or scan.
+    </p>
 
     <!-- Flash Messages -->
     {% with messages = get_flashed_messages(with_categories=true) %}
-      {% if messages %}
-        {% for category, message in messages %}
-          {% if category == 'success' %}
-            <div class="flex flex-col items-center gap-2 mt-2">
-              <svg class="w-10 h-10 text-green-500 animate-bounce" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
-              </svg>
-              <p class="text-green-600 font-semibold text-sm">{{ message }}</p>
-            </div>
-
-            <!-- Toast-style popup -->
-            <div id="toast" class="fixed top-4 right-4 bg-green-500 text-white px-4 py-2 rounded shadow-lg animate-fade-in-down z-50">
-              ✅ {{ message }}
-            </div>
-            <script>
-              setTimeout(() => {
-                document.getElementById('toast').style.display = 'none';
-              }, 2500);
-            </script>
-          {% elif category == 'danger' %}
-            <div class="bg-red-100 text-red-700 px-4 py-2 rounded-md text-sm text-center">{{ message }}</div>
-          {% endif %}
-        {% endfor %}
-      {% endif %}
+      {% for category, message in messages %}
+        {% if category == 'success' %}
+          <div class="flex justify-center my-4">
+            <svg class="w-12 h-12 text-green-500 tick-animate" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+            </svg>
+          </div>
+          <div class="text-sm text-green-600 font-medium mb-4">{{ message }}</div>
+        {% else %}
+          <div class="text-sm text-red-600 mb-4 text-center">{{ message }}</div>
+        {% endif %}
+      {% endfor %}
     {% endwith %}
 
     <!-- Login Form -->
-    <form class="space-y-5" method="POST">
+    <form method="POST" class="space-y-4 text-left px-4">
       <div>
-        <label for="email" class="text-sm font-medium text-gray-700 block mb-1">Email</label>
-        <input type="email" name="email" id="email" required class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" />
-      </div>
-      <div>
-        <label for="password" class="text-sm font-medium text-gray-700 block mb-1">Password</label>
-        <input type="password" name="password" id="password" required class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+        <label class="block text-sm font-medium text-slate-600 mb-1">Email</label>
+        <input type="email" name="email" required placeholder="you@example.com"
+               class="w-full px-4 py-2 rounded-xl bg-white/50 border border-white/20 shadow-inner text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-400">
       </div>
 
-      <button type="submit" class="w-full py-2 px-4 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-md transition duration-200">
+      <div>
+        <label class="block text-sm font-medium text-slate-600 mb-1">Password</label>
+        <input type="password" name="password" required placeholder="••••••••"
+               class="w-full px-4 py-2 rounded-xl bg-white/50 border border-white/20 shadow-inner text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-400">
+      </div>
+
+      <!-- Login Button (Simple Animation) -->
+      <button type="submit"
+              class="w-full py-2 bg-blue-600 text-white font-semibold rounded-xl shadow-lg
+                     transition-all duration-300 transform hover:scale-105 active:scale-95 hover:bg-blue-700">
         Login
       </button>
     </form>
 
-    <p class="text-center text-sm text-gray-600">
-      Don’t have an account?
-      <a href="{{ url_for('routes.user_signup') }}" class="text-blue-500 hover:underline font-medium">Sign up</a>
-    </p>
+    <!-- Links -->
+    <div class="mt-6 text-sm text-slate-600">
+      <p>New user? <a href="{{ url_for('routes.user_signup') }}" class="text-blue-600 hover:underline">Sign up here</a></p>
+      <p class="mt-2"><a href="{{ url_for('routes.home') }}" class="text-blue-600 hover:underline">← Back to Home</a></p>
+    </div>
+
+    <!-- Mascot -->
+    <div class="mt-6 mb-4">
+      <img src="{{ url_for('static', filename='logo/octatoka.png') }}" alt="Tokatap Mascot" class="w-28 h-auto mx-auto">
+    </div>
+
   </div>
 
 </body>
