@@ -1,7 +1,7 @@
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import UserMixin
+from werkzeug.security import check_password_hash, generate_password_hash
 from datetime import datetime, date
-from werkzeug.security import check_password_hash  # ✅ Needed for login
 
 db = SQLAlchemy()
 
@@ -12,17 +12,16 @@ class User(UserMixin, db.Model):
     role = db.Column(db.String(20), nullable=False, default="user")
     name = db.Column(db.String(100), nullable=False)
     company_name = db.Column(db.String(100))
-    mobile = db.Column(db.String(20))  # ✅ Mobile field
+    mobile = db.Column(db.String(20))
 
     default_machine_name = db.Column(db.String(100))
     default_machine_location = db.Column(db.String(100))
 
     claimed_batches = db.relationship("QRBatch", backref="owner", lazy=True)
 
-    # ✅ Password check method for login
+    # ✅ Add check_password method
     def check_password(self, password):
         return check_password_hash(self.password, password)
-
 
 class QRBatch(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -35,7 +34,6 @@ class QRBatch(db.Model):
     machine = db.relationship("Machine", backref="batch", uselist=False)
     service_logs = db.relationship("ServiceLog", backref="batch", lazy=True)
 
-
 class QRTag(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     tag_type = db.Column(db.String(20))
@@ -44,14 +42,12 @@ class QRTag(db.Model):
     needle_changes = db.relationship("NeedleChange", backref="sub_tag", lazy=True)
     service_logs = db.relationship("ServiceLog", backref="sub_tag", lazy=True)
 
-
 class QRCode(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     batch_id = db.Column(db.Integer, db.ForeignKey('qr_batch.id'))
     qr_type = db.Column(db.String(50))
     image_url = db.Column(db.String(500))
-    qr_url = db.Column(db.String(500))  # ✅ Required
-
+    qr_url = db.Column(db.String(500))
 
 class NeedleChange(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -61,14 +57,12 @@ class NeedleChange(db.Model):
     needle_type = db.Column(db.Integer, nullable=False)
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)
 
-
 class Machine(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     batch_id = db.Column(db.Integer, db.ForeignKey("qr_batch.id"), nullable=False)
     name = db.Column(db.String(100))
     type = db.Column(db.String(100))
     under_maintenance = db.Column(db.Boolean, default=False)
-
 
 class SubUser(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -79,7 +73,6 @@ class SubUser(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     assigned_machine = db.relationship('Machine', backref='subusers', foreign_keys=[assigned_machine_id])
-
 
 class ServiceLog(db.Model):
     __tablename__ = 'servicelog'
