@@ -30,7 +30,6 @@
       if (toast) {
         toast.classList.remove("opacity-0", "translate-y-6");
         toast.classList.add("opacity-100", "translate-y-0");
-
         setTimeout(() => {
           toast.classList.add("opacity-0", "translate-y-6");
           toast.classList.remove("opacity-100", "translate-y-0");
@@ -42,33 +41,21 @@
 <body class="bg-gradient-to-br from-blue-100 to-white min-h-screen text-gray-800 p-2">
 
   {% if show_toast %}
-<div id="login-toast" class="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-green-100 border border-green-300 text-green-700 px-6 py-4 rounded-lg shadow-lg flex flex-col items-center z-50 opacity-0 transition-opacity duration-300">
-  <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-green-500 mb-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-    <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
-  </svg>
-  <p class="text-sm font-medium">Login successful</p>
-</div>
+  <div id="login-toast" class="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-green-100 border border-green-300 text-green-700 px-6 py-4 rounded-lg shadow-lg flex flex-col items-center z-50 opacity-0 transition-opacity duration-300">
+    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-green-500 mb-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+    </svg>
+    <p class="text-sm font-medium">Login successful</p>
+  </div>
+  {% endif %}
 
-<script>
-  window.addEventListener("DOMContentLoaded", () => {
-    const toast = document.getElementById("login-toast");
-    toast.classList.remove("opacity-0");
-    setTimeout(() => {
-      toast.classList.add("opacity-0");
-    }, 1000); // ⏱️ Hide after 1 second
-  });
-</script>
-{% endif %}
-
-
-  <!-- Logo -->
+  <!-- Logo + Welcome -->
   <div class="max-w-2xl mx-auto mb-2">
     <div class="flex justify-start items-center">
       <img src="{{ url_for('static', filename='logo/logo.svg') }}" class="h-16 sm:h-24" alt="Logo">
     </div>
   </div>
 
-  <!-- Welcome Box -->
   <div class="max-w-2xl mx-auto mb-6">
     <div class="bg-white/10 backdrop-blur-xl border border-white/20 shadow-xl rounded-2xl p-4 sm:p-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
       <div>
@@ -85,13 +72,11 @@
     </div>
   </div>
 
-  <!-- Counts -->
+  <!-- Machine/Batch Counts -->
   {% set machine_count = batches | selectattr('machine') | list | length %}
   {% set batch_count = batches | length %}
-
   <div class="max-w-2xl mx-auto grid grid-cols-2 gap-4 mb-6">
-    <div onclick="toggleMachineDashboard()" id="machines-box"
-         class="cursor-pointer bg-green-50 text-green-700 border-green-400 border rounded-2xl shadow-md p-4 flex flex-col items-center transition-all duration-500 ease-in-out hover:scale-[1.01] col-span-1">
+    <div onclick="toggleMachineDashboard()" id="machines-box" class="cursor-pointer bg-green-50 text-green-700 border-green-400 border rounded-2xl shadow-md p-4 flex flex-col items-center hover:scale-[1.01] col-span-1 transition-all duration-500 ease-in-out">
       <img src="{{ url_for('static', filename='emb assets/machine.png') }}" class="h-10 w-10 mb-2" alt="Machine Icon" />
       <p class="font-semibold text-sm">Total Machines</p>
       <p class="text-2xl font-bold text-black">{{ machine_count }}</p>
@@ -105,15 +90,14 @@
     </div>
   </div>
 
-  <!-- Machine Dashboard Section -->
+  <!-- Machine Dashboard -->
   <div id="machine-dashboard" class="hidden max-w-2xl mx-auto mt-4">
     <div class="flex justify-between items-center mb-4">
       <h2 class="text-2xl font-bold text-slate-800">Machine Dashboard</h2>
       <button onclick="closeMachineDashboard()" class="text-blue-600 text-sm underline">← Back</button>
     </div>
-    
+
     {% for data in machines_data %}
-    <!-- Each Machine Block -->
     <div class="mb-14 bg-white rounded-xl shadow-xl p-6 border border-gray-200">
       <div class="bg-gray-50 p-4 rounded-md shadow-sm mb-4">
         <h2 class="text-xl font-semibold mb-3">{{ data.machine.name }}</h2>
@@ -137,7 +121,6 @@
           <li><strong>Total Services Logged:</strong> {{ data.total_services_logged }}</li>
         </ul>
 
-        <!-- QR Button -->
         <div class="flex justify-end mt-3">
           <button onclick="document.getElementById('qr-{{ data.machine.id }}').classList.toggle('hidden')"
                   class="flex items-center gap-1 px-3 py-1 bg-white/80 hover:bg-white border border-gray-300 rounded-full text-xs text-blue-700 shadow-sm transition">
@@ -146,7 +129,6 @@
           </button>
         </div>
 
-        <!-- QR Section -->
         <div id="qr-{{ data.machine.id }}" class="hidden mt-3">
           <div class="grid grid-cols-2 sm:grid-cols-3 gap-4">
             {% for qr in data.qr_codes %}
@@ -188,30 +170,6 @@
         </div>
       </div>
 
-      <!-- Quick Overview Section -->
-<div class="max-w-5xl mx-auto mt-10">
-  <h2 class="text-xl font-bold text-slate-800 mb-4">Quick Machine Overview</h2>
-  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-    {% for machine in quick_overview %}
-      <div class="rounded-xl border shadow bg-white p-4 relative">
-        <!-- Status Dot -->
-        <span class="absolute top-3 right-3 w-3 h-3 rounded-full {{ 'bg-green-500' if machine.status_ok else 'bg-red-500' }}"></span>
-
-        <h3 class="text-lg font-semibold text-gray-800 mb-1">{{ machine.name }}</h3>
-
-        {% if machine.assigned_subuser %}
-          <p class="text-sm text-slate-500 mb-2">Assigned to: {{ machine.assigned_subuser }}</p>
-        {% endif %}
-
-        <div class="text-sm space-y-1">
-          <p><strong>Oiled Today:</strong> {{ 'Yes' if machine.oiled_today else 'No' }}</p>
-          <p><strong>Service Request:</strong> {{ 'Yes' if machine.service_requested else 'No' }}</p>
-        </div>
-      </div>
-    {% endfor %}
-  </div>
-</div>
-      
       <!-- Maintenance Status -->
       <div class="p-4 rounded-md shadow-sm {% if data.maintenance_ok %}bg-green-100{% else %}bg-red-100{% endif %} mb-4">
         <h3 class="text-lg font-semibold mb-2">🛠️ Maintenance Status</h3>
@@ -289,6 +247,26 @@
       </div>
     </div>
     {% endfor %}
+  </div>
+
+  <!-- ✅ QUICK MACHINE OVERVIEW SECTION -->
+  <div class="max-w-5xl mx-auto mt-14">
+    <h2 class="text-xl font-bold text-slate-800 mb-4">Quick Machine Overview</h2>
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      {% for machine in quick_overview %}
+        <div class="rounded-xl border shadow bg-white p-4 relative">
+          <span class="absolute top-3 right-3 w-3 h-3 rounded-full {{ 'bg-green-500' if machine.status_ok else 'bg-red-500' }}"></span>
+          <h3 class="text-lg font-semibold text-gray-800 mb-1">{{ machine.name }}</h3>
+          {% if machine.assigned_subuser %}
+            <p class="text-sm text-slate-500 mb-2">Assigned to: {{ machine.assigned_subuser }}</p>
+          {% endif %}
+          <div class="text-sm space-y-1">
+            <p><strong>Oiled Today:</strong> {{ 'Yes' if machine.oiled_today else 'No' }}</p>
+            <p><strong>Service Request:</strong> {{ 'Yes' if machine.service_requested else 'No' }}</p>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
   </div>
 
 </body>
