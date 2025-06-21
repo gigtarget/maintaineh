@@ -2,65 +2,65 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Tokatap - Home</title>
+  <title>Tokatap - Login</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
-    /* Logo bounce in */
-    @keyframes bounceIn {
-      0% { transform: scale(0.9) translateY(-20px); opacity: 0; }
-      100% { transform: scale(1) translateY(0); opacity: 1; }
+    @keyframes float {
+      0%, 100% {
+        transform: translateY(0px) translateX(0px);
+      }
+      50% {
+        transform: translateY(-6px) translateX(6px);
+      }
     }
-
     .logo-animate {
-      animation: bounceIn 0.8s ease-out forwards;
+      animation: float 3.5s ease-in-out infinite;
     }
-
-    /* Mascot floating */
-    @keyframes mascotFloat {
-      0%, 100% { transform: translateY(0) translateX(0); }
-      50% { transform: translateY(-6px) translateX(4px); }
-    }
-
     .mascot-float {
-      animation: mascotFloat 4s ease-in-out infinite;
+      animation: float 4s ease-in-out infinite;
     }
   </style>
 </head>
-<body class="bg-gradient-to-br from-blue-100 to-white min-h-screen p-4">
+<body class="bg-gradient-to-br from-blue-100 to-white min-h-screen p-4 relative overflow-x-hidden">
 
-  <!-- Main Container -->
-  <div class="relative bg-white/30 backdrop-blur-xl border border-white/20 rounded-2xl shadow-xl w-full max-w-lg mx-auto mt-10 text-center px-6 sm:px-10 py-10">
+  <!-- Main Box -->
+  <div class="bg-white/30 backdrop-blur-xl border border-white/20 rounded-2xl shadow-xl w-full max-w-lg mx-auto mt-10 text-center px-6 sm:px-10 py-10 relative overflow-hidden">
 
-    <!-- Logo with animation -->
+    <!-- Larger Logo -->
     <img src="{{ url_for('static', filename='logo/logo.svg') }}"
          alt="Tokatap Logo"
-         class="w-32 sm:w-40 mx-auto mb-2 object-contain logo-animate">
+         class="w-48 sm:w-56 h-auto mx-auto mb-2 object-contain logo-animate z-10 relative">
 
     <!-- Tagline -->
-    <p class="text-sm text-slate-600 mb-6">
+    <p class="text-sm text-slate-600 mb-6 z-10 relative">
       Your smart solution for tracking machine services, maintenance, and components — all in one place.
     </p>
 
-    <!-- Main Buttons -->
+    <!-- Buttons -->
     <div class="flex flex-col gap-4 w-full z-10 relative">
+
+      <!-- User Login -->
       <a href="{{ url_for('routes.user_login') }}"
-         class="w-full py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-xl shadow-md transition-all">
+         class="w-full py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-xl shadow-md transform transition-all duration-300 hover:scale-105 hover:shadow-lg">
         User Login
       </a>
 
+      <!-- Sign Up -->
       <a href="{{ url_for('routes.user_signup') }}"
-         class="w-full py-2 bg-white/30 backdrop-blur-md border border-white/20 text-blue-600 hover:text-blue-800 font-medium rounded-xl shadow-md transition-all">
+         class="w-full py-2 bg-white/30 backdrop-blur-md border border-white/20 text-blue-600 hover:text-blue-800 font-medium rounded-xl shadow-md transition-all duration-300 transform hover:scale-105 hover:border-blue-400 hover:shadow-md">
         Sign Up
       </a>
 
+      <!-- Sub-User Login -->
       <a href="{{ url_for('routes.subuser_login') }}"
-         class="text-sm text-blue-600 hover:text-blue-800 underline mt-2">
+         class="text-sm text-blue-600 hover:text-blue-800 underline mt-2 transition duration-200">
         Sub-User Login (using code)
       </a>
 
+      <!-- Admin Login -->
       <a href="{{ url_for('routes.admin_login') }}"
-         class="text-xs text-slate-500 hover:text-slate-700 underline">
+         class="text-xs text-slate-500 hover:text-slate-700 underline transition duration-200">
         Admin Login
       </a>
     </div>
@@ -68,7 +68,7 @@
     <!-- Mascot Half Inside Box -->
     <img src="{{ url_for('static', filename='logo/octatoka.png') }}"
          alt="Tokatap Mascot"
-         class="absolute bottom-[-70px] left-[-40px] w-40 sm:w-48 mascot-float pointer-events-none select-none z-0">
+         class="absolute bottom-[-40px] left-[-60px] w-44 sm:w-52 mascot-float pointer-events-none select-none z-0">
   </div>
 
 </body>
