@@ -232,15 +232,12 @@ def user_login():
         user = User.query.filter_by(email=email, role="user").first()
         if user and user.password == password:
             login_user(user)
-            flash("Login successful", "success")
-            # ✅ Redirect to dashboard or intended page
+            # 🔁 Instead of flashing here, pass flag in session
+            session['show_login_success'] = True
             return redirect(next_url or url_for("routes.user_dashboard"))
         else:
             flash("Invalid credentials", "danger")
-            # No redirect here; re-renders login form with error
     return render_template("login.html")
-
-
 
 @routes.route("/user/dashboard", methods=["GET", "POST"])
 @login_required
