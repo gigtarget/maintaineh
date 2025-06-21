@@ -1,17 +1,20 @@
 from flask import Blueprint, render_template, redirect, url_for, flash, request, send_file, session, abort
 from flask_login import login_user, logout_user, login_required, current_user
-from app.models import User, QRBatch, QRCode, Machine, QRTag, NeedleChange, ServiceLog, SubUser, SubUserAction
-from app.utils import generate_and_store_qr_batch
-from app import db
-from app.models import SubUser
-from datetime import datetime
-from datetime import date, timedelta
-from app.decorators import subuser_required
+from datetime import datetime, date, timedelta
 import io
 import zipfile
 import requests
 import random
 import string
+
+from app import db
+from app.utils import generate_and_store_qr_batch
+from app.decorators import subuser_required
+from app.models import (
+    User, QRBatch, QRCode, Machine, QRTag,
+    NeedleChange, ServiceLog, SubUser,
+    SubUserAction, DailyMaintenance, ServiceRequest
+)
 
 
 routes = Blueprint("routes", __name__)
