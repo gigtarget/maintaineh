@@ -41,11 +41,10 @@
 </head>
 <body class="bg-gradient-to-br from-blue-100 to-white min-h-screen text-gray-800 p-2">
 
-  {% if session.get('show_login_toast') %}
-  <div id="login-toast" class="fixed top-5 left-1/2 transform -translate-x-1/2 transition-all duration-500 bg-green-500 text-white px-6 py-3 rounded-xl shadow-lg opacity-0 translate-y-6 z-50">
-    ✅ Login Successful!
-  </div>
-  {% set session['show_login_toast'] = False %}
+  {% if show_toast %}
+    <div id="login-toast" class="fixed top-5 left-1/2 transform -translate-x-1/2 transition-all duration-500 bg-green-500 text-white px-6 py-3 rounded-xl shadow-lg opacity-0 translate-y-6 z-50">
+      ✅ Login Successful!
+    </div>
   {% endif %}
 
   <!-- Logo -->
