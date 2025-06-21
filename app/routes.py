@@ -226,24 +226,17 @@ def user_signup():
 @routes.route("/login", methods=["GET", "POST"], endpoint="user_login")
 def user_login():
     next_url = request.args.get('next')
-    
     if request.method == "POST":
         email = request.form["email"]
         password = request.form["password"]
-
         user = User.query.filter_by(email=email, role="user").first()
-
         if user and user.password == password:
             login_user(user)
-
-            # Set flash and immediately pop to prevent carryover
             flash("Login successful", "success")
-            session.pop('_flashes', None)  # ✅ clear flashes so they don’t appear on login page after logout
-
-            return redirect(next_url or url_for("routes.user_dashboard"))
+            # 🔁 Instead of redirecting directly, render login.html with delay
+            return render_template("login.html", next=next_url, redirect_to=next_url or url_for("routes.user_dashboard"))
         else:
             flash("Invalid credentials", "danger")
-    
     return render_template("login.html", next=next_url)
 
 
