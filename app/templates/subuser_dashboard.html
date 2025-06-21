@@ -58,10 +58,9 @@
         </button>
       </form>
 
-      <!-- Service Request -->
-      <form method="POST" action="{{ url_for('routes.subuser_action', type='service') }}">
-        <button class="w-full px-4 py-3 rounded-xl border border-yellow-300 bg-yellow-100 text-yellow-800 shadow-sm
-          hover:bg-yellow-200 transition duration-200 flex flex-col items-center justify-center">
+      <!-- Raise Service Button (Opens Modal) -->
+      <form onsubmit="openModal(); return false;">
+        <button type="button" onclick="openModal()" class="w-full px-4 py-3 rounded-xl border border-yellow-300 bg-yellow-100 text-yellow-800 shadow-sm hover:bg-yellow-200 transition duration-200 flex flex-col items-center justify-center">
           <span class="text-xl">🚨</span>
           <span class="text-sm font-medium mt-1">Raise Service</span>
           <span class="text-xs opacity-80">Manual Alert</span>
@@ -70,46 +69,72 @@
 
     </div>
 
-    <!-- Expandable QR Box -->
-    <div class="mb-6">
-      <button onclick="toggleQR()" class="w-full px-4 py-3 rounded-xl bg-white border shadow text-slate-800 font-medium hover:bg-slate-50 transition flex items-center justify-between">
-        <span>📦 View All QR Codes</span>
-        <svg id="arrow-icon" class="w-5 h-5 transform transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-        </svg>
-      </button>
-
-      <div id="qr-grid" class="grid grid-cols-2 sm:grid-cols-3 gap-4 mt-4 hidden">
-        {% for qr in qr_codes %}
-        <div class="bg-white/20 backdrop-blur-xl border border-white/20 p-4 rounded-xl shadow hover:shadow-lg transition">
-          <div class="flex justify-center mb-2">
-            <img src="{{ qr.image_url }}" alt="{{ qr.qr_type }} QR" class="h-20 w-20 object-contain bg-white rounded-xl p-2 shadow-inner">
-          </div>
-          <div class="text-center">
-            <p class="capitalize font-medium text-slate-800">{{ qr.qr_type }}</p>
-            {% if qr.qr_type.startswith("sub") %}
-              {% set tag = tags | selectattr("qr_code_id", "equalto", qr.id) | list | first %}
-              {% if tag %}
-                <a href="{{ url_for('routes.sub_tag_options', sub_tag_id=tag.id) }}"
-                   class="text-xs text-blue-600 underline block mt-1 hover:text-blue-800">
-                  Open
-                </a>
-              {% endif %}
-            {% endif %}
-          </div>
+    <!-- QR Code Grid -->
+    <div class="grid grid-cols-2 sm:grid-cols-3 gap-4">
+      {% for qr in qr_codes %}
+      <div class="bg-white/20 backdrop-blur-xl border border-white/20 p-4 rounded-xl shadow hover:shadow-lg transition">
+        <div class="flex justify-center mb-2">
+          <img src="{{ qr.image_url }}" alt="{{ qr.qr_type }} QR" class="h-20 w-20 object-contain bg-white rounded-xl p-2 shadow-inner">
         </div>
-        {% endfor %}
+        <div class="text-center">
+          <p class="capitalize font-medium text-slate-800">{{ qr.qr_type }}</p>
+          {% if qr.qr_type.startswith("sub") %}
+            {% set tag = tags | selectattr("qr_code_id", "equalto", qr.id) | list | first %}
+            {% if tag %}
+              <a href="{{ url_for('routes.sub_tag_options', sub_tag_id=tag.id) }}"
+                 class="text-xs text-blue-600 underline block mt-1 hover:text-blue-800">
+                Open
+              </a>
+            {% endif %}
+          {% endif %}
+        </div>
       </div>
+      {% endfor %}
     </div>
-
   </div>
 
+  <!-- Modal Backdrop -->
+  <div id="serviceModalBackdrop" class="fixed inset-0 bg-black/50 hidden z-40" onclick="closeModal()"></div>
+
+  <!-- Modal -->
+  <div id="serviceModal" class="fixed top-1/2 left-1/2 z-50 transform -translate-x-1/2 -translate-y-1/2 bg-white rounded-xl shadow-lg p-6 w-full max-w-md hidden">
+    <h2 class="text-lg font-semibold mb-4 text-slate-800">Raise a Service Request</h2>
+    <form method="POST" action="{{ url_for('routes.subuser_action', type='service') }}">
+      <div class="mb-4">
+        <label for="machine" class="block text-sm font-medium text-slate-700 mb-1">Select Machine</label>
+        <select id="machine" name="machine_id" required class="w-full border border-slate-300 rounded-lg px-3 py-2">
+          {% for m in machines %}
+            <option value="{{ m.id }}">{{ m.name }} ({{ m.type }})</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="mb-4">
+        <label for="heads" class="block text-sm font-medium text-slate-700 mb-1">Number of Heads</label>
+        <input type="number" id="heads" name="heads" min="1" max="15" required class="w-full border border-slate-300 rounded-lg px-3 py-2" />
+      </div>
+
+      <div class="mb-4">
+        <label for="issue" class="block text-sm font-medium text-slate-700 mb-1">Issue Description</label>
+        <textarea id="issue" name="message" rows="3" required class="w-full border border-slate-300 rounded-lg px-3 py-2"></textarea>
+      </div>
+
+      <div class="flex justify-between mt-6">
+        <button type="button" onclick="closeModal()" class="bg-slate-200 text-slate-800 px-4 py-2 rounded hover:bg-slate-300">Cancel</button>
+        <button type="submit" class="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600">Submit</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Modal Scripts -->
   <script>
-    function toggleQR() {
-      const grid = document.getElementById('qr-grid');
-      const arrow = document.getElementById('arrow-icon');
-      grid.classList.toggle('hidden');
-      arrow.classList.toggle('rotate-180');
+    function openModal() {
+      document.getElementById('serviceModal').classList.remove('hidden');
+      document.getElementById('serviceModalBackdrop').classList.remove('hidden');
+    }
+    function closeModal() {
+      document.getElementById('serviceModal').classList.add('hidden');
+      document.getElementById('serviceModalBackdrop').classList.add('hidden');
     }
   </script>
 
