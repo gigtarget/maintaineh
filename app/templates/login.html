@@ -71,7 +71,7 @@
                class="w-full px-4 py-2 rounded-xl bg-white/50 border border-white/20 shadow-inner text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-400">
       </div>
 
-      <!-- Login Button (Simple Hover Animation) -->
+      <!-- Login Button -->
       <button type="submit"
               class="w-full py-2 bg-blue-600 text-white font-semibold rounded-xl shadow-lg
                      transition-all duration-300 transform hover:scale-105 active:scale-95 hover:bg-blue-700">
@@ -89,13 +89,15 @@
     <div class="mt-6 mb-4">
       <img src="{{ url_for('static', filename='logo/octatoka.png') }}" alt="Tokatap Mascot" class="w-28 h-auto mx-auto">
     </div>
+
   </div>
 
-  <!-- Fix: Prevent animation after logout -->
+  <!-- Fix: Prevent tick animation after redirect -->
   <script>
-    document.addEventListener('DOMContentLoaded', function () {
-      const tick = document.querySelector('.tick-animate');
-      if (tick) {
+    // Only play animation when tick is dynamically added (i.e., fresh flash)
+    window.addEventListener('pageshow', function (event) {
+      const tick = document.querySelector('#tick-icon');
+      if (event.persisted && tick) {
         tick.classList.remove('tick-animate');
       }
     });
