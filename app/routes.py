@@ -658,6 +658,44 @@ def machine_dashboard():
 
     return render_template("machine_dashboard.html", machines_data=machine_data)
 
+@routes.route("/subuser/action/<string:type>", methods=["POST"])
+def subuser_action(type):
+    sub_id = session.get('subuser_id')
+    if not sub_id:
+        abort(403)
+
+    subuser = SubUser.query.get_or_404(sub_id)
+    machine_id = subuser.assigned_machine_id
+
+    # Remove previous entry of same type for today/week
+    now = datetime.utcnow()
+    today = now.date()
+    start_of_week = today - timedelta(days=today.weekday())
+
+    query = SubUserAction.query.filter_by(subuser_id=sub_id, machine_id=machine_id, action_type=type)
+
+    if type == "oil":
+        query = query.filter(SubUserAction.timestamp >= datetime.combine(today, datetime.min.time()))
+    elif type == "lube":
+        query = query.filter(SubUserAction.timestamp >= datetime.combine(start_of_week, datetime.min.time()))
+    elif type == "service":
+        query = query.filter_by(status="pending")
+
+    # Only insert if no recent entry
+    if not query.first():
+        new_action = SubUserAction(
+            subuser_id=sub_id,
+            machine_id=machine_id,
+            action_type=type,
+            status="done" if type in ["oil", "lube"] else "pending"
+        )
+        db.session.add(new_action)
+        db.session.commit()
+        flash(f"{type.capitalize()} marked successfully!", "success")
+    else:
+        flash(f"{type.capitalize()} already marked!", "info")
+
+    return redirect(url_for("routes.subuser_dashboard"))
 
 @routes.route("/logout")
 def logout():
