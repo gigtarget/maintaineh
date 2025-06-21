@@ -75,8 +75,8 @@
                   <span>Login Code:</span>
                   <code id="code-{{ sub.id }}" class="text-blue-700 font-mono">{{ sub.static_id }}</code>
                   <button onclick="copyToClipboard('code-{{ sub.id }}')" 
-                          class="text-blue-500 text-xs hover:text-blue-700 focus:outline-none">
-                    📋 Copy
+                          class="px-2 py-1 rounded-md text-xs font-medium bg-blue-100 text-blue-600 hover:bg-blue-200 transition">
+                    Copy
                   </button>
                 </div>
                 <form method="POST" action="{{ url_for('routes.manage_subusers') }}"
