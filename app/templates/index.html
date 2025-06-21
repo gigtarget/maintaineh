@@ -5,70 +5,62 @@
   <title>Tokatap - Home</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <script src="https://cdn.tailwindcss.com"></script>
-
-  <!-- Clean Tailwind config (we removed mascot animation) -->
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          animation: {
-            'fade-in-up': 'fadeInUp 0.6s ease-out both',
-          },
-          keyframes: {
-            fadeInUp: {
-              '0%': { opacity: '0', transform: 'translateY(20px)' },
-              '100%': { opacity: '1', transform: 'translateY(0)' }
-            }
-          }
-        }
-      }
+  <style>
+    .mascot-float {
+      animation: floaty 4s ease-in-out infinite;
     }
-  </script>
-</head>
-<body class="bg-gradient-to-br from-blue-100 to-white min-h-screen p-4">
 
-  <!-- Main Box (relative for mascot positioning) -->
-  <div class="relative bg-white/30 backdrop-blur-xl border border-white/20 rounded-2xl shadow-xl w-full max-w-lg mx-auto mt-10 text-center px-6 sm:px-10 py-10 overflow-hidden">
+    @keyframes floaty {
+      0% { transform: translateY(0px) translateX(0px); }
+      50% { transform: translateY(-6px) translateX(6px); }
+      100% { transform: translateY(0px) translateX(0px); }
+    }
+  </style>
+</head>
+<body class="bg-gradient-to-br from-blue-100 to-white min-h-screen p-4 relative">
+
+  <!-- Main Box -->
+  <div class="bg-white/30 backdrop-blur-xl border border-white/20 rounded-2xl shadow-xl w-full max-w-lg mx-auto mt-10 text-center px-6 sm:px-10 py-10 relative z-10">
 
     <!-- Logo -->
     <img src="{{ url_for('static', filename='logo/logo.svg') }}"
          alt="Tokatap Logo"
-         class="w-52 h-auto mx-auto mb-2 object-contain animate-fade-in-up">
+         class="w-44 sm:w-52 h-auto mx-auto mb-2 object-contain">
 
     <!-- Tagline -->
-    <p class="text-sm text-slate-600 mb-8">
+    <p class="text-sm text-slate-600 mb-6 -mt-2">
       Your smart solution for tracking machine services, maintenance, and components — all in one place.
     </p>
 
     <!-- Main Login Buttons -->
-    <div class="flex flex-col gap-4 w-full">
+    <div class="flex flex-col gap-4 w-full z-10 relative">
       <a href="{{ url_for('routes.user_login') }}"
-         class="w-full py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl shadow-md hover:shadow-xl transform hover:scale-105 transition-all duration-300">
+         class="w-full py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-xl shadow-md transition-all">
         User Login
       </a>
 
       <a href="{{ url_for('routes.user_signup') }}"
-         class="w-full py-2 bg-white/30 backdrop-blur-md border border-white/20 text-blue-600 hover:text-blue-800 font-semibold rounded-xl shadow-md hover:shadow-xl transform hover:scale-105 transition-all duration-300">
+         class="w-full py-2 bg-white/30 backdrop-blur-md border border-white/20 text-blue-600 hover:text-blue-800 font-medium rounded-xl shadow-md transition-all">
         Sign Up
       </a>
 
       <a href="{{ url_for('routes.subuser_login') }}"
-         class="text-sm text-blue-600 hover:text-blue-800 underline mt-1">
+         class="text-sm text-blue-600 hover:text-blue-800 underline mt-2">
         Sub-User Login (using code)
       </a>
     </div>
 
     <!-- Admin Login -->
-    <p class="mt-5 text-xs text-slate-500">
+    <p class="mt-4 text-xs text-slate-500 z-10 relative">
       <a href="{{ url_for('routes.admin_login') }}" class="hover:text-slate-700 underline">Admin Login</a>
     </p>
 
-    <!-- Mascot on bottom left -->
-    <img src="{{ url_for('static', filename='logo/octatoka.png') }}"
-         alt="Tokatap Mascot"
-         class="absolute bottom-0 left-0 w-44 sm:w-52 md:w-56 lg:w-60 -mb-4 -ml-4 pointer-events-none select-none">
-
   </div>
+
+  <!-- Mascot Peeking Bottom Left -->
+  <img src="{{ url_for('static', filename='logo/octatoka.png') }}"
+       alt="Tokatap Mascot"
+       class="absolute -bottom-4 -left-4 w-40 sm:w-48 lg:w-52 mascot-float pointer-events-none select-none z-0">
 
 </body>
 </html>
