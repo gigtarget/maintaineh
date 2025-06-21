@@ -1,6 +1,7 @@
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import UserMixin
 from datetime import datetime, date
+from werkzeug.security import check_password_hash  # ✅ Needed for login
 
 db = SQLAlchemy()
 
@@ -11,18 +12,21 @@ class User(UserMixin, db.Model):
     role = db.Column(db.String(20), nullable=False, default="user")
     name = db.Column(db.String(100), nullable=False)
     company_name = db.Column(db.String(100))
-    mobile = db.Column(db.String(20))  # ✅ Added to support mobile number
+    mobile = db.Column(db.String(20))  # ✅ Mobile field
 
     default_machine_name = db.Column(db.String(100))
     default_machine_location = db.Column(db.String(100))
 
     claimed_batches = db.relationship("QRBatch", backref="owner", lazy=True)
 
+    # ✅ Password check method for login
+    def check_password(self, password):
+        return check_password_hash(self.password, password)
+
 
 class QRBatch(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    
     owner_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=True)
 
     qr_tags = db.relationship("QRTag", backref="batch", lazy=True)
@@ -63,7 +67,7 @@ class Machine(db.Model):
     batch_id = db.Column(db.Integer, db.ForeignKey("qr_batch.id"), nullable=False)
     name = db.Column(db.String(100))
     type = db.Column(db.String(100))
-    under_maintenance = db.Column(db.Boolean, default=False)  # 🔧 New field
+    under_maintenance = db.Column(db.Boolean, default=False)
 
 
 class SubUser(db.Model):
