@@ -1429,12 +1429,18 @@ def subuser_action(type):
     return redirect(url_for("routes.subuser_dashboard"))
 
 
+# ---- Main User Logout ----
 @routes.route("/logout")
+@login_required
 def logout():
     logout_user()
-    return redirect(url_for("routes.home"))
+    session.clear()
+    flash("You have been logged out.", "info")
+    return redirect(url_for("routes.user_login"))
 
-@routes.route("/logout")
-def logout():
-    logout_user()
-    return redirect(url_for("routes.home"))
+# ---- Sub-User Logout ----
+@routes.route("/subuser/logout")
+def subuser_logout():
+    session.pop('subuser_id', None)
+    flash("Sub-user logged out.", "info")
+    return redirect(url_for("routes.subuser_login"))
