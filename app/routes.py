@@ -1397,18 +1397,32 @@ def subuser_action(type):
     if type == "oil":
         today = date.today()
         existing = SubUserAction.query.filter_by(
-        subuser_id=sub.id,
-        machine_id=machine.id,
-        action_type=type,
-        status="done"
-    ).filter(db.func.date(SubUserAction.timestamp) == today).first()
+            subuser_id=sub.id,
+            machine_id=machine.id,
+            action_type="oil",
+            status="done"
+        ).filter(db.func.date(SubUserAction.timestamp) == today).first()
+
         if not existing:
-            log = DailyMaintenance(machine_id=machine.id, date=today, oiled=True)
+            # ✅ Record oiling action
+            action = SubUserAction(
+                subuser_id=sub.id,
+                machine_id=machine.id,
+                action_type="oil",
+                status="done"
+            )
+            db.session.add(action)
+
+            # ✅ Also update daily maintenance
+            log = DailyMaintenance(
+                machine_id=machine.id,
+                date=today,
+                oiled=True
+            )
             db.session.add(log)
-        else:
-            existing.oiled = True
-        db.session.commit()
+
         flash("Marked as oiled for today!", "success")
+        db.session.commit()
 
     elif type == "lube":
         action = SubUserAction(
@@ -1432,7 +1446,6 @@ def subuser_action(type):
         flash("Service request sent!", "success")
 
     return redirect(url_for("routes.subuser_dashboard"))
-
 
 # ---- Main User Logout ----
 @routes.route("/logout")
