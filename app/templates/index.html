@@ -2,33 +2,37 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Maintaineh - Home</title>
+  <title>Tokatap - Home</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-gradient-to-br from-blue-100 to-white min-h-screen flex flex-col items-center pt-16 p-4">
+<body class="bg-gradient-to-br from-blue-100 to-white min-h-screen p-4">
 
-  <div class="bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl shadow-xl w-full max-w-lg p-6 sm:p-10 text-center">
+  <!-- Main Box -->
+  <div class="bg-white/30 backdrop-blur-xl border border-white/20 rounded-2xl shadow-xl w-full max-w-lg mx-auto mt-10 text-center px-6 sm:px-10 py-10">
 
+    <!-- Logo -->
     <img src="{{ url_for('static', filename='logo/logo.svg') }}"
          alt="Maintaineh Logo"
-         class="w-32 h-auto mx-auto mb-4 object-contain shadow-none bg-transparent">
+         class="w-24 h-auto mx-auto mb-4 object-contain">
 
-    <h2 class="text-3xl font-bold text-slate-800 mb-4">Welcome to Maintaineh</h2>
+    <!-- Title -->
+    <h2 class="text-3xl font-bold text-slate-800 mb-2">Welcome to tokatap</h2>
 
-    <p class="text-slate-600 mb-6">
+    <!-- Tagline -->
+    <p class="text-sm text-slate-600 mb-6">
       Your smart solution for tracking machine services, maintenance, and components — all in one place.
     </p>
 
     <!-- Main Login Buttons -->
     <div class="flex flex-col gap-4 w-full">
       <a href="{{ url_for('routes.user_login') }}"
-         class="px-6 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-medium transition-all shadow-md">
+         class="w-full py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-xl shadow-md transition-all">
         User Login
       </a>
 
       <a href="{{ url_for('routes.user_signup') }}"
-         class="px-6 py-2 rounded-xl bg-white/30 backdrop-blur-md border border-white/20 text-blue-600 hover:text-blue-800 font-medium transition-all shadow-md">
+         class="w-full py-2 bg-white/30 backdrop-blur-md border border-white/20 text-blue-600 hover:text-blue-800 font-medium rounded-xl shadow-md transition-all">
         Sign Up
       </a>
 
@@ -37,14 +41,17 @@
         Sub-User Login (using code)
       </a>
     </div>
-  </div>
 
-  <!-- Admin Login -->
-  <div class="mt-6 text-center text-xs text-slate-500">
-    <a href="{{ url_for('routes.admin_login') }}"
-       class="hover:text-slate-700 underline">
-      Admin Login
-    </a>
+    <!-- Admin Login -->
+    <p class="mt-6 text-xs text-slate-500">
+      <a href="{{ url_for('routes.admin_login') }}" class="hover:text-slate-700 underline">Admin Login</a>
+    </p>
+
+    <!-- Mascot -->
+    <div class="mt-6">
+      <img src="{{ url_for('static', filename='logo/octatoka.png') }}" alt="Tokatap Mascot" class="w-28 h-auto mx-auto">
+    </div>
+
   </div>
 
 </body>
