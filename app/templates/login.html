@@ -5,62 +5,107 @@
   <title>Tokatap - Login</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <script src="https://cdn.tailwindcss.com"></script>
-</head>
-<body class="bg-gradient-to-br from-blue-100 to-white min-h-screen p-4">
+  <style>
+    @keyframes float {
+      0%, 100% {
+        transform: translateY(0px) translateX(0px);
+      }
+      50% {
+        transform: translateY(-6px) translateX(6px);
+      }
+    }
 
-  <div class="bg-white/30 backdrop-blur-xl border border-white/20 rounded-2xl shadow-xl w-full max-w-sm mx-auto mt-10 text-center">
+    @keyframes fadeUp {
+      0% {
+        transform: translateY(20px);
+        opacity: 0;
+      }
+      100% {
+        transform: translateY(0);
+        opacity: 1;
+      }
+    }
+
+    .logo-fade {
+      animation: fadeUp 1.8s ease-out forwards;
+    }
+
+    .mascot-float {
+      animation: float 4s ease-in-out infinite;
+    }
+  </style>
+</head>
+<body class="bg-gradient-to-br from-blue-100 to-white min-h-screen p-4 relative overflow-x-hidden">
+
+  <!-- Main Box -->
+  <div class="bg-white/30 backdrop-blur-xl border border-white/20 rounded-2xl shadow-xl 
+              w-full max-w-xl mx-auto text-center px-6 sm:px-10 pt-10 pb-32 mt-4 relative overflow-hidden">
 
     <!-- Logo -->
-    <img src="{{ url_for('static', filename='logo/logo.svg') }}" alt="Tokatap Logo" class="w-20 h-auto mx-auto mt-4 object-contain">
+    <img src="{{ url_for('static', filename='logo/logo.svg') }}" alt="Tokatap Logo"
+         class="w-56 sm:w-64 h-auto mx-auto mb-2 object-contain logo-fade z-10 relative">
 
-    <!-- Welcome Heading -->
-    <h2 class="text-2xl font-bold text-slate-800 mt-2">Welcome</h2>
-
-    <!-- Refined Paragraph -->
-    <p class="text-sm text-slate-600 mt-2 mb-6 px-4 leading-relaxed">
-      Know your machine’s full service history, upcoming maintenance needs, and past component changes — all in one place with just one tap or scan.
+    <!-- Tagline -->
+    <p class="text-sm text-slate-600 mb-6 z-10 relative">
+      Your smart solution for tracking machine services, maintenance, and components — all in one place.
     </p>
 
-    <!-- Flash Messages -->
-    {% with messages = get_flashed_messages(with_categories=true) %}
-      {% for category, message in messages %}
-        <div class="text-sm text-red-600 mb-4 text-center">{{ message }}</div>
-      {% endfor %}
-    {% endwith %}
+    <!-- Buttons -->
+    <div class="flex flex-col gap-4 w-full z-10 relative">
 
-    <!-- Login Form -->
-    <form method="POST" class="space-y-4 text-left px-4">
-      <div>
-        <label class="block text-sm font-medium text-slate-600 mb-1">Email</label>
-        <input type="email" name="email" required placeholder="you@example.com"
-               class="w-full px-4 py-2 rounded-xl bg-white/50 border border-white/20 shadow-inner text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-400">
-      </div>
-
-      <div>
-        <label class="block text-sm font-medium text-slate-600 mb-1">Password</label>
-        <input type="password" name="password" required placeholder="••••••••"
-               class="w-full px-4 py-2 rounded-xl bg-white/50 border border-white/20 shadow-inner text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-400">
-      </div>
-
-      <button type="submit"
-              class="w-full py-2 bg-blue-600 text-white font-semibold rounded-xl shadow-lg
-                     transition-all duration-300 transform hover:scale-105 hover:shadow-xl hover:bg-blue-700">
-        Login
+      <!-- Login Button with spinner and glass look -->
+      <button id="loginBtn" type="button"
+              class="w-full py-2 bg-blue-600/30 backdrop-blur-md border border-white/20 
+                     text-blue-600 hover:text-blue-800 font-semibold rounded-xl shadow-md
+                     transition-all duration-300 transform hover:scale-105 hover:border-blue-400 hover:shadow-md
+                     flex items-center justify-center gap-2">
+        <svg id="spinner" class="hidden animate-spin h-5 w-5 text-blue-600"
+             xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10"
+                  stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-75" fill="currentColor"
+                d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+        </svg>
+        <span id="btnText">Login</span>
       </button>
-    </form>
 
-    <!-- Links -->
-    <div class="mt-6 text-sm text-slate-600">
-      <p>New user? <a href="{{ url_for('routes.user_signup') }}" class="text-blue-600 hover:underline">Sign up here</a></p>
-      <p class="mt-2"><a href="{{ url_for('routes.home') }}" class="text-blue-600 hover:underline">← Back to Home</a></p>
+      <!-- Sign Up -->
+      <a href="{{ url_for('routes.user_signup') }}"
+         class="w-full py-2 bg-white/30 backdrop-blur-md border border-white/20 text-blue-600 hover:text-blue-800 font-medium rounded-xl shadow-md transition-all duration-300 transform hover:scale-105 hover:border-blue-400 hover:shadow-md">
+        Sign Up
+      </a>
+
+      <!-- Sub-User Login -->
+      <div class="flex justify-end mt-2">
+        <a href="{{ url_for('routes.subuser_login') }}"
+           class="text-sm text-blue-600 hover:text-blue-800 underline transition duration-200">
+          Sub-User Login (using code)
+        </a>
+      </div>
     </div>
 
-    <!-- Mascot -->
-    <div class="mt-6 mb-4">
-      <img src="{{ url_for('static', filename='logo/octatoka.png') }}" alt="Tokatap Mascot" class="w-28 h-auto mx-auto">
-    </div>
+    <!-- Mascot Half Inside Box -->
+    <img src="{{ url_for('static', filename='logo/octatoka.png') }}"
+         alt="Tokatap Mascot"
+         class="absolute bottom-[-50px] left-[-60px] w-44 sm:w-52 mascot-float pointer-events-none select-none z-0">
 
   </div>
+
+  <!-- Admin Login -->
+  <div class="w-full text-center mt-6 mb-4">
+    <a href="{{ url_for('routes.admin_login') }}"
+       class="text-xs text-slate-500 hover:text-slate-700 underline transition duration-200">
+      Admin Login
+    </a>
+  </div>
+
+  <!-- Spinner Script -->
+  <script>
+    document.getElementById('loginBtn').addEventListener('click', function () {
+      document.getElementById('spinner').classList.remove('hidden');
+      document.getElementById('btnText').textContent = 'Logging in...';
+    });
+  </script>
 
 </body>
 </html>
