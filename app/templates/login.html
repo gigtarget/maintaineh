@@ -46,7 +46,7 @@
       {% for category, message in messages %}
         {% if category == 'success' %}
           <div class="flex justify-center my-4">
-            <svg class="w-12 h-12 text-green-500 tick-animate" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24">
+            <svg id="tick-icon" class="w-12 h-12 text-green-500 tick-animate" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
             </svg>
           </div>
@@ -71,7 +71,7 @@
                class="w-full px-4 py-2 rounded-xl bg-white/50 border border-white/20 shadow-inner text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-400">
       </div>
 
-      <!-- Login Button (Simple Animation) -->
+      <!-- Login Button (Simple Hover Animation) -->
       <button type="submit"
               class="w-full py-2 bg-blue-600 text-white font-semibold rounded-xl shadow-lg
                      transition-all duration-300 transform hover:scale-105 active:scale-95 hover:bg-blue-700">
@@ -89,8 +89,17 @@
     <div class="mt-6 mb-4">
       <img src="{{ url_for('static', filename='logo/octatoka.png') }}" alt="Tokatap Mascot" class="w-28 h-auto mx-auto">
     </div>
-
   </div>
+
+  <!-- Fix: Prevent animation after logout -->
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const tick = document.querySelector('.tick-animate');
+      if (tick) {
+        tick.classList.remove('tick-animate');
+      }
+    });
+  </script>
 
 </body>
 </html>
