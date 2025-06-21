@@ -29,15 +29,18 @@
 </head>
 <body class="bg-gradient-to-br from-blue-100 to-white min-h-screen p-4">
 
+  <!-- ✅ Toast for successful login -->
   {% with messages = get_flashed_messages(with_categories=true) %}
     {% for category, message in messages %}
       {% if category == 'success' %}
         <div id="toast" class="toast">{{ message }}</div>
         <script>
-          window.addEventListener("DOMContentLoaded", () => {
+          document.addEventListener("DOMContentLoaded", () => {
             const toast = document.getElementById("toast");
-            toast.classList.add("show");
-            setTimeout(() => toast.classList.remove("show"), 3000);
+            if (toast) {
+              toast.classList.add("show");
+              setTimeout(() => toast.classList.remove("show"), 3000);
+            }
           });
         </script>
       {% endif %}
@@ -46,22 +49,27 @@
 
   <div class="bg-white/30 backdrop-blur-xl border border-white/20 rounded-2xl shadow-xl w-full max-w-sm mx-auto mt-10 text-center">
 
+    <!-- Logo -->
     <img src="{{ url_for('static', filename='logo/logo.svg') }}" alt="Tokatap Logo" class="w-20 h-auto mx-auto mt-4 object-contain">
 
+    <!-- Welcome Heading -->
     <h2 class="text-2xl font-bold text-slate-800 mt-2">Welcome</h2>
 
+    <!-- Tagline -->
     <p class="text-sm text-slate-600 mt-2 mb-6 px-4 leading-relaxed">
       Know your machine’s full service history, upcoming maintenance needs, and past component changes — all in one place with just one tap or scan.
     </p>
 
+    <!-- Danger Message for invalid credentials -->
     {% with messages = get_flashed_messages(with_categories=true) %}
       {% for category, message in messages %}
-        {% if category != 'success' %}
+        {% if category == 'danger' %}
           <div class="text-sm text-red-600 mb-4 text-center">{{ message }}</div>
         {% endif %}
       {% endfor %}
     {% endwith %}
 
+    <!-- Login Form -->
     <form method="POST" class="space-y-4 text-left px-4">
       <div>
         <label class="block text-sm font-medium text-slate-600 mb-1">Email</label>
@@ -82,15 +90,16 @@
       </button>
     </form>
 
+    <!-- Links -->
     <div class="mt-6 text-sm text-slate-600">
       <p>New user? <a href="{{ url_for('routes.user_signup') }}" class="text-blue-600 hover:underline">Sign up here</a></p>
       <p class="mt-2"><a href="{{ url_for('routes.home') }}" class="text-blue-600 hover:underline">← Back to Home</a></p>
     </div>
 
+    <!-- Mascot -->
     <div class="mt-6 mb-4">
       <img src="{{ url_for('static', filename='logo/octatoka.png') }}" alt="Tokatap Mascot" class="w-28 h-auto mx-auto">
     </div>
-
   </div>
 </body>
 </html>
