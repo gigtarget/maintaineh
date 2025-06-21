@@ -70,30 +70,48 @@
 
     </div>
 
-    <!-- QR Code Grid -->
-    <div class="grid grid-cols-2 sm:grid-cols-3 gap-4">
-      {% for qr in qr_codes %}
-      <div class="bg-white/20 backdrop-blur-xl border border-white/20 p-4 rounded-xl shadow hover:shadow-lg transition">
-        <div class="flex justify-center mb-2">
-          <img src="{{ qr.image_url }}" alt="{{ qr.qr_type }} QR" class="h-20 w-20 object-contain bg-white rounded-xl p-2 shadow-inner">
-        </div>
-        <div class="text-center">
-          <p class="capitalize font-medium text-slate-800">{{ qr.qr_type }}</p>
-          {% if qr.qr_type.startswith("sub") %}
-            {% set tag = tags | selectattr("qr_code_id", "equalto", qr.id) | list | first %}
-            {% if tag %}
-              <a href="{{ url_for('routes.sub_tag_options', sub_tag_id=tag.id) }}"
-                 class="text-xs text-blue-600 underline block mt-1 hover:text-blue-800">
-                Open
-              </a>
+    <!-- Expandable QR Box -->
+    <div class="mb-6">
+      <button onclick="toggleQR()" class="w-full px-4 py-3 rounded-xl bg-white border shadow text-slate-800 font-medium hover:bg-slate-50 transition flex items-center justify-between">
+        <span>📦 View All QR Codes</span>
+        <svg id="arrow-icon" class="w-5 h-5 transform transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+        </svg>
+      </button>
+
+      <div id="qr-grid" class="grid grid-cols-2 sm:grid-cols-3 gap-4 mt-4 hidden">
+        {% for qr in qr_codes %}
+        <div class="bg-white/20 backdrop-blur-xl border border-white/20 p-4 rounded-xl shadow hover:shadow-lg transition">
+          <div class="flex justify-center mb-2">
+            <img src="{{ qr.image_url }}" alt="{{ qr.qr_type }} QR" class="h-20 w-20 object-contain bg-white rounded-xl p-2 shadow-inner">
+          </div>
+          <div class="text-center">
+            <p class="capitalize font-medium text-slate-800">{{ qr.qr_type }}</p>
+            {% if qr.qr_type.startswith("sub") %}
+              {% set tag = tags | selectattr("qr_code_id", "equalto", qr.id) | list | first %}
+              {% if tag %}
+                <a href="{{ url_for('routes.sub_tag_options', sub_tag_id=tag.id) }}"
+                   class="text-xs text-blue-600 underline block mt-1 hover:text-blue-800">
+                  Open
+                </a>
+              {% endif %}
             {% endif %}
-          {% endif %}
+          </div>
         </div>
+        {% endfor %}
       </div>
-      {% endfor %}
     </div>
 
   </div>
+
+  <script>
+    function toggleQR() {
+      const grid = document.getElementById('qr-grid');
+      const arrow = document.getElementById('arrow-icon');
+      grid.classList.toggle('hidden');
+      arrow.classList.toggle('rotate-180');
+    }
+  </script>
 
 </body>
 </html>
