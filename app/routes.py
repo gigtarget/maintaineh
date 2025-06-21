@@ -233,11 +233,13 @@ def user_login():
         if user and user.password == password:
             login_user(user)
             flash("Login successful", "success")
-            # 🔁 Instead of redirecting directly, render login.html with delay
-            return render_template("login.html", next=next_url, redirect_to=next_url or url_for("routes.user_dashboard"))
+            # ✅ Redirect to dashboard or intended page
+            return redirect(next_url or url_for("routes.user_dashboard"))
         else:
             flash("Invalid credentials", "danger")
-    return render_template("login.html", next=next_url)
+            # No redirect here; re-renders login form with error
+    return render_template("login.html")
+
 
 
 @routes.route("/user/dashboard", methods=["GET", "POST"])
