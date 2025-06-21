@@ -118,11 +118,3 @@ class SubUserAction(db.Model):
     status = db.Column(db.String(20))       # "done", "pending", "completed"
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)
 
-class DailyMaintenance(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    machine_id = db.Column(db.Integer, db.ForeignKey('machine.id'), nullable=False)
-    date = db.Column(db.Date, nullable=False)
-    oiled = db.Column(db.Boolean, default=False)
-    lubed = db.Column(db.Boolean, default=False)
-
-
