@@ -6,33 +6,43 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
-    .mascot-float {
-      animation: floaty 4s ease-in-out infinite;
+    /* Logo bounce in */
+    @keyframes bounceIn {
+      0% { transform: scale(0.9) translateY(-20px); opacity: 0; }
+      100% { transform: scale(1) translateY(0); opacity: 1; }
     }
 
-    @keyframes floaty {
-      0% { transform: translateY(0px) translateX(0px); }
-      50% { transform: translateY(-6px) translateX(6px); }
-      100% { transform: translateY(0px) translateX(0px); }
+    .logo-animate {
+      animation: bounceIn 0.8s ease-out forwards;
+    }
+
+    /* Mascot floating */
+    @keyframes mascotFloat {
+      0%, 100% { transform: translateY(0) translateX(0); }
+      50% { transform: translateY(-6px) translateX(4px); }
+    }
+
+    .mascot-float {
+      animation: mascotFloat 4s ease-in-out infinite;
     }
   </style>
 </head>
 <body class="bg-gradient-to-br from-blue-100 to-white min-h-screen p-4">
 
-  <!-- Main Box -->
-  <div class="relative bg-white/30 backdrop-blur-xl border border-white/20 rounded-2xl shadow-xl w-full max-w-lg mx-auto mt-10 text-center px-6 sm:px-10 py-10 overflow-visible">
+  <!-- Main Container -->
+  <div class="relative bg-white/30 backdrop-blur-xl border border-white/20 rounded-2xl shadow-xl w-full max-w-lg mx-auto mt-10 text-center px-6 sm:px-10 py-10">
 
-    <!-- Logo -->
+    <!-- Logo with animation -->
     <img src="{{ url_for('static', filename='logo/logo.svg') }}"
          alt="Tokatap Logo"
-         class="w-44 sm:w-52 h-auto mx-auto mb-2 object-contain">
+         class="w-32 sm:w-40 mx-auto mb-2 object-contain logo-animate">
 
     <!-- Tagline -->
-    <p class="text-sm text-slate-600 mb-6 -mt-2">
+    <p class="text-sm text-slate-600 mb-6">
       Your smart solution for tracking machine services, maintenance, and components — all in one place.
     </p>
 
-    <!-- Main Login Buttons -->
+    <!-- Main Buttons -->
     <div class="flex flex-col gap-4 w-full z-10 relative">
       <a href="{{ url_for('routes.user_login') }}"
          class="w-full py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-xl shadow-md transition-all">
@@ -48,17 +58,17 @@
          class="text-sm text-blue-600 hover:text-blue-800 underline mt-2">
         Sub-User Login (using code)
       </a>
-    </div>
 
-    <!-- Admin Login -->
-    <p class="mt-4 text-xs text-slate-500 z-10 relative">
-      <a href="{{ url_for('routes.admin_login') }}" class="hover:text-slate-700 underline">Admin Login</a>
-    </p>
+      <a href="{{ url_for('routes.admin_login') }}"
+         class="text-xs text-slate-500 hover:text-slate-700 underline">
+        Admin Login
+      </a>
+    </div>
 
     <!-- Mascot Half Inside Box -->
     <img src="{{ url_for('static', filename='logo/octatoka.png') }}"
          alt="Tokatap Mascot"
-         class="absolute bottom-[-60px] left-[-50px] w-40 sm:w-48 mascot-float pointer-events-none select-none z-0">
+         class="absolute bottom-[-80px] left-[-40px] w-40 sm:w-48 mascot-float pointer-events-none select-none z-0">
   </div>
 
 </body>
