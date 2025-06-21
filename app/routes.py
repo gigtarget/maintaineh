@@ -6,6 +6,7 @@ from app import db
 from app.models import SubUser
 from datetime import datetime
 from datetime import date, timedelta
+from app.decorators import subuser_required
 import io
 import zipfile
 import requests
@@ -487,6 +488,7 @@ def subuser_login():
 
 # ---- Sub-User Dashboard ----
 @routes.route("/subuser/dashboard")
+@subuser_required
 def subuser_dashboard():
     sub_id = session.get('subuser_id')
     if not sub_id:
@@ -685,7 +687,8 @@ def machine_dashboard():
 
     return render_template("machine_dashboard.html", machines_data=machine_data)
 
-@routes.route("/subuser/action/<type>", methods=["POST"])
+@routes.route("/subuser/action/<string:type>", methods=["POST"])
+@subuser_required
 def subuser_action(type):
     sub_id = session.get("subuser_id")
     if not sub_id:
