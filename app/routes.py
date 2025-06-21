@@ -222,7 +222,6 @@ def user_signup():
 
     return render_template("signup.html")
 
-
 @routes.route("/login", methods=["GET", "POST"], endpoint="user_login")
 def user_login():
     next_url = request.args.get('next')
@@ -232,19 +231,12 @@ def user_login():
         user = User.query.filter_by(email=email, role="user").first()
         if user and user.password == password:
             login_user(user)
-            # 🔁 Instead of flashing here, pass flag in session
-            session['show_login_success'] = True
+            session['show_login_success'] = True  # ✅ Trigger login toast
             return redirect(next_url or url_for("routes.user_dashboard"))
         else:
             flash("Invalid credentials", "danger")
-    return render_template("login.html")
+    return render_template("login.html", next=next_url)
 
-from flask import render_template, request, redirect, url_for, session, flash
-from flask_login import login_required, current_user
-from datetime import datetime, timedelta
-from app.models import QRBatch, QRCode, QRTag, Machine, SubUser, NeedleChange, ServiceLog
-from app import db
-from app.routes import routes  # Ensure this import aligns with your blueprint setup
 
 @routes.route("/user/dashboard", methods=["GET", "POST"])
 @login_required
@@ -345,14 +337,13 @@ def user_dashboard():
             "qr_codes": QRCode.query.filter_by(batch_id=batch.id).all()
         })
 
-    # ✅ Pass all data including toast flag to template
     return render_template(
         "user_dashboard.html",
         batches=batch_data,
         machines_data=machines_data,
         now=datetime.utcnow(),
         timedelta=timedelta,
-        show_toast=show_toast
+        show_toast=show_toast  # ✅ Used in template
     )
 
 @routes.route("/admin/login", methods=["GET", "POST"], endpoint="admin_login")
