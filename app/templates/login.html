@@ -6,27 +6,43 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
-    .tick-animate {
-      animation: popFade 0.6s ease-out forwards;
+    .toast {
+      position: fixed;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 9999;
+      padding: 10px 20px;
+      background-color: #4ade80;
+      color: #1e3a1e;
+      border-radius: 8px;
+      box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
+      opacity: 0;
+      transition: opacity 0.4s ease;
     }
 
-    @keyframes popFade {
-      0% {
-        transform: scale(0.5);
-        opacity: 0;
-      }
-      50% {
-        transform: scale(1.2);
-        opacity: 1;
-      }
-      100% {
-        transform: scale(1);
-        opacity: 1;
-      }
+    .toast.show {
+      opacity: 1;
     }
   </style>
 </head>
 <body class="bg-gradient-to-br from-blue-100 to-white min-h-screen p-4">
+
+  <!-- Toast -->
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% for category, message in messages %}
+      {% if category == 'success' %}
+        <div id="toast" class="toast">{{ message }}</div>
+        <script>
+          window.addEventListener("DOMContentLoaded", () => {
+            const toast = document.getElementById("toast");
+            toast.classList.add("show");
+            setTimeout(() => toast.classList.remove("show"), 3000);
+          });
+        </script>
+      {% endif %}
+    {% endfor %}
+  {% endwith %}
 
   <div class="bg-white/30 backdrop-blur-xl border border-white/20 rounded-2xl shadow-xl w-full max-w-sm mx-auto mt-10 text-center">
 
@@ -41,17 +57,10 @@
       Know your machine’s full service history, upcoming maintenance needs, and past component changes — all in one place with just one tap or scan.
     </p>
 
-    <!-- Flash Messages -->
+    <!-- Flash (Error Only) -->
     {% with messages = get_flashed_messages(with_categories=true) %}
       {% for category, message in messages %}
-        {% if category == 'success' %}
-          <div class="flex justify-center my-4">
-            <svg id="tick-icon" class="w-12 h-12 text-green-500 tick-animate" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
-            </svg>
-          </div>
-          <div class="text-sm text-green-600 font-medium mb-4">{{ message }}</div>
-        {% else %}
+        {% if category != 'success' %}
           <div class="text-sm text-red-600 mb-4 text-center">{{ message }}</div>
         {% endif %}
       {% endfor %}
@@ -91,17 +100,5 @@
     </div>
 
   </div>
-
-  <!-- Fix: Prevent tick animation after redirect -->
-  <script>
-    // Only play animation when tick is dynamically added (i.e., fresh flash)
-    window.addEventListener('pageshow', function (event) {
-      const tick = document.querySelector('#tick-icon');
-      if (event.persisted && tick) {
-        tick.classList.remove('tick-animate');
-      }
-    });
-  </script>
-
 </body>
 </html>
