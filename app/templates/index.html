@@ -17,10 +17,10 @@
     }
   </style>
 </head>
-<body class="bg-gradient-to-br from-blue-100 to-white min-h-screen p-4 relative">
+<body class="bg-gradient-to-br from-blue-100 to-white min-h-screen p-4">
 
   <!-- Main Box -->
-  <div class="bg-white/30 backdrop-blur-xl border border-white/20 rounded-2xl shadow-xl w-full max-w-lg mx-auto mt-10 text-center px-6 sm:px-10 py-10 relative z-10">
+  <div class="relative bg-white/30 backdrop-blur-xl border border-white/20 rounded-2xl shadow-xl w-full max-w-lg mx-auto mt-10 text-center px-6 sm:px-10 py-10 overflow-visible">
 
     <!-- Logo -->
     <img src="{{ url_for('static', filename='logo/logo.svg') }}"
@@ -55,12 +55,11 @@
       <a href="{{ url_for('routes.admin_login') }}" class="hover:text-slate-700 underline">Admin Login</a>
     </p>
 
+    <!-- Mascot Half Inside Box -->
+    <img src="{{ url_for('static', filename='logo/octatoka.png') }}"
+         alt="Tokatap Mascot"
+         class="absolute bottom-[-40px] left-[-60px] w-40 sm:w-48 mascot-float pointer-events-none select-none z-0">
   </div>
-
-  <!-- Mascot Peeking Bottom Left -->
-  <img src="{{ url_for('static', filename='logo/octatoka.png') }}"
-       alt="Tokatap Mascot"
-       class="absolute -bottom-4 -left-4 w-40 sm:w-48 lg:w-52 mascot-float pointer-events-none select-none z-0">
 
 </body>
 </html>
