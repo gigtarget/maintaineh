@@ -263,6 +263,11 @@
           <div class="text-sm space-y-1">
             <p><strong>Oiled Today:</strong> {{ 'Yes' if machine.oiled_today else 'No' }}</p>
             <p><strong>Service Request:</strong> {{ 'Yes' if machine.service_requested else 'No' }}</p>
+            <p><strong>Weekly Lube:</strong> 
+              <span class="{{ 'text-green-600 font-semibold' if machine.weekly_lube_done else 'text-red-500' }}">
+                {{ 'Done' if machine.weekly_lube_done else 'Not Done' }}
+              </span>
+            </p>
           </div>
         </div>
       {% endfor %}
