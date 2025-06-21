@@ -239,12 +239,23 @@ def user_login():
             flash("Invalid credentials", "danger")
     return render_template("login.html")
 
+from flask import render_template, request, redirect, url_for, session, flash
+from flask_login import login_required, current_user
+from datetime import datetime, timedelta
+from app.models import QRBatch, QRCode, QRTag, Machine, SubUser, NeedleChange, ServiceLog
+from app import db
+from app.routes import routes  # Ensure this import aligns with your blueprint setup
+
 @routes.route("/user/dashboard", methods=["GET", "POST"])
 @login_required
 def user_dashboard():
     if current_user.role != "user":
         return redirect(url_for("routes.user_login"))
 
+    # ✅ Show toast only once after login
+    show_toast = session.pop('show_login_success', False)
+
+    # ✅ Handle form submission to update or create machine
     if request.method == "POST":
         batch_id = request.form.get("batch_id")
         name = request.form.get("name") or current_user.default_machine_name or "Unnamed Machine"
@@ -261,17 +272,14 @@ def user_dashboard():
             flash("Machine added successfully.", "success")
         db.session.commit()
 
-    # ✅ Load batch data for frontend dropdown and QR cards
+    # ✅ Load batch data for dropdowns and cards
     user_batches = QRBatch.query.filter_by(owner_id=current_user.id).all()
     batch_data = []
     for batch in user_batches:
         machine = Machine.query.filter_by(batch_id=batch.id).first()
         qr_codes = QRCode.query.filter_by(batch_id=batch.id).all()
         tags = QRTag.query.filter_by(batch_id=batch.id).all()
-        subusers = []
-        if machine:
-            subusers = SubUser.query.filter_by(assigned_machine_id=machine.id).all()
-
+        subusers = SubUser.query.filter_by(assigned_machine_id=machine.id).all() if machine else []
         batch_data.append({
             "id": batch.id,
             "created_at": batch.created_at,
@@ -281,7 +289,7 @@ def user_dashboard():
             "subusers": subusers
         })
 
-    # ✅ Build full machines_data used in embedded dashboard
+    # ✅ Build detailed machine data for dashboard
     machines = Machine.query.join(QRBatch).filter(QRBatch.owner_id == current_user.id).all()
     machines_data = []
 
@@ -296,14 +304,8 @@ def user_dashboard():
         last_needle = needle_logs[0] if needle_logs else None
         last_service = service_logs[0] if service_logs else None
 
-        # Group logs by sub-tag
-        grouped_logs = {}
-        for tag in qr_tags:
-            grouped_logs[tag.id] = {
-                "tag": tag,
-                "needle_logs": [],
-                "service_logs": []
-            }
+        # ✅ Group logs by sub-tag
+        grouped_logs = {tag.id: {"tag": tag, "needle_logs": [], "service_logs": []} for tag in qr_tags}
 
         for log in needle_logs:
             if log.sub_tag_id in grouped_logs:
@@ -313,7 +315,7 @@ def user_dashboard():
             if log.sub_tag_id in grouped_logs:
                 grouped_logs[log.sub_tag_id]["service_logs"].append(log)
 
-        # Maintenance status flags
+        # ✅ Maintenance indicators
         warranty_warning = False
         stale_service_warning = False
         maintenance_ok = True
@@ -340,11 +342,18 @@ def user_dashboard():
             "maintenance_ok": maintenance_ok,
             "warranty_warning": warranty_warning,
             "stale_service_warning": stale_service_warning,
-            "qr_codes": QRCode.query.filter_by(batch_id=batch.id).all()  # ✅ this line MUST be inside the dictionary
+            "qr_codes": QRCode.query.filter_by(batch_id=batch.id).all()
         })
 
-    return render_template("user_dashboard.html", batches=batch_data, machines_data=machines_data, now=datetime.utcnow(), timedelta=timedelta)
-
+    # ✅ Pass all data including toast flag to template
+    return render_template(
+        "user_dashboard.html",
+        batches=batch_data,
+        machines_data=machines_data,
+        now=datetime.utcnow(),
+        timedelta=timedelta,
+        show_toast=show_toast
+    )
 
 @routes.route("/admin/login", methods=["GET", "POST"], endpoint="admin_login")
 def admin_login():
