@@ -4,17 +4,38 @@
   <meta charset="UTF-8">
   <title>Tokatap - Home</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
   <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Tailwind Custom Animations -->
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          animation: {
+            'fade-in-up': 'fadeInUp 0.6s ease-out both',
+            'bounce-slow': 'bounce 3s infinite'
+          },
+          keyframes: {
+            fadeInUp: {
+              '0%': { opacity: '0', transform: 'translateY(20px)' },
+              '100%': { opacity: '1', transform: 'translateY(0)' }
+            }
+          }
+        }
+      }
+    }
+  </script>
 </head>
 <body class="bg-gradient-to-br from-blue-100 to-white min-h-screen p-4">
 
   <!-- Main Box -->
   <div class="bg-white/30 backdrop-blur-xl border border-white/20 rounded-2xl shadow-xl w-full max-w-lg mx-auto mt-10 text-center px-6 sm:px-10 py-10">
 
-    <!-- Logo (Larger & tighter spacing) -->
+    <!-- Logo with animation -->
     <img src="{{ url_for('static', filename='logo/logo.svg') }}"
          alt="Tokatap Logo"
-         class="w-52 h-auto mx-auto mb-2 object-contain">
+         class="w-52 h-auto mx-auto mb-2 object-contain animate-fade-in-up">
 
     <!-- Tagline -->
     <p class="text-sm text-slate-600 mb-8">
@@ -44,9 +65,11 @@
       <a href="{{ url_for('routes.admin_login') }}" class="hover:text-slate-700 underline">Admin Login</a>
     </p>
 
-    <!-- Mascot -->
+    <!-- Mascot with bounce animation -->
     <div class="mt-6">
-      <img src="{{ url_for('static', filename='logo/octatoka.png') }}" alt="Tokatap Mascot" class="w-32 h-auto mx-auto">
+      <img src="{{ url_for('static', filename='logo/octatoka.png') }}"
+           alt="Tokatap Mascot"
+           class="w-32 h-auto mx-auto animate-bounce-slow">
     </div>
 
   </div>
