@@ -223,20 +223,22 @@ def user_signup():
     return render_template("signup.html")
 
 
-@routes.route("/login", methods=["GET", "POST"], endpoint="user_login")
+# User Login Route
+@routes.route('/login', methods=['GET', 'POST'])
 def user_login():
-    next_url = request.args.get('next')
-    if request.method == "POST":
-        email = request.form["email"]
-        password = request.form["password"]
-        user = User.query.filter_by(email=email, role="user").first()
-        if user and user.password == password:
+    if request.method == 'POST':
+        email = request.form['email']
+        password = request.form['password']
+        user = User.query.filter_by(email=email).first()
+
+        if user and user.check_password(password):
             login_user(user)
             flash("Login successful", "success")
-            return redirect(next_url or url_for("routes.user_dashboard"))
+            return redirect(url_for('routes.user_dashboard'))
         else:
-            flash("Invalid credentials", "danger")
-    return render_template("login.html", next=next_url)
+            flash("Invalid email or password", "danger")
+
+    return render_template('login.html')
 
 @routes.route("/user/dashboard", methods=["GET", "POST"])
 @login_required
@@ -643,7 +645,10 @@ def machine_dashboard():
     return render_template("machine_dashboard.html", machines_data=machine_data)
 
 
-@routes.route("/logout")
+# User Logout Route
+@routes.route('/logout')
+@login_required
 def logout():
     logout_user()
-    return redirect(url_for("routes.home"))
+    flash("Logged out successfully", "success")
+    return redirect(url_for('routes.user_login'))
