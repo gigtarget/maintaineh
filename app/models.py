@@ -11,7 +11,7 @@ class User(UserMixin, db.Model):
     role = db.Column(db.String(20), nullable=False, default="user")
     name = db.Column(db.String(100), nullable=False)
     company_name = db.Column(db.String(100))
-    mobile = db.Column(db.String(20))  # ✅ Added to support mobile number
+    mobile = db.Column(db.String(20))  # ✅ Mobile number
 
     default_machine_name = db.Column(db.String(100))
     default_machine_location = db.Column(db.String(100))
@@ -46,7 +46,7 @@ class QRCode(db.Model):
     batch_id = db.Column(db.Integer, db.ForeignKey('qr_batch.id'))
     qr_type = db.Column(db.String(50))
     image_url = db.Column(db.String(500))
-    qr_url = db.Column(db.String(500))  # ✅ Required
+    qr_url = db.Column(db.String(500))  # ✅ QR link
 
 
 class NeedleChange(db.Model):
@@ -63,7 +63,11 @@ class Machine(db.Model):
     batch_id = db.Column(db.Integer, db.ForeignKey("qr_batch.id"), nullable=False)
     name = db.Column(db.String(100))
     type = db.Column(db.String(100))
-    under_maintenance = db.Column(db.Boolean, default=False)  # 🔧 New field
+    under_maintenance = db.Column(db.Boolean, default=False)
+
+    # ✅ Relationships
+    maintenance_logs = db.relationship("DailyMaintenance", backref="machine", lazy=True)
+    service_requests = db.relationship("ServiceRequest", backref="machine", lazy=True)
 
 
 class SubUser(db.Model):
@@ -86,3 +90,22 @@ class ServiceLog(db.Model):
     description = db.Column(db.Text)
     warranty_till = db.Column(db.Date)
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)
+
+
+# ✅ New Models Below
+
+
+class DailyMaintenance(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    machine_id = db.Column(db.Integer, db.ForeignKey("machine.id"), nullable=False)
+    date = db.Column(db.Date, default=date.today)
+    oiled = db.Column(db.Boolean, default=False)
+
+
+class ServiceRequest(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    machine_id = db.Column(db.Integer, db.ForeignKey("machine.id"), nullable=False)
+    subuser_id = db.Column(db.Integer, db.ForeignKey("sub_user.id"), nullable=True)
+    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
+    message = db.Column(db.String(200))
+    resolved = db.Column(db.Boolean, default=False)
