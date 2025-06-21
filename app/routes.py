@@ -337,13 +337,28 @@ def user_dashboard():
             "qr_codes": QRCode.query.filter_by(batch_id=batch.id).all()
         })
 
+    # ✅ Build quick machine overview data
+    quick_overview = []
+    for machine in machines:
+        subuser = SubUser.query.filter_by(assigned_machine_id=machine.id).first()
+        last_service = ServiceLog.query.filter_by(batch_id=machine.batch_id).order_by(ServiceLog.timestamp.desc()).first()
+
+        quick_overview.append({
+            "name": machine.name,
+            "assigned_subuser": subuser.name if subuser else None,
+            "oiled_today": False,  # 🔧 Future: Update based on actual input
+            "service_requested": False,  # 🔧 Future: Update based on actual requests
+            "status_ok": True if not last_service or (last_service.warranty_till and (last_service.warranty_till - datetime.utcnow().date()).days >= 30) else False
+        })
+
     return render_template(
         "user_dashboard.html",
         batches=batch_data,
         machines_data=machines_data,
+        quick_overview=quick_overview,
         now=datetime.utcnow(),
         timedelta=timedelta,
-        show_toast=show_toast  # ✅ Used in template
+        show_toast=show_toast
     )
 
 @routes.route("/admin/login", methods=["GET", "POST"], endpoint="admin_login")
