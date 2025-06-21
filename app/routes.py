@@ -686,63 +686,52 @@ def machine_dashboard():
     return render_template("machine_dashboard.html", machines_data=machine_data)
 
 @routes.route("/subuser/action/<type>", methods=["POST"])
-@login_required
 def subuser_action(type):
-    subuser = SubUser.query.get(current_user.id)
-    if not subuser:
-        flash("Unauthorized", "error")
-        return redirect(url_for("routes.user_login"))
+    sub_id = session.get("subuser_id")
+    if not sub_id:
+        return redirect(url_for("routes.subuser_login"))
 
-    machine_id = subuser.assigned_machine_id
-    now = datetime.utcnow()
+    sub = SubUser.query.get(sub_id)
+    machine = Machine.query.get(sub.assigned_machine_id)
 
-    # Determine reset logic
+    if not sub or not machine:
+        flash("Machine access error", "danger")
+        return redirect(url_for("routes.subuser_dashboard"))
+
     if type == "oil":
-        # Reset daily
-        existing = SubUserAction.query.filter_by(
-            subuser_id=subuser.id,
-            machine_id=machine_id,
-            action_type="oil"
-        ).filter(db.func.date(SubUserAction.timestamp) == date.today()).first()
-
+        today = date.today()
+        existing = DailyMaintenance.query.filter_by(machine_id=machine.id, date=today).first()
         if not existing:
-            action = SubUserAction(
-                subuser_id=subuser.id,
-                machine_id=machine_id,
-                action_type="oil",
-                status="done"
-            )
-            db.session.add(action)
+            log = DailyMaintenance(machine_id=machine.id, date=today, oiled=True)
+            db.session.add(log)
+        else:
+            existing.oiled = True
+        db.session.commit()
+        flash("Marked as oiled for today!", "success")
 
     elif type == "lube":
-        # Reset weekly (Monday)
-        start_of_week = date.today() - timedelta(days=date.today().weekday())
-        existing = SubUserAction.query.filter_by(
-            subuser_id=subuser.id,
-            machine_id=machine_id,
-            action_type="lube"
-        ).filter(SubUserAction.timestamp >= start_of_week).first()
-
-        if not existing:
-            action = SubUserAction(
-                subuser_id=subuser.id,
-                machine_id=machine_id,
-                action_type="lube",
-                status="done"
-            )
-            db.session.add(action)
+        action = SubUserAction(
+            subuser_id=sub.id,
+            machine_id=machine.id,
+            action_type="lube",
+            status="done"
+        )
+        db.session.add(action)
+        db.session.commit()
+        flash("Lube completed!", "success")
 
     elif type == "service":
-        req = ServiceRequest(
-            machine_id=machine_id,
-            subuser_id=subuser.id,
-            message="Raised by sub-user",
-            resolved=False
+        sr = ServiceRequest(
+            machine_id=machine.id,
+            subuser_id=sub.id,
+            message="Service request raised by sub-user"
         )
-        db.session.add(req)
+        db.session.add(sr)
+        db.session.commit()
+        flash("Service request sent!", "success")
 
-    db.session.commit()
     return redirect(url_for("routes.subuser_dashboard"))
+
 
 @routes.route("/logout")
 def logout():
