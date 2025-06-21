@@ -1,58 +1,61 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>User Dashboard</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     function toggleMachineDashboard() {
-      const machinesBox = document.getElementById("machines-box");
-      const batchesBox = document.getElementById("batches-box");
-      const machineDashboard = document.getElementById("machine-dashboard");
-      machinesBox.classList.toggle("col-span-2");
-      batchesBox.classList.toggle("hidden");
-      machineDashboard.classList.toggle("hidden");
+      document.getElementById("machines-box").classList.toggle("col-span-2");
+      document.getElementById("batches-box").classList.toggle("hidden");
+      document.getElementById("machine-dashboard").classList.toggle("hidden");
     }
 
     function closeMachineDashboard() {
       toggleMachineDashboard();
     }
 
-    function toggleBatch(id) {
-      const box = document.getElementById(`batch-${id}`);
-      const arrow = document.getElementById(`chevron-${id}`);
-      box.classList.toggle("hidden");
-      arrow.classList.toggle("rotate-180");
-    }
-
     function toggleLogs(id) {
-      const logSection = document.getElementById(`logs-${id}`);
-      const arrowIcon = document.getElementById(`log-arrow-${id}`);
-      if (logSection) {
-        logSection.classList.toggle("hidden");
-      }
-      if (arrowIcon) {
-        arrowIcon.classList.toggle("rotate-180");
-      }
+      document.getElementById(`logs-${id}`).classList.toggle("hidden");
+      document.getElementById(`log-arrow-${id}`).classList.toggle("rotate-180");
     }
 
     function toggleWarrantyDetails(id) {
-      const detail = document.getElementById(`warranty-detail-${id}`);
-      if (detail) {
-        detail.classList.toggle("hidden");
-      }
+      document.getElementById(`warranty-detail-${id}`).classList.toggle("hidden");
     }
+
+    window.addEventListener("DOMContentLoaded", () => {
+      const toast = document.getElementById("login-toast");
+      if (toast) {
+        toast.classList.remove("opacity-0", "translate-y-6");
+        toast.classList.add("opacity-100", "translate-y-0");
+
+        setTimeout(() => {
+          toast.classList.add("opacity-0", "translate-y-6");
+          toast.classList.remove("opacity-100", "translate-y-0");
+        }, 3000);
+      }
+    });
   </script>
 </head>
 <body class="bg-gradient-to-br from-blue-100 to-white min-h-screen text-gray-800 p-2">
 
-  <div class="max-w-2xl mx-auto mb-2">
-  <div class="flex justify-start items-center">
-     <img src="{{ url_for('static', filename='logo/logo.svg') }}" class="h-16 sm:h-24" alt="Logo">
-   </div>
- </div>
+  {% if session.get('show_login_toast') %}
+  <div id="login-toast" class="fixed top-5 left-1/2 transform -translate-x-1/2 transition-all duration-500 bg-green-500 text-white px-6 py-3 rounded-xl shadow-lg opacity-0 translate-y-6 z-50">
+    ✅ Login Successful!
+  </div>
+  {% set session['show_login_toast'] = False %}
+  {% endif %}
 
+  <!-- Logo -->
+  <div class="max-w-2xl mx-auto mb-2">
+    <div class="flex justify-start items-center">
+      <img src="{{ url_for('static', filename='logo/logo.svg') }}" class="h-16 sm:h-24" alt="Logo">
+    </div>
+  </div>
+
+  <!-- Welcome Box -->
   <div class="max-w-2xl mx-auto mb-6">
     <div class="bg-white/10 backdrop-blur-xl border border-white/20 shadow-xl rounded-2xl p-4 sm:p-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
       <div>
@@ -69,6 +72,7 @@
     </div>
   </div>
 
+  <!-- Counts -->
   {% set machine_count = batches | selectattr('machine') | list | length %}
   {% set batch_count = batches | length %}
 
@@ -88,6 +92,7 @@
     </div>
   </div>
 
+  <!-- Machine Dashboard Section -->
   <div id="machine-dashboard" class="hidden max-w-2xl mx-auto mt-4">
     <div class="flex justify-between items-center mb-4">
       <h2 class="text-2xl font-bold text-slate-800">Machine Dashboard</h2>
@@ -95,8 +100,8 @@
     </div>
 
     {% for data in machines_data %}
-    <div id="machine-{{ data.machine.id }}" class="mb-14 bg-white rounded-xl shadow-xl p-6 border border-gray-200">
-
+    <!-- Each Machine Block -->
+    <div class="mb-14 bg-white rounded-xl shadow-xl p-6 border border-gray-200">
       <div class="bg-gray-50 p-4 rounded-md shadow-sm mb-4">
         <h2 class="text-xl font-semibold mb-3">{{ data.machine.name }}</h2>
         <ul class="space-y-1 text-gray-700">
@@ -119,7 +124,7 @@
           <li><strong>Total Services Logged:</strong> {{ data.total_services_logged }}</li>
         </ul>
 
-        <!-- View QR Button -->
+        <!-- QR Button -->
         <div class="flex justify-end mt-3">
           <button onclick="document.getElementById('qr-{{ data.machine.id }}').classList.toggle('hidden')"
                   class="flex items-center gap-1 px-3 py-1 bg-white/80 hover:bg-white border border-gray-300 rounded-full text-xs text-blue-700 shadow-sm transition">
@@ -128,23 +133,22 @@
           </button>
         </div>
 
+        <!-- QR Section -->
         <div id="qr-{{ data.machine.id }}" class="hidden mt-3">
           <div class="grid grid-cols-2 sm:grid-cols-3 gap-4">
             {% for qr in data.qr_codes %}
             <div class="bg-white border rounded-xl p-3 text-center shadow">
               <img src="{{ qr.image_url }}" class="h-24 mx-auto mb-2" alt="QR">
               <p class="capitalize font-medium text-sm">{{ qr.qr_type }}</p>
-              <a href="{{ qr.image_url }}" download="{{ qr.qr_type }}.png" target="_self" rel="noopener"
-                 class="mt-2 inline-block text-xs bg-blue-600 text-white px-3 py-1 rounded-md hover:bg-blue-700 transition">
-                Download
-              </a>
+              <a href="{{ qr.image_url }}" download="{{ qr.qr_type }}.png"
+                 class="mt-2 inline-block text-xs bg-blue-600 text-white px-3 py-1 rounded-md hover:bg-blue-700 transition">Download</a>
             </div>
             {% endfor %}
           </div>
         </div>
       </div>
 
-      <!-- Last Activities Section -->
+      <!-- Last Activity Boxes -->
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
         <div class="bg-green-50 p-4 rounded-md shadow-sm">
           <h3 class="font-semibold mb-2">🪡 Last Needle Change</h3>
@@ -157,6 +161,7 @@
             <p class="italic text-gray-500">No needle changes recorded.</p>
           {% endif %}
         </div>
+
         <div class="bg-yellow-50 p-4 rounded-md shadow-sm">
           <h3 class="font-semibold mb-2">🔧 Last Service Log</h3>
           {% if data.last_service %}
@@ -180,9 +185,7 @@
             {% if data.warranty_warning %}
               <li>
                 ⚠️ Warranty is expiring soon.
-                <button onclick="toggleWarrantyDetails({{ data.machine.id }})" class="ml-2 text-xs underline text-blue-800">
-                  (View Details)
-                </button>
+                <button onclick="toggleWarrantyDetails({{ data.machine.id }})" class="ml-2 text-xs underline text-blue-800">(View Details)</button>
               </li>
               <ul id="warranty-detail-{{ data.machine.id }}" class="hidden ml-6 mt-2 text-sm text-red-700 list-disc">
                 {% for head_id, group in data.grouped_logs.items() %}
@@ -201,15 +204,14 @@
         {% endif %}
       </div>
 
+      <!-- View Logs Toggle -->
       <div class="flex justify-start mt-4">
         <button onclick="toggleLogs({{ data.machine.id }})"
           class="flex items-center gap-2 text-sm px-4 py-2 bg-white hover:bg-blue-50 text-blue-700 border border-blue-200 rounded-lg shadow-sm transition">
           <img src="{{ url_for('static', filename='emb assets/qr2.png') }}" class="w-4 h-4" alt="QR Icon">
           Head-wise Log View
           <svg id="log-arrow-{{ data.machine.id }}" class="w-4 h-4 transition-transform duration-300" fill="none" stroke="currentColor" stroke-width="2"
-               viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
-          </svg>
+               viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" /></svg>
         </button>
       </div>
 
@@ -248,7 +250,6 @@
           {% endfor %}
         </div>
       </div>
-
     </div>
     {% endfor %}
   </div>
