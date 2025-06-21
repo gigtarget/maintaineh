@@ -1447,6 +1447,37 @@ def subuser_action(type):
 
     return redirect(url_for("routes.subuser_dashboard"))
 
+
+@routes.route("/subuser/raise-service", methods=["POST"])
+@subuser_required
+def raise_service_request():
+    sub_id = session.get("subuser_id")
+    sub = SubUser.query.get_or_404(sub_id)
+    machine_id = request.form.get("machine_id")
+    heads = request.form.get("heads")
+    issue = request.form.get("issue")
+
+    if not machine_id or not heads or not issue:
+        flash("Please fill in all required fields.", "danger")
+        return redirect(url_for("routes.subuser_dashboard"))
+
+    try:
+        new_request = ServiceRequest(
+            machine_id=machine_id,
+            subuser_id=sub.id,
+            message=f"[{heads} heads] {issue}",
+            timestamp=datetime.utcnow(),
+            resolved=False
+        )
+        db.session.add(new_request)
+        db.session.commit()
+        flash("✅ Service request submitted successfully.", "success")
+    except Exception as e:
+        print("Error creating request:", e)
+        flash("Something went wrong. Please try again.", "danger")
+
+    return redirect(url_for("routes.subuser_dashboard"))
+
 # ---- Main User Logout ----
 @routes.route("/logout")
 @login_required
