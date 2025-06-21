@@ -21,23 +21,53 @@
       </a>
     </div>
 
-    <!-- Action Buttons -->
+    <!-- Smart Action Buttons -->
     <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+
+      <!-- Oiling Button -->
       <form method="POST" action="{{ url_for('routes.subuser_action', type='oil') }}">
-        <button class="w-full px-4 py-2 rounded-lg border border-blue-300 bg-blue-100 text-blue-800 hover:bg-blue-200 transition">
-          🛢️ Mark Oiled Today
+        <button class="w-full px-4 py-3 rounded-xl shadow-sm flex flex-col items-center justify-center
+          {% if oil_done %}
+            bg-green-100 text-green-700 border border-green-300 hover:bg-green-200
+          {% else %}
+            bg-red-100 text-red-700 border border-red-300 hover:bg-red-200
+          {% endif %}
+          transition duration-200">
+          <span class="text-xl">🛢️</span>
+          <span class="text-sm font-medium mt-1">Oiled Today</span>
+          <span class="text-xs opacity-80">
+            {% if oil_done %}✔️ Done{% else %}❌ Pending{% endif %}
+          </span>
         </button>
       </form>
+
+      <!-- Lube Button -->
       <form method="POST" action="{{ url_for('routes.subuser_action', type='lube') }}">
-        <button class="w-full px-4 py-2 rounded-lg border border-yellow-300 bg-yellow-100 text-yellow-800 hover:bg-yellow-200 transition">
-          🧴 Weekly Lube Done
+        <button class="w-full px-4 py-3 rounded-xl shadow-sm flex flex-col items-center justify-center
+          {% if lube_done %}
+            bg-green-100 text-green-700 border border-green-300 hover:bg-green-200
+          {% else %}
+            bg-red-100 text-red-700 border border-red-300 hover:bg-red-200
+          {% endif %}
+          transition duration-200">
+          <span class="text-xl">🧴</span>
+          <span class="text-sm font-medium mt-1">Weekly Lube</span>
+          <span class="text-xs opacity-80">
+            {% if lube_done %}✔️ Done{% else %}❌ Pending{% endif %}
+          </span>
         </button>
       </form>
+
+      <!-- Service Request -->
       <form method="POST" action="{{ url_for('routes.subuser_action', type='service') }}">
-        <button class="w-full px-4 py-2 rounded-lg border border-red-300 bg-red-100 text-red-800 hover:bg-red-200 transition">
-          🚨 Raise Service Request
+        <button class="w-full px-4 py-3 rounded-xl border border-yellow-300 bg-yellow-100 text-yellow-800 shadow-sm
+          hover:bg-yellow-200 transition duration-200 flex flex-col items-center justify-center">
+          <span class="text-xl">🚨</span>
+          <span class="text-sm font-medium mt-1">Raise Service</span>
+          <span class="text-xs opacity-80">Manual Alert</span>
         </button>
       </form>
+
     </div>
 
     <!-- QR Code Grid -->
