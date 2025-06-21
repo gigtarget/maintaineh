@@ -252,7 +252,7 @@
   <!-- ✅ QUICK MACHINE OVERVIEW SECTION -->
   <div class="max-w-5xl mx-auto mt-14">
     <h2 class="text-xl font-bold text-slate-800 mb-4">Quick Machine Overview</h2>
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
       {% for machine in quick_overview %}
         <div class="rounded-xl border shadow bg-white p-4 relative">
           <span class="absolute top-3 right-3 w-3 h-3 rounded-full {{ 'bg-green-500' if machine.status_ok else 'bg-red-500' }}"></span>
