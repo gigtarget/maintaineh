@@ -6,19 +6,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
-    @keyframes rise {
-      0% {
-        opacity: 0;
-        transform: translateY(40px);
-      }
-      100% {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-    .logo-rise {
-      animation: rise 1.8s ease-out forwards;
-    }
     @keyframes float {
       0%, 100% {
         transform: translateY(0px) translateX(0px);
@@ -27,6 +14,22 @@
         transform: translateY(-6px) translateX(6px);
       }
     }
+
+    @keyframes fadeUp {
+      0% {
+        transform: translateY(20px);
+        opacity: 0;
+      }
+      100% {
+        transform: translateY(0);
+        opacity: 1;
+      }
+    }
+
+    .logo-fade {
+      animation: fadeUp 1.8s ease-out forwards;
+    }
+
     .mascot-float {
       animation: float 4s ease-in-out infinite;
     }
@@ -36,17 +39,18 @@
 
   <!-- Admin Login Top Right -->
   <a href="{{ url_for('routes.admin_login') }}"
-     class="absolute top-4 right-6 text-xs text-slate-500 hover:text-slate-700 underline transition duration-200 z-50">
+     class="absolute top-6 right-6 text-xs text-slate-500 hover:text-slate-700 underline transition duration-200 z-10">
     Admin Login
   </a>
 
   <!-- Main Box -->
-  <div class="bg-white/30 backdrop-blur-xl border border-white/20 rounded-2xl shadow-xl w-full max-w-lg mx-auto mt-10 text-center px-6 sm:px-10 py-10 relative overflow-hidden">
+  <div class="bg-white/30 backdrop-blur-xl border border-white/20 rounded-2xl shadow-xl 
+              w-full max-w-xl mx-auto mt-10 text-center px-6 sm:px-10 py-20 relative overflow-hidden">
 
-    <!-- Logo with Rise Effect -->
+    <!-- Animated Logo -->
     <img src="{{ url_for('static', filename='logo/logo.svg') }}"
          alt="Tokatap Logo"
-         class="w-48 sm:w-56 h-auto mx-auto mb-2 object-contain logo-rise z-10 relative">
+         class="w-56 sm:w-64 h-auto mx-auto mb-2 object-contain logo-fade z-10 relative">
 
     <!-- Tagline -->
     <p class="text-sm text-slate-600 mb-6 z-10 relative">
@@ -68,11 +72,13 @@
         Sign Up
       </a>
 
-      <!-- Sub-User Login -->
-      <a href="{{ url_for('routes.subuser_login') }}"
-         class="text-sm text-blue-600 hover:text-blue-800 underline mt-2 transition duration-200">
-        Sub-User Login (using code)
-      </a>
+      <!-- Sub-User Login Aligned Right -->
+      <div class="flex justify-end mt-2">
+        <a href="{{ url_for('routes.subuser_login') }}"
+           class="text-sm text-blue-600 hover:text-blue-800 underline transition duration-200">
+          Sub-User Login (using code)
+        </a>
+      </div>
 
     </div>
 
