@@ -71,8 +71,13 @@
                 <div class="text-xs text-slate-600 mb-1">
                   Assigned to: <em>{{ sub.assigned_machine.name if sub.assigned_machine else "N/A" }}</em>
                 </div>
-                <div class="text-xs text-slate-600">
-                  Login Code: <code class="text-blue-700 font-mono">{{ sub.static_id }}</code>
+                <div class="text-xs text-slate-600 flex items-center space-x-2">
+                  <span>Login Code:</span>
+                  <code id="code-{{ sub.id }}" class="text-blue-700 font-mono">{{ sub.static_id }}</code>
+                  <button onclick="copyToClipboard('code-{{ sub.id }}')" 
+                          class="text-blue-500 text-xs hover:text-blue-700 focus:outline-none">
+                    📋 Copy
+                  </button>
                 </div>
                 <form method="POST" action="{{ url_for('routes.manage_subusers') }}"
                       class="absolute top-2 right-3 flex space-x-2">
@@ -95,6 +100,34 @@
 
     </div>
   </div>
+
+  <!-- Toast Notification -->
+  <div id="copy-toast" class="fixed bottom-6 left-1/2 transform -translate-x-1/2 bg-green-500 text-white text-sm px-4 py-2 rounded-xl shadow-lg hidden z-50 transition-all duration-300">
+    Login code copied!
+  </div>
+
+  <!-- Copy-to-Clipboard Script -->
+  <script>
+    function copyToClipboard(elementId) {
+      const text = document.getElementById(elementId).innerText;
+      navigator.clipboard.writeText(text).then(() => {
+        showToast();
+      }).catch(err => {
+        console.error("Failed to copy text: ", err);
+      });
+    }
+
+    function showToast() {
+      const toast = document.getElementById('copy-toast');
+      toast.classList.remove('hidden');
+      toast.classList.add('opacity-100');
+
+      setTimeout(() => {
+        toast.classList.add('hidden');
+        toast.classList.remove('opacity-100');
+      }, 1000);
+    }
+  </script>
 
 </body>
 </html>
