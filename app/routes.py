@@ -243,10 +243,59 @@ def subuser_dashboard():
     today = date.today()
     start_of_week = today - timedelta(days=today.weekday())
 
-    oil_done = SubUserAction.query.filter_by(subuser_id=sub.id, machine_id=machine.id, action_type="oil", status="done").filter(db.func.date(SubUserAction.timestamp) == today).first() is not None
-    lube_done = SubUserAction.query.filter_by(subuser_id=sub.id, machine_id=machine.id, action_type="lube", status="done").filter(SubUserAction.timestamp >= start_of_week).first() is not None
+    # ✅ Check if today's oiling and this week's lube are done
+    oil_done = SubUserAction.query.filter_by(
+        subuser_id=sub.id,
+        machine_id=machine.id,
+        action_type="oil",
+        status="done"
+    ).filter(db.func.date(SubUserAction.timestamp) == today).first() is not None
 
-    return render_template("subuser_dashboard.html", subuser=sub, machine=machine, batch=batch, qr_codes=QRCode.query.filter_by(batch_id=batch.id).all(), tags=QRTag.query.filter_by(batch_id=batch.id).all(), oil_done=oil_done, lube_done=lube_done)
+    lube_done = SubUserAction.query.filter_by(
+        subuser_id=sub.id,
+        machine_id=machine.id,
+        action_type="lube",
+        status="done"
+    ).filter(SubUserAction.timestamp >= start_of_week).first() is not None
+
+    # ✅ Get latest timestamps
+    last_oil = SubUserAction.query.filter_by(
+        subuser_id=sub.id,
+        machine_id=machine.id,
+        action_type="oil",
+        status="done"
+    ).order_by(SubUserAction.timestamp.desc()).first()
+
+    last_lube = SubUserAction.query.filter_by(
+        subuser_id=sub.id,
+        machine_id=machine.id,
+        action_type="lube",
+        status="done"
+    ).order_by(SubUserAction.timestamp.desc()).first()
+
+    # ✅ Alerts (overdue)
+    oil_alert = True
+    if last_oil and (datetime.utcnow() - last_oil.timestamp).total_seconds() < 86400:
+        oil_alert = False
+
+    lube_alert = True
+    if last_lube and (datetime.utcnow() - last_lube.timestamp).days < 6:
+        lube_alert = False
+
+    return render_template(
+        "subuser_dashboard.html",
+        subuser=sub,
+        machine=machine,
+        batch=batch,
+        qr_codes=QRCode.query.filter_by(batch_id=batch.id).all(),
+        tags=QRTag.query.filter_by(batch_id=batch.id).all(),
+        oil_done=oil_done,
+        lube_done=lube_done,
+        last_oil_time=last_oil.timestamp if last_oil else None,
+        last_lube_time=last_lube.timestamp if last_lube else None,
+        oil_alert=oil_alert,
+        lube_alert=lube_alert
+    )
 
 @routes.route("/subuser/action/<string:type>", methods=["POST"])
 @subuser_required
