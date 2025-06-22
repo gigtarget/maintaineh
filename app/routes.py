@@ -489,7 +489,6 @@ def subuser_login():
         flash("Invalid code", "danger")
     return render_template("subuser_login.html")
 
-# ---- Sub-User Dashboard ----
 @routes.route("/subuser/dashboard")
 @subuser_required
 def subuser_dashboard():
@@ -503,23 +502,28 @@ def subuser_dashboard():
     qr_codes = QRCode.query.filter_by(batch_id=batch.id).all()
     tags = QRTag.query.filter_by(batch_id=batch.id).all()
 
-    # ✅ Check today's oiling status
     today = date.today()
-    oil_done = SubUserAction.query.filter_by(
-        subuser_id=sub.id,
-        machine_id=machine.id,
-        action_type="oil",
-        status="done"
-    ).filter(db.func.date(SubUserAction.timestamp) == today).first() is not None
+    today_name = today.strftime("%A")
 
-    # ✅ Check weekly lube status (reset every Monday)
-    start_of_week = today - timedelta(days=today.weekday())
-    lube_done = SubUserAction.query.filter_by(
-        subuser_id=sub.id,
-        machine_id=machine.id,
-        action_type="lube",
-        status="done"
-    ).filter(SubUserAction.timestamp >= start_of_week).first() is not None
+    # ✅ Check today's oiling status (if oiling is scheduled daily)
+    oil_done = False
+    if machine.oiling_frequency == "daily":
+        oil_done = SubUserAction.query.filter_by(
+            subuser_id=sub.id,
+            machine_id=machine.id,
+            action_type="oil",
+            status="done"
+        ).filter(db.func.date(SubUserAction.timestamp) == today).first() is not None
+
+    # ✅ Check lube status if today matches scheduled lube day
+    lube_done = True  # default is true unless today matches lube day
+    if machine.lube_day and machine.lube_day == today_name:
+        lube_done = SubUserAction.query.filter_by(
+            subuser_id=sub.id,
+            machine_id=machine.id,
+            action_type="lube",
+            status="done"
+        ).filter(db.func.date(SubUserAction.timestamp) == today).first() is not None
 
     return render_template(
         "subuser_dashboard.html",
@@ -531,6 +535,7 @@ def subuser_dashboard():
         oil_done=oil_done,
         lube_done=lube_done
     )
+
 
 # ---- Manage Sub-Users (Settings Page for Main User) ----
 @routes.route("/settings/subusers", methods=["GET", "POST"])
