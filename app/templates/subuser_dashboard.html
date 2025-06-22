@@ -27,38 +27,55 @@
       <!-- Oiling Button -->
       <form method="POST" action="{{ url_for('routes.subuser_action', type='oil') }}">
         <button class="w-full px-4 py-3 rounded-xl shadow-sm flex flex-col items-center justify-center
-          {% if oil_done %}
-            bg-green-100 text-green-700 border border-green-300 hover:bg-green-200
-          {% else %}
+          {% if oil_alert %}
             bg-red-100 text-red-700 border border-red-300 hover:bg-red-200
+          {% else %}
+            bg-green-100 text-green-700 border border-green-300 hover:bg-green-200
           {% endif %}
           transition duration-200">
           <span class="text-xl">🛢️</span>
-          <span class="text-sm font-medium mt-1">Oiled Today</span>
-          <span class="text-xs opacity-80">
-            {% if oil_done %}✔️ Done{% else %}❌ Pending{% endif %}
+          <span class="text-sm font-medium mt-1">Last Oiling</span>
+          <span class="text-xs mt-1 {% if oil_alert %}text-red-600{% else %}text-slate-600{% endif %}">
+            {% if last_oil_time %}
+              {{ last_oil_time.strftime('%b %d, %-I:%M %p') }}
+            {% else %}
+              Not done yet
+            {% endif %}
           </span>
+
+          {# Optional: Show how late it is #}
+          {# 
+          {% if oil_alert and last_oil_time %}
+            <span class="text-xs text-red-500 mt-1">
+              Overdue by {{ ((now - last_oil_time).total_seconds() // 3600) | int }} hrs
+            </span>
+          {% endif %}
+          #}
         </button>
       </form>
 
       <!-- Lube Button -->
       <form method="POST" action="{{ url_for('routes.subuser_action', type='lube') }}">
         <button class="w-full px-4 py-3 rounded-xl shadow-sm flex flex-col items-center justify-center
-          {% if lube_done %}
-            bg-green-100 text-green-700 border border-green-300 hover:bg-green-200
-          {% else %}
+          {% if lube_alert %}
             bg-red-100 text-red-700 border border-red-300 hover:bg-red-200
+          {% else %}
+            bg-green-100 text-green-700 border border-green-300 hover:bg-green-200
           {% endif %}
           transition duration-200">
           <span class="text-xl">🧴</span>
-          <span class="text-sm font-medium mt-1">Weekly Lube</span>
-          <span class="text-xs opacity-80">
-            {% if lube_done %}✔️ Done{% else %}❌ Pending{% endif %}
+          <span class="text-sm font-medium mt-1">Last Lubrication</span>
+          <span class="text-xs mt-1 {% if lube_alert %}text-red-600{% else %}text-slate-600{% endif %}">
+            {% if last_lube_time %}
+              {{ last_lube_time.strftime('%b %d') }}
+            {% else %}
+              Not done yet
+            {% endif %}
           </span>
         </button>
       </form>
 
-      <!-- Raise Service Button (Opens Modal) -->
+      <!-- Raise Service Button -->
       <form onsubmit="openModal(); return false;">
         <button type="button" onclick="openModal()" class="w-full px-4 py-3 rounded-xl border border-yellow-300 bg-yellow-100 text-yellow-800 shadow-sm hover:bg-yellow-200 transition duration-200 flex flex-col items-center justify-center">
           <span class="text-xl">🚨</span>
