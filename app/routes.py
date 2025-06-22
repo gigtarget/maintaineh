@@ -489,6 +489,8 @@ def subuser_login():
         flash("Invalid code", "danger")
     return render_template("subuser_login.html")
 
+from sqlalchemy import desc
+
 @routes.route("/subuser/dashboard")
 @subuser_required
 def subuser_dashboard():
@@ -502,28 +504,31 @@ def subuser_dashboard():
     qr_codes = QRCode.query.filter_by(batch_id=batch.id).all()
     tags = QRTag.query.filter_by(batch_id=batch.id).all()
 
-    today = date.today()
-    today_name = today.strftime("%A")
+    now = datetime.utcnow()
 
-    # ✅ Check today's oiling status (if oiling is scheduled daily)
-    oil_done = False
-    if machine.oiling_frequency == "daily":
-        oil_done = SubUserAction.query.filter_by(
-            subuser_id=sub.id,
-            machine_id=machine.id,
-            action_type="oil",
-            status="done"
-        ).filter(db.func.date(SubUserAction.timestamp) == today).first() is not None
+    # 🔧 Last oil timestamp
+    last_oil = SubUserAction.query.filter_by(
+        subuser_id=sub.id,
+        machine_id=machine.id,
+        action_type="oil",
+        status="done"
+    ).order_by(desc(SubUserAction.timestamp)).first()
+    last_oil_time = last_oil.timestamp if last_oil else None
+    oil_alert = False
+    if last_oil_time:
+        oil_alert = (now - last_oil_time).total_seconds() > 7200  # 2 hours
 
-    # ✅ Check lube status if today matches scheduled lube day
-    lube_done = True  # default is true unless today matches lube day
-    if machine.lube_day and machine.lube_day == today_name:
-        lube_done = SubUserAction.query.filter_by(
-            subuser_id=sub.id,
-            machine_id=machine.id,
-            action_type="lube",
-            status="done"
-        ).filter(db.func.date(SubUserAction.timestamp) == today).first() is not None
+    # 🔧 Last lube timestamp
+    last_lube = SubUserAction.query.filter_by(
+        subuser_id=sub.id,
+        machine_id=machine.id,
+        action_type="lube",
+        status="done"
+    ).order_by(desc(SubUserAction.timestamp)).first()
+    last_lube_time = last_lube.timestamp if last_lube else None
+    lube_alert = False
+    if last_lube_time:
+        lube_alert = (now - last_lube_time).days > 6
 
     return render_template(
         "subuser_dashboard.html",
@@ -532,10 +537,11 @@ def subuser_dashboard():
         batch=batch,
         qr_codes=qr_codes,
         tags=tags,
-        oil_done=oil_done,
-        lube_done=lube_done
+        last_oil_time=last_oil_time,
+        last_lube_time=last_lube_time,
+        oil_alert=oil_alert,
+        lube_alert=lube_alert
     )
-
 
 # ---- Manage Sub-Users (Settings Page for Main User) ----
 @routes.route("/settings/subusers", methods=["GET", "POST"])
