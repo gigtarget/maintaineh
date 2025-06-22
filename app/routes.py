@@ -1182,6 +1182,7 @@ def subuser_login():
     return render_template("subuser_login.html")
 
 # ---- Sub-User Dashboard ----
+# ---- Sub-User Dashboard ----
 @routes.route("/subuser/dashboard")
 @subuser_required
 def subuser_dashboard():
@@ -1219,7 +1220,8 @@ def subuser_dashboard():
         qr_codes=qr_codes,
         tags=tags,
         oil_done=oil_done,
-        lube_done=lube_done
+        lube_done=lube_done,
+        assigned_machine=machine  # ✅ Pass assigned machine for dropdown
     )
 
 # ---- Manage Sub-Users (Settings Page for Main User) ----
