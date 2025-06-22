@@ -491,6 +491,8 @@ def subuser_login():
 
 from sqlalchemy import desc
 
+from sqlalchemy import desc
+
 @routes.route("/subuser/dashboard")
 @subuser_required
 def subuser_dashboard():
@@ -506,27 +508,29 @@ def subuser_dashboard():
 
     now = datetime.utcnow()
 
-    # 🔧 Last oil timestamp
+    # ✅ Get last oil timestamp
     last_oil = SubUserAction.query.filter_by(
         subuser_id=sub.id,
         machine_id=machine.id,
         action_type="oil",
         status="done"
     ).order_by(desc(SubUserAction.timestamp)).first()
-    last_oil_time = last_oil.timestamp if last_oil else None
-    oil_alert = False
-    if last_oil_time:
-        oil_alert = (now - last_oil_time).total_seconds() > 7200  # 2 hours
 
-    # 🔧 Last lube timestamp
+    last_oil_time = last_oil.timestamp if last_oil else None
+    oil_alert = True
+    if last_oil_time:
+        oil_alert = (now - last_oil_time).total_seconds() > 86400  # 24 hours
+
+    # ✅ Get last lube timestamp
     last_lube = SubUserAction.query.filter_by(
         subuser_id=sub.id,
         machine_id=machine.id,
         action_type="lube",
         status="done"
     ).order_by(desc(SubUserAction.timestamp)).first()
+
     last_lube_time = last_lube.timestamp if last_lube else None
-    lube_alert = False
+    lube_alert = True
     if last_lube_time:
         lube_alert = (now - last_lube_time).days > 6
 
@@ -540,7 +544,8 @@ def subuser_dashboard():
         last_oil_time=last_oil_time,
         last_lube_time=last_lube_time,
         oil_alert=oil_alert,
-        lube_alert=lube_alert
+        lube_alert=lube_alert,
+        now=now  # Pass current time to calculate overdue if needed
     )
 
 # ---- Manage Sub-Users (Settings Page for Main User) ----
@@ -700,27 +705,6 @@ def machine_dashboard():
         })
 
     return render_template("machine_dashboard.html", machines_data=machine_data)
-
-from flask import Blueprint, render_template, redirect, url_for, flash, request, send_file, session, abort
-from flask_login import login_user, logout_user, login_required, current_user
-from datetime import datetime, date, timedelta
-import io
-import zipfile
-import requests
-import random
-import string
-
-from app import db
-from app.utils import generate_and_store_qr_batch
-from app.decorators import subuser_required
-from app.models import (
-    User, QRBatch, QRCode, Machine, QRTag,
-    NeedleChange, ServiceLog, SubUser,
-    SubUserAction, DailyMaintenance, ServiceRequest
-)
-
-
-routes = Blueprint("routes", __name__)
 
 @routes.route("/")
 def home():
