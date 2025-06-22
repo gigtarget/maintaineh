@@ -103,9 +103,7 @@
       <div class="mb-4">
         <label for="machine" class="block text-sm font-medium text-slate-700 mb-1">Select Machine</label>
         <select id="machine" name="machine_id" required class="w-full border border-slate-300 rounded-lg px-3 py-2">
-          {% for m in machines %}
-            <option value="{{ m.id }}">{{ m.name }} ({{ m.type }})</option>
-          {% endfor %}
+          <option value="{{ machine.id }}">{{ machine.name }} ({{ machine.type }})</option>
         </select>
       </div>
 
