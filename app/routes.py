@@ -143,62 +143,51 @@ def claim_batch(batch_id):
 @login_required
 def user_settings():
     if request.method == "POST":
-        # --- User Account Fields ---
-        name = request.form.get("name")
-        company_name = request.form.get("company_name")
-        mobile = request.form.get("mobile")
-        email = request.form.get("email")
-        password = request.form.get("password")
+        try:
+            # --- Account Info ---
+            current_user.name = request.form.get("name") or current_user.name
+            current_user.company_name = request.form.get("company_name") or current_user.company_name
+            current_user.mobile = request.form.get("mobile") or current_user.mobile
+            current_user.email = request.form.get("email") or current_user.email
+            if request.form.get("password"):
+                current_user.password = request.form.get("password")  # ⚠️ hash this in production
 
-        if name:
-            current_user.name = name
-        if company_name:
-            current_user.company_name = company_name
-        if mobile:
-            current_user.mobile = mobile
-        if email and email != current_user.email:
-            current_user.email = email
-        if password:
-            current_user.password = password  # ⚠️ Hash it in production
+            # ✅ Save user-level oiling/lube preferences
+            current_user.oiling_schedule = request.form.get("oiling_schedule")
+            current_user.lube_day = request.form.get("lube_day")
 
-        # ✅ Oiling & Lube Schedule - only update if not empty
-        oiling_schedule = request.form.get("oiling_schedule")
-        if oiling_schedule:
-            current_user.oiling_schedule = oiling_schedule
+            # --- Machines Update ---
+            machine_ids = request.form.getlist("machine_ids")
+            machine_names = []
+            for mid in machine_ids:
+                name = request.form.get(f"machine_name_{mid}", "").strip()
+                if name.lower() in [n.lower() for n in machine_names]:
+                    flash(f"Machine name '{name}' is duplicated. Use unique names.", "danger")
+                    return redirect(url_for("routes.user_settings"))
+                machine_names.append(name)
 
-        lube_day = request.form.get("lube_day")
-        if lube_day:
-            current_user.lube_day = lube_day
+            for mid in machine_ids:
+                machine = Machine.query.filter_by(id=mid).first()
+                if machine and machine.batch.owner_id == current_user.id:
+                    machine.name = request.form.get(f"machine_name_{mid}")
+                    machine.type = request.form.get(f"machine_type_{mid}")
 
-        # --- Machine Fields ---
-        machine_ids = request.form.getlist("machine_ids")
-        machine_names = []
-        duplicate_found = False
+            db.session.commit()
+            flash("All settings updated successfully.", "success")
 
-        for mid in machine_ids:
-            name = request.form.get(f"machine_name_{mid}", "").strip()
-            if name.lower() in [n.lower() for n in machine_names]:
-                flash(f"Machine name '{name}' is duplicated. Please use unique names.", "danger")
-                duplicate_found = True
-                break
-            machine_names.append(name)
+        except Exception as e:
+            db.session.rollback()
+            flash("Something went wrong while saving your settings.", "danger")
+            print(e)
 
-        if duplicate_found:
-            return redirect(url_for("routes.user_settings"))
-
-        for mid in machine_ids:
-            machine = Machine.query.filter_by(id=mid).first()
-            if machine and machine.batch.owner_id == current_user.id:
-                machine.name = request.form.get(f"machine_name_{mid}")
-                machine.type = request.form.get(f"machine_type_{mid}")
-
-        db.session.commit()
-        flash("All settings updated successfully.", "success")
         return redirect(url_for("routes.user_settings"))
 
-    # --- GET: Load Machines Owned by User ---
+    # --- GET: Load Machines ---
     user_batches = QRBatch.query.filter_by(owner_id=current_user.id).all()
-    machines = [Machine.query.filter_by(batch_id=batch.id).first() for batch in user_batches if Machine.query.filter_by(batch_id=batch.id).first()]
+    machines = [
+        Machine.query.filter_by(batch_id=batch.id).first()
+        for batch in user_batches if Machine.query.filter_by(batch_id=batch.id).first()
+    ]
 
     return render_template("user_settings.html", machines=machines)
 
