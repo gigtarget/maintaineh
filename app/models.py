@@ -110,11 +110,12 @@ class DailyMaintenance(db.Model):
 # -------------------------
 class ServiceRequest(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    machine_id = db.Column(db.Integer, db.ForeignKey("machine.id"), nullable=False)
-    subuser_id = db.Column(db.Integer, db.ForeignKey("sub_user.id"))
-    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
-    message = db.Column(db.String(200))
+    machine_id = db.Column(db.Integer, db.ForeignKey('machine.id'))
+    subuser_id = db.Column(db.Integer, db.ForeignKey('sub_user.id'))
+    heads = db.Column(db.Integer, nullable=False)
+    issue = db.Column(db.Text, nullable=True)  # 👈 Add this line
     resolved = db.Column(db.Boolean, default=False)
+    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
 
 # -------------------------
 # ✅ ACTIONS LOGGED BY SUB USERS
