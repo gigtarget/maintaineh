@@ -180,17 +180,15 @@ def user_settings():
         for mid in machine_ids:
             name = request.form.get(f"machine_name_{mid}")
             mtype = request.form.get(f"machine_type_{mid}")
-            oiling = request.form.get(f"oiling_{mid}")  # ✅ new
-            lube_day = request.form.get(f"lube_{mid}")  # ✅ new
-
+            oiling = request.form.get(f"machine_oiling_{mid}")     # ✅ NEW
+            lube_day = request.form.get(f"machine_lube_day_{mid}") # ✅ NEW
+        
             machine = Machine.query.filter_by(id=mid).first()
             if machine and machine.batch.owner_id == current_user.id:
                 machine.name = name
                 machine.type = mtype
-                if oiling:
-                    machine.oiling_schedule = oiling
-                if lube_day:
-                    machine.lube_day = lube_day
+                machine.oiling_schedule = oiling       # ✅ Save oiling
+                machine.lube_day = lube_day            # ✅ Save lube
 
         db.session.commit()
         flash("All settings updated successfully.", "success")
