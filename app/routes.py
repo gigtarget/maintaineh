@@ -142,65 +142,42 @@ def claim_batch(batch_id):
 @routes.route("/settings", methods=["GET", "POST"])
 @login_required
 def user_settings():
+    if current_user.role != "user":
+        return redirect(url_for("routes.user_login"))
+
+    machines = Machine.query.join(QRBatch).filter(QRBatch.owner_id == current_user.id).all()
+
     if request.method == "POST":
-        # --- User Account Fields ---
-        name = request.form.get("name")
-        company_name = request.form.get("company_name")
-        mobile = request.form.get("mobile")
+        # ✅ Update user profile
+        current_user.name = request.form.get("name")
+        current_user.company_name = request.form.get("company_name")
+        current_user.mobile = request.form.get("mobile")
         email = request.form.get("email")
         password = request.form.get("password")
 
-        if name:
-            current_user.name = name
-        if company_name:
-            current_user.company_name = company_name
-        if mobile:
-            current_user.mobile = mobile
         if email and email != current_user.email:
+            existing = User.query.filter_by(email=email).first()
+            if existing:
+                flash("Email already in use.", "danger")
+                return redirect(url_for("routes.user_settings"))
             current_user.email = email
+
         if password:
-            current_user.password = password  # ⚠️ Hash this in production
+            current_user.set_password(password)
 
-        # --- Machine Section ---
+        # ✅ Update machines
         machine_ids = request.form.getlist("machine_ids")
-        machine_names = []
-        duplicate_found = False
-
         for mid in machine_ids:
-            name = request.form.get(f"machine_name_{mid}", "").strip()
-            if name.lower() in [n.lower() for n in machine_names]:
-                flash(f"Machine name '{name}' is duplicated. Please use unique names.", "danger")
-                duplicate_found = True
-                break
-            machine_names.append(name)
-
-        if duplicate_found:
-            return redirect(url_for("routes.user_settings"))
-
-        for mid in machine_ids:
-            name = request.form.get(f"machine_name_{mid}")
-            mtype = request.form.get(f"machine_type_{mid}")
-            oiling = request.form.get(f"machine_oiling_{mid}")     # ✅ NEW
-            lube_day = request.form.get(f"machine_lube_day_{mid}") # ✅ NEW
-        
-            machine = Machine.query.filter_by(id=mid).first()
+            machine = Machine.query.get(int(mid))
             if machine and machine.batch.owner_id == current_user.id:
-                machine.name = name
-                machine.type = mtype
-                machine.oiling_schedule = oiling       # ✅ Save oiling
-                machine.lube_day = lube_day            # ✅ Save lube
+                machine.name = request.form.get(f"machine_name_{mid}")
+                machine.type = request.form.get(f"machine_type_{mid}")
+                machine.oiling_schedule = request.form.get(f"oiling_{mid}")  # ✅ Corrected name
+                machine.lube_day = request.form.get(f"lube_{mid}")            # ✅ Corrected name
 
         db.session.commit()
-        flash("All settings updated successfully.", "success")
+        flash("Settings saved successfully!", "success")
         return redirect(url_for("routes.user_settings"))
-
-    # --- GET: Load machines ---
-    user_batches = QRBatch.query.filter_by(owner_id=current_user.id).all()
-    machines = []
-    for batch in user_batches:
-        m = Machine.query.filter_by(batch_id=batch.id).first()
-        if m:
-            machines.append(m)
 
     return render_template("user_settings.html", machines=machines)
 
