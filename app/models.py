@@ -19,6 +19,10 @@ class User(UserMixin, db.Model):
     default_machine_name = db.Column(db.String(100))
     default_machine_location = db.Column(db.String(100))
 
+    # ✅ Schedule now stored in user profile
+    oiling_schedule = db.Column(db.String(20))  # daily, twice, custom
+    lube_day = db.Column(db.String(10))         # Monday, etc.
+
     claimed_batches = db.relationship("QRBatch", backref="owner", lazy=True)
 
 # -------------------------
@@ -61,8 +65,7 @@ class Machine(db.Model):
     type = db.Column(db.String(100))
     under_maintenance = db.Column(db.Boolean, default=False)
 
-    oiling_schedule = db.Column(db.String(20), default="daily")  # Options: daily, weekly, twice
-    lube_day = db.Column(db.String(10), default="Monday")        # e.g., "Monday"
+    # ❌ Removed: oiling_schedule and lube_day
 
     maintenance_logs = db.relationship("DailyMaintenance", backref="machine", lazy=True)
     service_requests = db.relationship("ServiceRequest", backref="machine", lazy=True)
@@ -116,7 +119,7 @@ class ServiceRequest(db.Model):
     machine_id = db.Column(db.Integer, db.ForeignKey('machine.id'))
     subuser_id = db.Column(db.Integer, db.ForeignKey('sub_user.id'))
     heads = db.Column(db.Integer, nullable=False)
-    issue = db.Column(db.Text, nullable=True)  # 👈 Add this line
+    issue = db.Column(db.Text, nullable=True)
     resolved = db.Column(db.Boolean, default=False)
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)
 
