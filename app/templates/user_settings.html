@@ -48,8 +48,6 @@
               class="py-2 px-4 border-b-2 font-medium text-sm text-gray-500 hover:text-blue-700">
         🛠️ Machines
       </button>
-      <!-- Future Tabs -->
-      <!-- <button onclick="showTab('notifications')" ...>🔔 Notifications</button> -->
     </div>
 
     <!-- Settings Form -->
@@ -110,6 +108,24 @@
             <input type="text" name="machine_type_{{ machine.id }}" value="{{ machine.type }}"
                    class="w-full px-4 py-2 rounded-xl bg-white/60 border border-white/30 shadow-inner">
           </div>
+
+          <div>
+            <label class="block text-sm mb-1">Oiling Frequency</label>
+            <select name="oiling_{{ machine.id }}" class="w-full px-4 py-2 rounded-xl bg-white/60 border border-white/30 shadow-inner">
+              <option value="daily" {% if machine.oiling_schedule == 'daily' %}selected{% endif %}>Daily</option>
+              <option value="twice" {% if machine.oiling_schedule == 'twice' %}selected{% endif %}>Twice a Day</option>
+              <option value="weekly" {% if machine.oiling_schedule == 'weekly' %}selected{% endif %}>Weekly</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-sm mb-1">Lube Day</label>
+            <select name="lube_{{ machine.id }}" class="w-full px-4 py-2 rounded-xl bg-white/60 border border-white/30 shadow-inner">
+              {% for day in ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'] %}
+                <option value="{{ day }}" {% if machine.lube_day == day %}selected{% endif %}>{{ day }}</option>
+              {% endfor %}
+            </select>
+          </div>
         </div>
         {% endfor %}
       </div>
@@ -123,7 +139,6 @@
   </div>
 
   <script>
-    // Set default tab on page load
     document.addEventListener('DOMContentLoaded', () => {
       showTab('profile');
     });
