@@ -498,47 +498,73 @@ def subuser_login():
         flash("Invalid code", "danger")
     return render_template("subuser_login.html")
 
-# ---- Sub-User Dashboard ----
 @routes.route("/subuser/dashboard")
 @subuser_required
 def subuser_dashboard():
-    sub_id = session.get('subuser_id')
+    sub_id = session.get("subuser_id")
     if not sub_id:
         return redirect(url_for("routes.subuser_login"))
 
-    sub = SubUser.query.get_or_404(sub_id)
+    sub = SubUser.query.get(sub_id)
     machine = Machine.query.get(sub.assigned_machine_id)
-    batch = QRBatch.query.get(machine.batch_id)
-    qr_codes = QRCode.query.filter_by(batch_id=batch.id).all()
-    tags = QRTag.query.filter_by(batch_id=batch.id).all()
 
-    # ✅ Check today's oiling status
+    if not sub or not machine:
+        flash("Machine access error", "danger")
+        return redirect(url_for("routes.subuser_login"))
+
     today = date.today()
-    oil_done = SubUserAction.query.filter_by(
-        subuser_id=sub.id,
-        machine_id=machine.id,
-        action_type="oil",
-        status="done"
-    ).filter(db.func.date(SubUserAction.timestamp) == today).first() is not None
+    now_day = today.strftime("%A")  # e.g., "Monday"
 
-    # ✅ Check weekly lube status (reset every Monday)
-    start_of_week = today - timedelta(days=today.weekday())
-    lube_done = SubUserAction.query.filter_by(
-        subuser_id=sub.id,
-        machine_id=machine.id,
-        action_type="lube",
-        status="done"
-    ).filter(SubUserAction.timestamp >= start_of_week).first() is not None
+    # --- Oil Check Logic ---
+    oil_done = False
+    if machine.oiling_schedule == "daily":
+        oil_done = SubUserAction.query.filter_by(
+            subuser_id=sub.id,
+            machine_id=machine.id,
+            action_type="oil",
+            status="done"
+        ).filter(db.func.date(SubUserAction.timestamp) == today).first() is not None
+
+    elif machine.oiling_schedule == "weekly":
+        week_start = today - timedelta(days=today.weekday())  # Monday
+        oil_done = SubUserAction.query.filter_by(
+            subuser_id=sub.id,
+            machine_id=machine.id,
+            action_type="oil",
+            status="done"
+        ).filter(SubUserAction.timestamp >= week_start).first() is not None
+
+    elif machine.oiling_schedule == "twice":
+        count_today = SubUserAction.query.filter_by(
+            subuser_id=sub.id,
+            machine_id=machine.id,
+            action_type="oil",
+            status="done"
+        ).filter(db.func.date(SubUserAction.timestamp) == today).count()
+        oil_done = count_today >= 2
+
+    # --- Lube Check Logic ---
+    lube_done = False
+    if machine.lube_day == now_day:
+        lube_done = SubUserAction.query.filter_by(
+            subuser_id=sub.id,
+            machine_id=machine.id,
+            action_type="lube",
+            status="done"
+        ).filter(db.func.date(SubUserAction.timestamp) == today).first() is not None
+
+    # --- QR Codes for Machine ---
+    qr_codes = QRCode.query.join(QRTag).filter(QRTag.machine_id == machine.id).all()
+    tags = QRTag.query.filter_by(machine_id=machine.id).all()
 
     return render_template(
         "subuser_dashboard.html",
         subuser=sub,
         machine=machine,
-        batch=batch,
-        qr_codes=qr_codes,
-        tags=tags,
         oil_done=oil_done,
-        lube_done=lube_done
+        lube_done=lube_done,
+        qr_codes=qr_codes,
+        tags=tags
     )
 
 # ---- Manage Sub-Users (Settings Page for Main User) ----
