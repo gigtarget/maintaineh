@@ -250,29 +250,31 @@
   </div>
 
   <!-- ✅ QUICK MACHINE OVERVIEW SECTION -->
-  <div class="max-w-4xl mx-auto mt-14 px-4">
-    <h2 class="text-xl font-bold text-slate-800 mb-4 text-center">Quick Machine Overview</h2>
-    <div class="grid grid-cols-2 gap-4 justify-center max-w-xl mx-auto">
-      {% for machine in quick_overview %}
-        <div class="rounded-xl border shadow bg-white p-4 relative flex flex-col justify-between min-h-[170px]">
-          <span class="absolute top-3 right-3 w-3 h-3 rounded-full {{ 'bg-green-500' if machine.status_ok else 'bg-red-500' }}"></span>
-          <h3 class="text-lg font-semibold text-gray-800 mb-1">{{ machine.name }}</h3>
-          {% if machine.assigned_subuser %}
-            <p class="text-sm text-slate-500 mb-2">Assigned to: {{ machine.assigned_subuser }}</p>
-          {% endif %}
-          <div class="text-sm space-y-1">
-            <p><strong>Oiled Today:</strong> {{ 'Yes' if machine.oiled_today else 'No' }}</p>
-            <p><strong>Service Request:</strong> {{ 'Yes' if machine.service_requested else 'No' }}</p>
-            <p><strong>Weekly Lube:</strong> 
-              <span class="{{ 'text-green-600 font-semibold' if machine.weekly_lube_done else 'text-red-500' }}">
-                {{ 'Done' if machine.weekly_lube_done else 'Not Done' }}
-              </span>
-            </p>
-          </div>
+<div class="max-w-4xl mx-auto mt-14 px-4">
+  <h2 class="text-xl font-bold text-slate-800 mb-4 text-center">Quick Machine Overview</h2>
+  <div class="grid grid-cols-2 gap-4 justify-center max-w-xl mx-auto">
+    {% for machine in quick_overview %}
+      <div class="rounded-xl border shadow bg-white p-4 relative flex flex-col justify-between min-h-[190px]">
+        <span class="absolute top-3 right-3 w-3 h-3 rounded-full {{ 'bg-green-500' if machine.status_ok else 'bg-red-500' }}"></span>
+        <h3 class="text-lg font-semibold text-gray-800 mb-1">{{ machine.name }}</h3>
+        {% if machine.assigned_subuser %}
+          <p class="text-sm text-slate-500 mb-2">Assigned to: {{ machine.assigned_subuser }}</p>
+        {% endif %}
+        <div class="text-sm space-y-1">
+          <p><strong>Oiled Today:</strong> {{ 'Yes' if machine.oiled_today else 'No' }}</p>
+          <p><strong>Service Request:</strong> {{ 'Yes' if machine.service_requested else 'No' }}</p>
+          <p><strong>Weekly Lube:</strong> 
+            <span class="{{ 'text-green-600 font-semibold' if machine.weekly_lube_done else 'text-red-500' }}">
+              {{ 'Done' if machine.weekly_lube_done else 'Not Done' }}
+            </span>
+          </p>
+          <p><strong>Oiling Schedule:</strong> {{ machine.oiling_schedule|capitalize }}</p>
+          <p><strong>Lube Day:</strong> {{ machine.lube_day }}</p>
         </div>
-      {% endfor %}
-    </div>
+      </div>
+    {% endfor %}
   </div>
+</div>
 
 </body>
 </html>
