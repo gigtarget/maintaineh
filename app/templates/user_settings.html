@@ -54,7 +54,7 @@
     <form method="POST" action="{{ url_for('routes.user_settings') }}" class="space-y-6">
 
       <!-- Profile Section -->
-      <div id="section-profile" data-section class="">
+      <div id="section-profile" data-section>
         <div class="bg-white/30 backdrop-blur-md border border-white/20 p-5 rounded-xl space-y-4 shadow">
           <h2 class="text-lg font-semibold mb-2">🔐 Account Settings</h2>
 
@@ -92,7 +92,6 @@
 
       <!-- Machines Section -->
       <div id="section-machines" data-section class="hidden">
-
         <!-- ✅ Global Oiling/Lube Preferences -->
         <div class="bg-white/30 backdrop-blur-md border border-white/20 p-5 rounded-xl space-y-4 shadow mb-4">
           <h2 class="text-lg font-semibold">⚙️ Machine Preferences</h2>
@@ -100,6 +99,7 @@
           <div>
             <label class="block text-sm mb-1">Oiling Frequency</label>
             <select name="oiling_schedule" class="w-full px-4 py-2 rounded-xl bg-white/60 border border-white/30 shadow-inner">
+              <option value="" {% if not current_user.oiling_schedule %}selected{% endif %}>-- Select --</option>
               <option value="daily" {% if current_user.oiling_schedule == 'daily' %}selected{% endif %}>Daily</option>
               <option value="twice" {% if current_user.oiling_schedule == 'twice' %}selected{% endif %}>Twice a Day</option>
               <option value="weekly" {% if current_user.oiling_schedule == 'weekly' %}selected{% endif %}>Weekly</option>
@@ -109,6 +109,7 @@
           <div>
             <label class="block text-sm mb-1">Lube Day</label>
             <select name="lube_day" class="w-full px-4 py-2 rounded-xl bg-white/60 border border-white/30 shadow-inner">
+              <option value="" {% if not current_user.lube_day %}selected{% endif %}>-- Select --</option>
               {% for day in ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'] %}
                 <option value="{{ day }}" {% if current_user.lube_day == day %}selected{% endif %}>{{ day }}</option>
               {% endfor %}
