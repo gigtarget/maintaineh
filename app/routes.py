@@ -150,9 +150,9 @@ def user_settings():
         email = request.form.get("email")
         password = request.form.get("password")
 
-        # 🛠 New Preferences
-        oiling_schedule = request.form.get("oiling_schedule")
-        lube_day = request.form.get("lube_day")
+        # 🛠 Preferences
+        oiling_schedule = request.form.get("oiling_schedule", "").strip()
+        lube_day = request.form.get("lube_day", "").strip()
 
         if name:
             current_user.name = name
@@ -163,11 +163,13 @@ def user_settings():
         if email and email != current_user.email:
             current_user.email = email
         if password:
-            current_user.password = password  # ⚠️ Hash this in production
+            current_user.password = password  # ⚠️ hash in production
 
-        # ✅ Update preferences even if set to blank
+        # ✅ Force update oiling/lube preferences even if blank
         current_user.oiling_schedule = oiling_schedule if oiling_schedule else None
         current_user.lube_day = lube_day if lube_day else None
+
+        print("🌿 Saving preferences:", current_user.oiling_schedule, current_user.lube_day)
 
         # --- Machine Section ---
         machine_ids = request.form.getlist("machine_ids")
@@ -194,11 +196,17 @@ def user_settings():
                 machine.type = mtype
 
         try:
+            if db.session.is_modified(current_user):
+                print("✅ User modified — committing")
+            else:
+                print("⚠️ User not modified, checking machines...")
+
             db.session.commit()
             flash("All settings updated successfully.", "success")
         except Exception as e:
             db.session.rollback()
             flash(f"Failed to update settings: {str(e)}", "danger")
+            print("❌ DB error:", e)
 
         return redirect(url_for("routes.user_settings"))
 
