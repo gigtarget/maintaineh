@@ -61,6 +61,9 @@ class Machine(db.Model):
     type = db.Column(db.String(100))
     under_maintenance = db.Column(db.Boolean, default=False)
 
+    oiling_schedule = db.Column(db.String(20), default="daily")  # Options: daily, weekly, twice
+    lube_day = db.Column(db.String(10), default="Monday")        # e.g., "Monday"
+
     maintenance_logs = db.relationship("DailyMaintenance", backref="machine", lazy=True)
     service_requests = db.relationship("ServiceRequest", backref="machine", lazy=True)
 
