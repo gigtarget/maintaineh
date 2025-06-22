@@ -150,10 +150,6 @@ def user_settings():
         email = request.form.get("email")
         password = request.form.get("password")
 
-        # 🛠 Preferences
-        oiling_schedule = request.form.get("oiling_schedule", "").strip()
-        lube_day = request.form.get("lube_day", "").strip()
-
         if name:
             current_user.name = name
         if company_name:
@@ -163,13 +159,7 @@ def user_settings():
         if email and email != current_user.email:
             current_user.email = email
         if password:
-            current_user.password = password  # ⚠️ hash in production
-
-        # ✅ Force update oiling/lube preferences even if blank
-        current_user.oiling_schedule = oiling_schedule if oiling_schedule else None
-        current_user.lube_day = lube_day if lube_day else None
-
-        print("🌿 Saving preferences:", current_user.oiling_schedule, current_user.lube_day)
+            current_user.password = password  # ⚠️ Hash this in production
 
         # --- Machine Section ---
         machine_ids = request.form.getlist("machine_ids")
@@ -190,24 +180,17 @@ def user_settings():
         for mid in machine_ids:
             name = request.form.get(f"machine_name_{mid}")
             mtype = request.form.get(f"machine_type_{mid}")
+            oiling = request.form.get(f"machine_oiling_{mid}")
+            lube = request.form.get(f"machine_lube_{mid}")
             machine = Machine.query.filter_by(id=mid).first()
             if machine and machine.batch.owner_id == current_user.id:
                 machine.name = name
                 machine.type = mtype
+                machine.oiling_schedule = oiling
+                machine.lube_day = lube
 
-        try:
-            if db.session.is_modified(current_user):
-                print("✅ User modified — committing")
-            else:
-                print("⚠️ User not modified, checking machines...")
-
-            db.session.commit()
-            flash("All settings updated successfully.", "success")
-        except Exception as e:
-            db.session.rollback()
-            flash(f"Failed to update settings: {str(e)}", "danger")
-            print("❌ DB error:", e)
-
+        db.session.commit()
+        flash("All settings updated successfully.", "success")
         return redirect(url_for("routes.user_settings"))
 
     # --- GET: Load machines ---
