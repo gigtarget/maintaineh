@@ -355,10 +355,12 @@ def user_dashboard():
 
         quick_overview.append({
             "name": machine.name,
-            "assigned_subuser": subuser.name if subuser else None,
-            "oiled_today": False,
-            "service_requested": False,
+           "assigned_subuser": subuser.name if subuser else None,
+            "oiled_today": False,  # you can enhance this later to check based on schedule
+            "service_requested": False,  # future feature
             "weekly_lube_done": weekly_lube_done,
+            "oiling_schedule": machine.oiling_schedule,
+            "lube_day": machine.lube_day,
             "status_ok": True if not last_service or (last_service.warranty_till and (last_service.warranty_till - datetime.utcnow().date()).days >= 30) else False
         })
 
