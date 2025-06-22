@@ -1406,7 +1406,6 @@ def subuser_action(type):
         ).filter(db.func.date(SubUserAction.timestamp) == today).first()
 
         if not existing:
-            # ✅ Record oiling action
             action = SubUserAction(
                 subuser_id=sub.id,
                 machine_id=machine.id,
@@ -1415,7 +1414,6 @@ def subuser_action(type):
             )
             db.session.add(action)
 
-            # ✅ Also update daily maintenance
             log = DailyMaintenance(
                 machine_id=machine.id,
                 date=today,
@@ -1438,17 +1436,20 @@ def subuser_action(type):
         flash("Lube completed!", "success")
 
     elif type == "service":
+        heads = request.form.get("heads")
+        issue = request.form.get("message")  # from textarea
+
         sr = ServiceRequest(
             machine_id=machine.id,
             subuser_id=sub.id,
-            message="Service request raised by sub-user"
+            heads=int(heads),
+            issue=issue
         )
         db.session.add(sr)
         db.session.commit()
         flash("Service request sent!", "success")
 
     return redirect(url_for("routes.subuser_dashboard"))
-
 
 @routes.route("/subuser/raise-service", methods=["POST"])
 @subuser_required
