@@ -159,14 +159,14 @@ def user_settings():
         if email and email != current_user.email:
             current_user.email = email
         if password:
-            current_user.password = password  # ⚠️ Hash in production
+            current_user.password = password  # ⚠️ Hash it in production
 
-        # ✅ Save user-level oiling/lube preferences
+        # ✅ Oiling & Lube Schedule - only update if not empty
         oiling_schedule = request.form.get("oiling_schedule")
-        lube_day = request.form.get("lube_day")
-
         if oiling_schedule:
             current_user.oiling_schedule = oiling_schedule
+
+        lube_day = request.form.get("lube_day")
         if lube_day:
             current_user.lube_day = lube_day
 
@@ -191,7 +191,6 @@ def user_settings():
             if machine and machine.batch.owner_id == current_user.id:
                 machine.name = request.form.get(f"machine_name_{mid}")
                 machine.type = request.form.get(f"machine_type_{mid}")
-                # ❌ Don't assign oiling/lube to machine (removed in models)
 
         db.session.commit()
         flash("All settings updated successfully.", "success")
@@ -202,7 +201,6 @@ def user_settings():
     machines = [Machine.query.filter_by(batch_id=batch.id).first() for batch in user_batches if Machine.query.filter_by(batch_id=batch.id).first()]
 
     return render_template("user_settings.html", machines=machines)
-
 
 @routes.route("/signup", methods=["GET", "POST"], endpoint="user_signup")
 def user_signup():
