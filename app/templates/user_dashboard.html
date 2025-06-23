@@ -206,39 +206,59 @@
     {% endfor %}
   </div>
 
-  <!-- Quick Machine Overview -->
-  <div class="max-w-4xl mx-auto mt-14 px-4">
-    <h2 class="text-xl font-bold text-slate-800 mb-4 text-center">Quick Machine Overview</h2>
-    <div class="grid grid-cols-2 gap-4 justify-center max-w-xl mx-auto">
-      {% for machine in quick_overview %}
-        <div class="rounded-xl border shadow bg-white p-4 relative flex flex-col justify-between min-h-[170px]">
-          <span class="absolute top-3 right-3 w-3 h-3 rounded-full {{ 'bg-green-500' if machine.status_ok else 'bg-red-500' }}"></span>
-          <h3 class="text-lg font-semibold text-gray-800 mb-1">{{ machine.name }}</h3>
-          {% if machine.assigned_subuser %}<p class="text-sm text-slate-500 mb-2">Assigned to: {{ machine.assigned_subuser }}</p>{% endif %}
-          <div class="text-sm space-y-1">
-            <p><strong>Oiled Today:</strong> {{ 'Yes' if machine.oiled_today else 'No' }}</p>
-            <p><strong>Service Requests:</strong> <span class="text-blue-600 font-semibold cursor-pointer" onclick="toggleRequests({{ loop.index0 }})">{{ machine.pending_count }} pending</span></p>
-            <p><strong>Weekly Lube:</strong> <span class="{{ 'text-green-600 font-semibold' if machine.weekly_lube_done else 'text-red-500' }}">{{ 'Done' if machine.weekly_lube_done else 'Not Done' }}</span></p>
-          </div>
-          <div id="requests-{{ loop.index0 }}" class="hidden mt-3 space-y-2 bg-gray-50 p-3 rounded">
-            {% for req in machine.pending_requests %}
-              <div class="border border-gray-200 p-2 rounded-lg">
-                <p class="text-sm"><strong>From:</strong> {{ req.subuser_name }}</p>
-                <p class="text-sm"><strong>Heads:</strong> {{ req.heads }}</p>
-                <p class="text-sm"><strong>Issue:</strong> {{ req.message }}</p>
-                <p class="text-xs text-gray-500">{{ req.timestamp.strftime('%Y-%m-%d %I:%M %p') }}</p>
-                <form method="POST" action="{{ url_for('routes.resolve_service_request', request_id=req.id) }}" class="mt-1">
-                  <button type="submit" class="text-white bg-green-500 px-3 py-1 rounded hover:bg-green-600 text-xs">Mark Resolved</button>
-                </form>
-              </div>
-            {% else %}
-              <p class="italic text-gray-500 text-sm">No pending requests.</p>
-            {% endfor %}
-          </div>
+<!-- Quick Machine Overview -->
+<div class="max-w-4xl mx-auto mt-14 px-4">
+  <h2 class="text-xl font-bold text-slate-800 mb-4 text-center">Quick Machine Overview</h2>
+  <div class="grid grid-cols-2 gap-4 justify-center max-w-xl mx-auto">
+    {% for machine in quick_overview %}
+      <div class="rounded-xl border shadow bg-white p-4 relative flex flex-col justify-between min-h-[170px]">
+        <span class="absolute top-3 right-3 w-3 h-3 rounded-full {{ 'bg-green-500' if machine.status_ok else 'bg-red-500' }}"></span>
+        <h3 class="text-lg font-semibold text-gray-800 mb-1">{{ machine.name }}</h3>
+        {% if machine.assigned_subuser %}
+          <p class="text-sm text-slate-500 mb-2">Assigned to: {{ machine.assigned_subuser }}</p>
+        {% endif %}
+        <div class="text-sm space-y-1">
+          <p><strong>Oiled Today:</strong> {{ 'Yes' if machine.oiled_today else 'No' }}</p>
+          <p>
+            <strong>Service Requests:</strong> 
+            <span class="text-blue-600 font-semibold hover:underline cursor-pointer" onclick="toggleRequests({{ loop.index0 }})">
+              {{ machine.pending_count }} pending 
+              <span class="text-xs text-slate-500">(Click to view)</span>
+            </span>
+          </p>
+          <p>
+            <strong>Weekly Lube:</strong> 
+            <span class="{{ 'text-green-600 font-semibold' if machine.weekly_lube_done else 'text-red-500' }}">
+              {{ 'Done' if machine.weekly_lube_done else 'Not Done' }}
+            </span>
+          </p>
         </div>
-      {% endfor %}
-    </div>
+        <div id="requests-{{ loop.index0 }}" class="hidden mt-3 space-y-2 bg-gray-50 p-3 rounded">
+          {% for req in machine.pending_requests %}
+            <div class="border border-gray-200 p-2 rounded-lg">
+              <p class="text-sm"><strong>From:</strong> {{ req.subuser_name }}</p>
+              <p class="text-sm"><strong>Heads:</strong> {{ req.heads }}</p>
+              <p class="text-sm">
+                <strong>Issue:</strong> 
+                {% if req.message %}
+                  {{ req.message }}
+                {% else %}
+                  <span class="text-slate-400 italic">Not specified</span>
+                {% endif %}
+              </p>
+              <p class="text-xs text-gray-500">{{ req.timestamp.strftime('%Y-%m-%d %I:%M %p') }}</p>
+              <form method="POST" action="{{ url_for('routes.resolve_service_request', request_id=req.id) }}" class="mt-1">
+                <button type="submit" class="text-white bg-green-500 px-3 py-1 rounded hover:bg-green-600 text-xs">Mark Resolved</button>
+              </form>
+            </div>
+          {% else %}
+            <p class="italic text-gray-500 text-sm">No pending requests.</p>
+          {% endfor %}
+        </div>
+      </div>
+    {% endfor %}
   </div>
+</div>
 
 </body>
 </html>
