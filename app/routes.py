@@ -843,6 +843,17 @@ def raise_service_request():
 
     return redirect(url_for("routes.subuser_dashboard"))
 
+@routes.route("/resolve_service/<int:request_id>", methods=["POST"])
+@login_required
+def resolve_service_request(request_id):
+    req = ServiceRequest.query.get_or_404(request_id)
+    req.resolved = True
+    req.resolved_at = date.today()
+    db.session.commit()
+    flash("Service request marked as resolved.", "success")
+    return redirect(url_for("routes.user_dashboard"))
+
+
 # ---- Main User Logout ----
 @routes.route("/logout")
 @login_required
