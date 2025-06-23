@@ -53,162 +53,231 @@
   </div>
 {% endif %}
 
-<!-- Logo + Welcome -->
-<div class="max-w-2xl mx-auto mb-2">
-  <div class="flex justify-start items-center">
-    <img src="{{ url_for('static', filename='logo/logo.svg') }}" class="h-16 sm:h-24" alt="Logo">
-  </div>
-</div>
-
-<!-- Header Buttons -->
-<div class="max-w-2xl mx-auto mb-6">
-  <div class="bg-white/10 backdrop-blur-xl border border-white/20 shadow-xl rounded-2xl p-4 sm:p-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-    <div>
-      <h1 class="text-xl sm:text-2xl font-bold text-slate-800 break-words">Welcome, {{ current_user.name or 'Unnamed' }}</h1>
-      <p class="text-xs text-slate-600 mt-1 bg-white/20 rounded-lg px-3 py-2 border border-white/10">
-        🛠️ Tip: To activate your machine, scan the Master QR code that came with your shipment.
-      </p>
-    </div>
-    <div class="flex gap-3 flex-wrap justify-center sm:justify-end">
-      <a href="{{ url_for('routes.create_subuser') }}" class="bg-white/30 border border-white/20 backdrop-blur-md text-sm px-4 py-2 rounded-xl text-blue-700 hover:text-blue-900 shadow-md">Manage Sub-User</a>
-      <a href="{{ url_for('routes.user_settings') }}" class="bg-white/30 border border-white/20 backdrop-blur-md text-sm px-4 py-2 rounded-xl text-blue-700 hover:text-blue-900 shadow-md">Settings</a>
-      <a href="{{ url_for('routes.logout') }}" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-xl shadow-md text-sm">Logout</a>
+  <!-- Logo + Welcome -->
+  <div class="max-w-2xl mx-auto mb-2">
+    <div class="flex justify-start items-center">
+      <img src="{{ url_for('static', filename='logo/logo.svg') }}" class="h-16 sm:h-24" alt="Logo">
     </div>
   </div>
-</div>
 
-<!-- Machine & Batch Count Cards -->
-{% set machine_count = batches | selectattr('machine') | list | length %}
-{% set batch_count = batches | length %}
-<div class="max-w-2xl mx-auto grid grid-cols-2 gap-4 mb-6">
-  <div onclick="toggleMachineDashboard()" id="machines-box" class="cursor-pointer bg-green-50 text-green-700 border-green-400 border rounded-2xl shadow-md p-4 flex flex-col items-center hover:scale-[1.01] col-span-1 transition-all duration-500 ease-in-out">
-    <img src="{{ url_for('static', filename='emb assets/machine.png') }}" class="h-10 w-10 mb-2" alt="Machine Icon" />
-    <p class="font-semibold text-sm">Total Machines</p>
-    <p class="text-2xl font-bold text-black">{{ machine_count }}</p>
-    <p class="text-xs text-slate-600 mt-1">Click to view dashboard</p>
-  </div>
-  <div id="batches-box" class="bg-green-50 text-green-700 border-green-400 border rounded-2xl shadow-md p-4 flex flex-col items-center">
-    <img src="{{ url_for('static', filename='emb assets/batch.png') }}" class="h-10 w-10 mb-2" alt="Batch Icon" />
-    <p class="font-semibold text-sm">Claimed Batches</p>
-    <p class="text-2xl font-bold text-black">{{ batch_count }}</p>
-  </div>
-</div>
-
-<!-- Machine Dashboard Section -->
-<div id="machine-dashboard" class="max-w-4xl mx-auto hidden">
-  <div class="flex justify-between items-center mb-3">
-    <h2 class="text-xl font-bold text-slate-800">🧰 Machine Dashboard</h2>
-    <button onclick="closeMachineDashboard()" class="text-sm text-blue-600 hover:text-blue-800 underline">Close</button>
-  </div>
-
-  {% for machine in quick_overview %}
-    <div class="bg-white border border-slate-200 shadow-sm rounded-2xl mb-6">
-      <div class="px-4 py-3 flex justify-between items-center">
-        <div>
-          <h3 class="font-bold text-lg text-slate-800">{{ machine.name }}</h3>
-          {% if machine.assigned_subuser %}
-            <p class="text-xs text-slate-500 mt-1">Assigned to: {{ machine.assigned_subuser }}</p>
-          {% endif %}
-        </div>
-        <div class="flex items-center space-x-2">
-          <!-- Oiled Today -->
-          <div class="flex flex-col items-center">
-            <span class="text-xl">{{ '✅' if machine.oiled_today else '❌' }}</span>
-            <span class="text-xs text-slate-500">Oiled</span>
-          </div>
-          <!-- Weekly Lube -->
-          <div class="flex flex-col items-center">
-            <span class="text-xl">{{ '✅' if machine.weekly_lube_done else '❌' }}</span>
-            <span class="text-xs text-slate-500">Lube</span>
-          </div>
-          <!-- Status OK -->
-          <div class="flex flex-col items-center">
-            <span class="text-xl">{{ '🟢' if machine.status_ok else '🔴' }}</span>
-            <span class="text-xs text-slate-500">Status</span>
-          </div>
-          <!-- Service Requests -->
-          <div class="flex flex-col items-center cursor-pointer" onclick="toggleRequests({{ loop.index }})">
-            <span class="text-xl">📩</span>
-            <span class="text-xs font-medium text-slate-600 underline">{{ machine.pending_count }} pending</span>
-            <span class="text-[10px] text-blue-500 mt-0.5">Click to view</span>
-          </div>
-        </div>
+  <!-- Header Buttons -->
+  <div class="max-w-2xl mx-auto mb-6">
+    <div class="bg-white/10 backdrop-blur-xl border border-white/20 shadow-xl rounded-2xl p-4 sm:p-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div>
+        <h1 class="text-xl sm:text-2xl font-bold text-slate-800 break-words">Welcome, {{ current_user.name or 'Unnamed' }}</h1>
+        <p class="text-xs text-slate-600 mt-1 bg-white/20 rounded-lg px-3 py-2 border border-white/10">
+          🛠️ Tip: To activate your machine, scan the Master QR code that came with your shipment.
+        </p>
       </div>
+      <div class="flex gap-3 flex-wrap justify-center sm:justify-end">
+        <a href="{{ url_for('routes.create_subuser') }}" class="bg-white/30 border border-white/20 backdrop-blur-md text-sm px-4 py-2 rounded-xl text-blue-700 hover:text-blue-900 shadow-md">Manage Sub-User</a>
+        <a href="{{ url_for('routes.user_settings') }}" class="bg-white/30 border border-white/20 backdrop-blur-md text-sm px-4 py-2 rounded-xl text-blue-700 hover:text-blue-900 shadow-md">Settings</a>
+        <a href="{{ url_for('routes.logout') }}" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-xl shadow-md text-sm">Logout</a>
+      </div>
+    </div>
+  </div>
 
-      <!-- Service Request Detail -->
-      <div id="requests-{{ loop.index }}" class="hidden px-4 pb-4 pt-2">
-        {% if machine.pending_requests %}
-          <div class="space-y-3">
-            {% for req in machine.pending_requests %}
-              <div class="bg-slate-50 border border-slate-200 p-3 rounded-lg shadow-sm">
-                <p class="text-sm"><span class="font-semibold">From:</span> {{ req.subuser_name or "Unknown" }}</p>
-                <p class="text-sm"><span class="font-semibold">Heads:</span> {{ req.heads or 'N/A' }}</p>
-                <p class="text-sm"><span class="font-semibold">Issue:</span> {{ req.message or req.issue or "N/A" }}</p>
-                <p class="text-xs text-slate-500">Date: {{ req.timestamp.strftime('%d %b %Y') }}</p>
-              </div>
+  <!-- Machine/Batch Counts -->
+  {% set machine_count = batches | selectattr('machine') | list | length %}
+  {% set batch_count = batches | length %}
+  <div class="max-w-2xl mx-auto grid grid-cols-2 gap-4 mb-6">
+    <div onclick="toggleMachineDashboard()" id="machines-box" class="cursor-pointer bg-green-50 text-green-700 border-green-400 border rounded-2xl shadow-md p-4 flex flex-col items-center hover:scale-[1.01] col-span-1 transition-all duration-500 ease-in-out">
+      <img src="{{ url_for('static', filename='emb assets/machine.png') }}" class="h-10 w-10 mb-2" alt="Machine Icon" />
+      <p class="font-semibold text-sm">Total Machines</p>
+      <p class="text-2xl font-bold text-black">{{ machine_count }}</p>
+      <p class="text-xs text-slate-600 mt-1">Click to view dashboard</p>
+    </div>
+
+    <div id="batches-box" class="bg-green-50 text-green-700 border-green-400 border rounded-2xl shadow-md p-4 flex flex-col items-center">
+      <img src="{{ url_for('static', filename='emb assets/batch.png') }}" class="h-10 w-10 mb-2" alt="Batch Icon" />
+      <p class="font-semibold text-sm">Claimed Batches</p>
+      <p class="text-2xl font-bold text-black">{{ batch_count }}</p>
+    </div>
+  </div>
+
+  <!-- Machine Dashboard -->
+  <div id="machine-dashboard" class="hidden max-w-2xl mx-auto mt-4">
+    <div class="flex justify-between items-center mb-4">
+      <h2 class="text-2xl font-bold text-slate-800">Machine Dashboard</h2>
+      <button onclick="closeMachineDashboard()" class="text-blue-600 text-sm underline">← Back</button>
+    </div>
+
+    {% for data in machines_data %}
+    <div class="mb-14 bg-white rounded-xl shadow-xl p-6 border border-gray-200">
+      <!-- Machine overview -->
+      <div class="bg-gray-50 p-4 rounded-md shadow-sm mb-4">
+        <h2 class="text-xl font-semibold mb-3">{{ data.machine.name }}</h2>
+        <ul class="space-y-1 text-gray-700">
+          <li><strong>Type:</strong> {{ data.machine.type }}</li>
+          <li><strong>Batch ID:</strong> {{ data.batch.id }}</li>
+          <li><strong>Claimed On:</strong> {{ data.batch.created_at.date() }}</li>
+          <li><strong>Assigned Sub-Users:</strong>
+            {% if data.subusers %}
+              <span class="bg-blue-50 text-blue-700 text-xs font-medium px-2 py-1 rounded-md">
+                {% for sub in data.subusers %}{{ sub.name }} – {{ sub.static_id }}{% if not loop.last %}, {% endif %}{% endfor %}
+              </span>
+            {% else %}
+              <span class="italic text-gray-500">N/A</span>
+            {% endif %}
+          </li>
+          <li><strong>Total Heads:</strong> {{ data.grouped_logs|length }}</li>
+          <li><strong>Total Needle Changes:</strong> {{ data.total_needle_changes }}</li>
+          <li><strong>Total Services Logged:</strong> {{ data.total_services_logged }}</li>
+        </ul>
+
+        <div class="flex justify-end mt-3">
+          <button onclick="document.getElementById('qr-{{ data.machine.id }}').classList.toggle('hidden')" class="flex items-center gap-1 px-3 py-1 bg-white/80 hover:bg-white border border-gray-300 rounded-full text-xs text-blue-700 shadow-sm transition">
+            <img src="{{ url_for('static', filename='emb assets/qr.png') }}" class="w-4 h-4" alt="QR Icon"> View QR Codes
+          </button>
+        </div>
+
+        <div id="qr-{{ data.machine.id }}" class="hidden mt-3">
+          <div class="grid grid-cols-2 sm:grid-cols-3 gap-4">
+            {% for qr in data.qr_codes %}
+            <div class="bg-white border rounded-xl p-3 text-center shadow">
+              <img src="{{ qr.image_url }}" class="h-24 mx-auto mb-2" alt="QR">
+              <p class="capitalize font-medium text-sm">{{ qr.qr_type }}</p>
+              <a href="{{ qr.image_url }}" download class="mt-2 inline-block text-xs bg-blue-600 text-white px-3 py-1 rounded-md hover:bg-blue-700 transition">Download</a>
+            </div>
             {% endfor %}
           </div>
+        </div>
+      </div>
+
+      <!-- Last Activity -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+        <div class="bg-green-50 p-4 rounded-md shadow-sm">
+          <h3 class="font-semibold mb-2">🪡 Last Needle Change</h3>
+          {% if data.last_needle %}
+            <p><strong>Date:</strong> {{ data.last_needle.timestamp.date() }}</p>
+            <p><strong>Head:</strong> {{ data.last_needle.sub_tag.tag_type }}</p>
+            <p><strong>Needle #:</strong> {{ data.last_needle.needle_number }}</p>
+            <p><strong>Type:</strong> {{ data.last_needle.needle_type }}</p>
+          {% else %}
+            <p class="italic text-gray-500">No needle changes recorded.</p>
+          {% endif %}
+        </div>
+        <div class="bg-yellow-50 p-4 rounded-md shadow-sm">
+          <h3 class="font-semibold mb-2">🔧 Last Service Log</h3>
+          {% if data.last_service %}
+            <p><strong>Part:</strong> {{ data.last_service.part_name }}</p>
+            <p><strong>Description:</strong> {{ data.last_service.description }}</p>
+            <p><strong>Warranty Till:</strong> {{ data.last_service.warranty_till }}</p>
+            <p><strong>Logged On:</strong> {{ data.last_service.timestamp.date() }}</p>
+          {% else %}
+            <p class="italic text-gray-500">No service logs recorded.</p>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Maintenance Status -->
+      <div class="p-4 rounded-md shadow-sm {{ 'bg-green-100' if data.maintenance_ok else 'bg-red-100' }} mb-4">
+        <h3 class="text-lg font-semibold mb-2">🛠️ Maintenance Status</h3>
+        {% if data.maintenance_ok %}
+          <p class="text-green-800">✅ All good. No upcoming warranty or service issues.</p>
         {% else %}
-          <p class="text-sm text-slate-600">No service requests found for this machine.</p>
+          <ul class="list-disc list-inside text-red-700">
+            {% if data.warranty_warning %}<li>⚠️ Warranty expiring soon. <button onclick="toggleWarrantyDetails({{ data.machine.id }})" class="ml-2 text-xs underline text-blue-800">View Details</button></li>
+              <ul id="warranty-detail-{{ data.machine.id }}" class="hidden ml-6 mt-2 text-sm list-disc text-red-700">
+                {% for head_id, group in data.grouped_logs.items() %}{% for log in group.service_logs %}{% if log.warranty_till and log.warranty_till <= (now + timedelta(days=30)).date() %}<li>{{ log.part_name }} (Head: {{ group.tag.tag_type }}) – Warranty till {{ log.warranty_till }}</li>{% endif %}{% endfor %}{% endfor %}
+              </ul>{% endif %}
+            {% if data.stale_service_warning %}<li>⚠️ No service logged in past 60 days.</li>{% endif %}
+          </ul>
         {% endif %}
       </div>
+
+      <!-- View Logs -->
+      <div class="flex justify-start mt-4">
+        <button onclick="toggleLogs({{ data.machine.id }})" class="flex items-center gap-2 text-sm px-4 py-2 bg-white hover:bg-blue-50 text-blue-700 border rounded-lg shadow-sm transition">
+          <img src="{{ url_for('static', filename='emb assets/qr2.png') }}" class="w-4 h-4" alt="QR Icon"> Head-wise Log View
+          <svg id="log-arrow-{{ data.machine.id }}" class="w-4 h-4 transition-transform duration-300" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+        </button>
+      </div>
+      <div id="logs-{{ data.machine.id }}" class="hidden mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+        {% for head_id, group in data.grouped_logs.items() %}
+        <div class="bg-gray-50 border border-gray-200 rounded-md p-4 shadow-sm">
+          <h4 class="font-semibold text-gray-800 mb-2">🔹 Head: {{ group.tag.tag_type }}</h4>
+          {% if group.needle_logs %}<div class="mb-3"><strong>🪡 Needle Logs:</strong><ul class="list-disc ml-4 text-sm">{% for log in group.needle_logs %}<li>{{ log.timestamp.date() }} – Needle #{{ log.needle_number }}, Type {{ log.needle_type }}</li>{% endfor %}</ul></div>{% else %}<p class="italic text-gray-500 mb-3">❌ No needle logs</p>{% endif %}
+          {% if group.service_logs %}<div><strong>🔧 Service Logs:</strong><ul class="list-disc ml-4 text-sm">{% for log in group.service_logs %}<li>{{ log.timestamp.date() }} – {{ log.part_name }} ({{ log.description }}) – Warranty till {{ log.warranty_till }}</li>{% endfor %}</ul></div>{% else %}<p class="italic text-gray-500">❌ No service logs</p>{% endif %}
+        </div>
+        {% endfor %}
+      </div>
     </div>
-  {% endfor %}
-</div>
+    {% endfor %}
+  </div>
 
 <!-- Quick Machine Overview -->
-{% if quick_overview %}
-<div class="max-w-6xl mx-auto mt-10 px-4">
+<div class="max-w-4xl mx-auto mt-14 px-4">
   <h2 class="text-xl font-bold text-slate-800 mb-4 text-center">Quick Machine Overview</h2>
-  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-    {% for m in quick_overview %}
-      <div class="rounded-xl bg-white border border-slate-300 p-4 shadow-sm relative">
-        <div class="absolute top-3 right-3 w-3 h-3 rounded-full {% if m.status_ok %}bg-green-500{% else %}bg-red-500{% endif %}"></div>
-        <h3 class="font-semibold text-lg text-slate-900">{{ m.name }}</h3>
-        <p class="text-sm text-slate-600">Assigned to: {{ m.assigned_subuser or "Not Assigned" }}</p>
-        <p class="mt-2 text-sm">
-          <strong>Oiled Today:</strong> {{ "Yes" if m.oiled_today else "No" }}
-        </p>
-        <p class="text-sm">
-          <strong>Service Requests:</strong>
-          <span class="text-blue-600 font-semibold cursor-pointer" onclick="toggleRequests({{ loop.index }})">
-            {{ m.pending_count }} pending (Click to view)
-          </span>
-        </p>
-        <p class="text-sm">
-          <strong>Weekly Lube:</strong>
-          {% if m.weekly_lube_done %}
-            <span class="text-green-600">Done</span>
-          {% else %}
-            <span class="text-red-600">Not Done</span>
-          {% endif %}
-        </p>
+  <div class="grid grid-cols-2 gap-4 justify-center max-w-xl mx-auto">
+    {% for machine in quick_overview %}
+      <div class="rounded-xl border shadow bg-white p-4 relative flex flex-col justify-between min-h-[170px]">
+        <!-- Status Dot -->
+        <span class="absolute top-3 right-3 w-3 h-3 rounded-full {{ 'bg-green-500' if machine.status_ok else 'bg-red-500' }}"></span>
+        
+        <!-- Machine Name -->
+        <h3 class="text-lg font-semibold text-gray-800 mb-1">{{ machine.name }}</h3>
+        
+        <!-- Assigned Subuser -->
+        {% if machine.assigned_subuser %}
+          <p class="text-sm text-slate-500 mb-2">Assigned to: {{ machine.assigned_subuser }}</p>
+        {% endif %}
+
+        <!-- Summary Details -->
+        <div class="text-sm space-y-1">
+          <p><strong>Oiled Today:</strong> {{ 'Yes' if machine.oiled_today else 'No' }}</p>
+          
+          <p>
+            <strong>Service Requests:</strong> 
+            <span class="text-blue-600 font-semibold hover:underline cursor-pointer" onclick="toggleRequests({{ loop.index0 }})">
+              {{ machine.pending_count }} pending 
+              <span class="text-xs text-slate-500">(Click to view)</span>
+            </span>
+          </p>
+
+          <p>
+            <strong>Weekly Lube:</strong> 
+            <span class="{{ 'text-green-600 font-semibold' if machine.weekly_lube_done else 'text-red-500' }}">
+              {{ 'Done' if machine.weekly_lube_done else 'Not Done' }}
+            </span>
+          </p>
+        </div>
 
         <!-- Expandable Request List -->
-        <div id="requests-{{ loop.index }}" class="mt-3 hidden">
-          {% for req in m.pending_requests %}
-            <div class="mt-2 p-3 bg-slate-50 border rounded">
-              <p><strong>From:</strong> {{ req.subuser_name or 'Unknown' }}</p>
-              <p><strong>Heads:</strong> {{ req.heads or 'None' }}</p>
-              <p><strong>Issue:</strong> {{ req.message or 'Not specified' }}</p>
-              <p class="text-xs text-slate-500">{{ req.timestamp.strftime('%Y-%m-%d %I:%M %p') }}</p>
-              <form method="POST" action="/resolve_service/{{ req.id }}">
-                <button class="mt-2 text-xs bg-green-500 text-white px-2 py-1 rounded shadow">Mark Resolved</button>
+        <div id="requests-{{ loop.index0 }}" class="hidden mt-3 space-y-2 bg-gray-50 p-3 rounded">
+          {% for req in machine.pending_requests %}
+            <div class="border border-gray-200 p-2 rounded-lg">
+              <p class="text-sm"><strong>From:</strong> {{ req.subuser_name or 'Unknown' }}</p>
+              <p class="text-sm"><strong>Heads:</strong> {{ req.heads or 'None' }}</p>
+              <p class="text-sm">
+                <strong>Issue:</strong> 
+                {% if req.message %}
+                  {{ req.message }}
+                {% else %}
+                  <span class="text-slate-400 italic">Not specified</span>
+                {% endif %}
+              </p>
+              <p class="text-xs text-gray-500">{{ req.timestamp.strftime('%Y-%m-%d %I:%M %p') }}</p>
+              <form method="POST" action="{{ url_for('routes.resolve_service_request', request_id=req.id) }}" class="mt-1">
+                <button type="submit" class="text-white bg-green-500 px-3 py-1 rounded hover:bg-green-600 text-xs">Mark Resolved</button>
               </form>
             </div>
+          {% else %}
+            <p class="italic text-gray-500 text-sm">No pending requests.</p>
           {% endfor %}
         </div>
       </div>
     {% endfor %}
   </div>
 </div>
+
+<!-- Toggle Function -->
 <script>
   function toggleRequests(index) {
     const section = document.getElementById(`requests-${index}`);
     section.classList.toggle("hidden");
   }
 </script>
-{% endif %}
 
 
 <!-- Footer -->
