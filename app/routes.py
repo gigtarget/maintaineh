@@ -245,15 +245,12 @@ def user_login():
 
 @routes.route("/user/dashboard", methods=["GET", "POST"])
 @login_required
-def user_dashboard():
-    # only allow role 'user'
+ def user_dashboard():
     if current_user.role != "user":
         return redirect(url_for("routes.user_login"))
 
-    # one-time login toast
     show_toast = session.pop('show_login_success', False)
 
-    # handle form to add/update machines
     if request.method == "POST":
         batch_id = request.form.get("batch_id")
         name = request.form.get("name") or current_user.default_machine_name or "Unnamed Machine"
@@ -270,7 +267,6 @@ def user_dashboard():
             flash("Machine added successfully.", "success")
         db.session.commit()
 
-    # gather batches & machines for rendering the full dashboard (unchanged)
     user_batches = QRBatch.query.filter_by(owner_id=current_user.id).all()
     batch_data = []
     for batch in user_batches:
@@ -298,7 +294,6 @@ def user_dashboard():
         service_logs = ServiceLog.query.filter_by(batch_id=batch.id).order_by(ServiceLog.timestamp.desc()).all()
         last_service = service_logs[0] if service_logs else None
 
-        # existing maintenance/warranty logic...
         warranty_warning = False
         stale_service_warning = False
         maintenance_ok = True
@@ -311,7 +306,6 @@ def user_dashboard():
             stale_service_warning = True
             maintenance_ok = False
 
-        # group logs by sub-tag for the detailed dashboard
         grouped_logs = {tag.id: {"tag": tag, "needle_logs": [], "service_logs": []} for tag in qr_tags}
         for log in needle_logs:
             if log.sub_tag_id in grouped_logs:
@@ -335,7 +329,7 @@ def user_dashboard():
             "qr_codes": QRCode.query.filter_by(batch_id=batch.id).all()
         })
 
-    # ── UPDATED QUICK OVERVIEW ──
+    # Quick Machine Overview with detailed service requests
     quick_overview = []
     today = date.today()
     start_of_week = today - timedelta(days=today.weekday())
@@ -343,46 +337,51 @@ def user_dashboard():
     for machine in machines:
         sub = SubUser.query.filter_by(assigned_machine_id=machine.id).first()
 
-        # did we oil today?
+        # Oil action
         oiled_today = SubUserAction.query.filter_by(
-            subuser_id = sub.id if sub else None,
-            machine_id = machine.id,
-            action_type = "oil",
-            status = "done"
-        ).filter(
-            func.date(SubUserAction.timestamp) == today
-        ).first() is not None
+            subuser_id=sub.id if sub else None,
+            machine_id=machine.id,
+            action_type="oil",
+            status="done"
+        ).filter(func.date(SubUserAction.timestamp) == today).first() is not None
 
-        # did we lube this week?
+        # Lube action
         weekly_lube_done = SubUserAction.query.filter_by(
-            subuser_id = sub.id if sub else None,
-            machine_id = machine.id,
-            action_type = "lube",
-            status = "done"
-        ).filter(
-            SubUserAction.timestamp >= start_of_week
-        ).first() is not None
+            subuser_id=sub.id if sub else None,
+            machine_id=machine.id,
+            action_type="lube",
+            status="done"
+        ).filter(SubUserAction.timestamp >= start_of_week).first() is not None
 
-        # any pending service requests?
-        service_requested = ServiceRequest.query.filter_by(
-            machine_id = machine.id,
-            status = "pending"
-        ).count() > 0
+        # Pending service requests details
+        pending_reqs = ServiceRequest.query.filter_by(machine_id=machine.id).all()
+        pending_requests = []
+        for req in pending_reqs:
+            user = SubUser.query.get(req.subuser_id)
+            pending_requests.append({
+                'id': req.id,
+                'subuser_name': user.name if user else None,
+                'heads': getattr(req, 'heads', None),
+                'message': getattr(req, 'message', None),
+                'timestamp': req.timestamp
+            })
+        pending_count = len(pending_requests)
 
-        # overall status flag (still using your warranty logic)
-        last_service = ServiceLog.query.filter_by(batch_id=machine.batch_id).order_by(ServiceLog.timestamp.desc()).first()
+        # Status ok logic
+        last_service_log = ServiceLog.query.filter_by(batch_id=machine.batch_id).order_by(ServiceLog.timestamp.desc()).first()
         status_ok = True
-        if last_service and last_service.warranty_till:
-            days_left = (last_service.warranty_till - today).days
+        if last_service_log and last_service_log.warranty_till:
+            days_left = (last_service_log.warranty_till - today).days
             status_ok = days_left >= 30
 
         quick_overview.append({
             "name": machine.name,
             "assigned_subuser": sub.name if sub else None,
             "oiled_today": oiled_today,
-            "service_requested": service_requested,
             "weekly_lube_done": weekly_lube_done,
-            "status_ok": status_ok
+            "status_ok": status_ok,
+            "pending_count": pending_count,
+            "pending_requests": pending_requests
         })
 
     return render_template(
@@ -394,6 +393,7 @@ def user_dashboard():
         timedelta=timedelta,
         show_toast=show_toast
     )
+
 @routes.route("/admin/login", methods=["GET", "POST"], endpoint="admin_login")
 def admin_login():
     if request.method == "POST":
