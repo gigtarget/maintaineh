@@ -227,7 +227,7 @@
                 <p class="text-sm"><strong>Heads:</strong> {{ req.heads }}</p>
                 <p class="text-sm"><strong>Issue:</strong> {{ req.message }}</p>
                 <p class="text-xs text-gray-500">{{ req.timestamp.strftime('%Y-%m-%d %I:%M %p') }}</p>
-                <form method="POST" action="{{ url_for('routes.resolve_request', request_id=req.id) }}" class="mt-1">
+                <form method="POST" action="{{ url_for('routes.resolve_service_request', request_id=req.id) }}" class="mt-1">
                   <button type="submit" class="text-white bg-green-500 px-3 py-1 rounded hover:bg-green-600 text-xs">Mark Resolved</button>
                 </form>
               </div>
