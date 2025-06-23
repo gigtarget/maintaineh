@@ -110,16 +110,14 @@ class DailyMaintenance(db.Model):
 # -------------------------
 class ServiceRequest(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    machine_id = db.Column(db.Integer, db.ForeignKey('machine.id'), nullable=False)
-    subuser_id = db.Column(db.Integer, db.ForeignKey('sub_user.id'), nullable=False)
+    machine_id = db.Column(db.Integer, db.ForeignKey('machine.id'))
+    subuser_id = db.Column(db.Integer, db.ForeignKey('sub_user.id'))
     heads = db.Column(db.Integer, nullable=False)
     issue = db.Column(db.Text, nullable=True)
-    resolved = db.Column(db.Boolean, default=False, nullable=False)
-    resolved_at = db.Column(db.DateTime, nullable=True)
-    timestamp = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    resolved = db.Column(db.Boolean, default=False)
+    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
+    resolved_at = db.Column(db.Date)  # ✅ New column
 
-    machine = db.relationship("Machine", back_populates="service_requests")
-    subuser = db.relationship("SubUser", back_populates="service_requests")
 
 # -------------------------
 # ✅ ACTIONS LOGGED BY SUB USERS
