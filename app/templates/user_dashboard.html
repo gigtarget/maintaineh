@@ -239,14 +239,9 @@
           {% for req in machine.pending_requests %}
             <div class="border border-gray-200 p-2 rounded-lg">
               <p class="text-sm"><strong>From:</strong> {{ req.subuser_name or 'Unknown' }}</p>
-              <p class="text-sm"><strong>Heads:</strong> {{ req.heads or 'None' }}</p>
+              <p class="text-sm"><strong>Heads:</strong> {{ req.heads or 'N/A' }}</p>
               <p class="text-sm">
-                <strong>Issue:</strong>
-                {% if req.message and req.message.strip() %}
-                  {{ req.message }}
-                {% else %}
-                  <span class="text-slate-400 italic">Not specified</span>
-                {% endif %}
+                <strong>Issue:</strong> {{ req.message or req.issue or 'Not specified' }}
               </p>
               <p class="text-xs text-gray-500">{{ req.timestamp.strftime('%Y-%m-%d %I:%M %p') }}</p>
               <form method="POST" action="{{ url_for('routes.resolve_service_request', request_id=req.id) }}" class="mt-1">
@@ -265,9 +260,12 @@
 <script>
   function toggleRequests(index) {
     const section = document.getElementById(`requests-${index}`);
-    section.classList.toggle("hidden");
+    if (section) {
+      section.classList.toggle("hidden");
+    }
   }
 </script>
+
 
 
 <!-- Footer -->
