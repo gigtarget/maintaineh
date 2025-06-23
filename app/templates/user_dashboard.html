@@ -156,6 +156,61 @@
   {% endfor %}
 </div>
 
+<!-- Quick Machine Overview -->
+{% if quick_overview %}
+<div class="max-w-6xl mx-auto mt-10 px-4">
+  <h2 class="text-xl font-bold text-slate-800 mb-4 text-center">Quick Machine Overview</h2>
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+    {% for m in quick_overview %}
+      <div class="rounded-xl bg-white border border-slate-300 p-4 shadow-sm relative">
+        <div class="absolute top-3 right-3 w-3 h-3 rounded-full {% if m.status_ok %}bg-green-500{% else %}bg-red-500{% endif %}"></div>
+        <h3 class="font-semibold text-lg text-slate-900">{{ m.name }}</h3>
+        <p class="text-sm text-slate-600">Assigned to: {{ m.assigned_subuser or "Not Assigned" }}</p>
+        <p class="mt-2 text-sm">
+          <strong>Oiled Today:</strong> {{ "Yes" if m.oiled_today else "No" }}
+        </p>
+        <p class="text-sm">
+          <strong>Service Requests:</strong>
+          <span class="text-blue-600 font-semibold cursor-pointer" onclick="toggleRequests({{ loop.index }})">
+            {{ m.pending_count }} pending (Click to view)
+          </span>
+        </p>
+        <p class="text-sm">
+          <strong>Weekly Lube:</strong>
+          {% if m.weekly_lube_done %}
+            <span class="text-green-600">Done</span>
+          {% else %}
+            <span class="text-red-600">Not Done</span>
+          {% endif %}
+        </p>
+
+        <!-- Expandable Request List -->
+        <div id="requests-{{ loop.index }}" class="mt-3 hidden">
+          {% for req in m.pending_requests %}
+            <div class="mt-2 p-3 bg-slate-50 border rounded">
+              <p><strong>From:</strong> {{ req.subuser_name or 'Unknown' }}</p>
+              <p><strong>Heads:</strong> {{ req.heads or 'None' }}</p>
+              <p><strong>Issue:</strong> {{ req.message or 'Not specified' }}</p>
+              <p class="text-xs text-slate-500">{{ req.timestamp.strftime('%Y-%m-%d %I:%M %p') }}</p>
+              <form method="POST" action="/resolve_service/{{ req.id }}">
+                <button class="mt-2 text-xs bg-green-500 text-white px-2 py-1 rounded shadow">Mark Resolved</button>
+              </form>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+</div>
+<script>
+  function toggleRequests(index) {
+    const section = document.getElementById(`requests-${index}`);
+    section.classList.toggle("hidden");
+  }
+</script>
+{% endif %}
+
+
 <!-- Footer -->
 <div class="max-w-4xl mx-auto text-center mt-12 mb-6 text-xs text-slate-500">
   Built with ❤️ by Tokatap · {{ now.strftime('%B %d, %Y') }}
