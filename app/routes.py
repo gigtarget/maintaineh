@@ -329,7 +329,7 @@ def user_dashboard():
             "qr_codes": QRCode.query.filter_by(batch_id=batch.id).all()
         })
 
-    # Quick Machine Overview with detailed service requests
+    # Quick Machine Overview with pending request details
     quick_overview = []
     today = date.today()
     start_of_week = today - timedelta(days=today.weekday())
@@ -337,7 +337,7 @@ def user_dashboard():
     for machine in machines:
         sub = SubUser.query.filter_by(assigned_machine_id=machine.id).first()
 
-        # Oil action
+        # Oil check
         oiled_today = SubUserAction.query.filter_by(
             subuser_id=sub.id if sub else None,
             machine_id=machine.id,
@@ -345,7 +345,7 @@ def user_dashboard():
             status="done"
         ).filter(func.date(SubUserAction.timestamp) == today).first() is not None
 
-        # Lube action
+        # Lube check
         weekly_lube_done = SubUserAction.query.filter_by(
             subuser_id=sub.id if sub else None,
             machine_id=machine.id,
@@ -353,8 +353,8 @@ def user_dashboard():
             status="done"
         ).filter(SubUserAction.timestamp >= start_of_week).first() is not None
 
-        # Pending service requests details
-        pending_reqs = ServiceRequest.query.filter_by(machine_id=machine.id).all()
+        # Service Requests
+        pending_reqs = ServiceRequest.query.filter_by(machine_id=machine.id, resolved=False).all()
         pending_requests = []
         for req in pending_reqs:
             user = SubUser.query.get(req.subuser_id)
@@ -362,12 +362,12 @@ def user_dashboard():
                 'id': req.id,
                 'subuser_name': user.name if user else None,
                 'heads': getattr(req, 'heads', None),
-                'message': getattr(req, 'message', None),
+                'issue': getattr(req, 'issue', None),
                 'timestamp': req.timestamp
             })
         pending_count = len(pending_requests)
 
-        # Status ok logic
+        # Overall status
         last_service_log = ServiceLog.query.filter_by(batch_id=machine.batch_id).order_by(ServiceLog.timestamp.desc()).first()
         status_ok = True
         if last_service_log and last_service_log.warranty_till:
@@ -393,7 +393,7 @@ def user_dashboard():
         timedelta=timedelta,
         show_toast=show_toast
     )
-
+    
 @routes.route("/admin/login", methods=["GET", "POST"], endpoint="admin_login")
 def admin_login():
     if request.method == "POST":
