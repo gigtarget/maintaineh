@@ -1,6 +1,7 @@
 from flask import Blueprint, render_template, redirect, url_for, flash, request, send_file, session, abort
 from flask_login import login_user, logout_user, login_required, current_user
 from datetime import datetime, date, timedelta
+from sqlalchemy import func
 import io
 import zipfile
 import requests
@@ -15,7 +16,6 @@ from app.models import (
     NeedleChange, ServiceLog, SubUser,
     SubUserAction, DailyMaintenance, ServiceRequest
 )
-
 
 routes = Blueprint("routes", __name__)
 
