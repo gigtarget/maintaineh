@@ -237,11 +237,18 @@
           {% for req in machine.pending_requests %}
             <div class="border border-gray-200 p-2 rounded-lg">
               <p class="text-sm"><strong>From:</strong> {{ req.subuser_name }}</p>
-              <p class="text-sm"><strong>Heads:</strong> {{ req.heads }}</p>
+              <p class="text-sm">
+                <strong>Heads:</strong>
+                {% if req.heads %}
+                  {{ req.heads }}
+                {% else %}
+                  <span class="text-slate-400 italic">None</span>
+                {% endif %}
+              </p>
               <p class="text-sm">
                 <strong>Issue:</strong> 
-                {% if req.message %}
-                  {{ req.message }}
+                {% if req.issue %}
+                  {{ req.issue }}
                 {% else %}
                   <span class="text-slate-400 italic">Not specified</span>
                 {% endif %}
