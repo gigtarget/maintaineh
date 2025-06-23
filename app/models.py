@@ -109,23 +109,15 @@ class DailyMaintenance(db.Model):
 # 🚨 SERVICE REQUEST ALERTS
 # -------------------------
 class ServiceRequest(db.Model):
-    __tablename__ = 'service_request'
-
     id = db.Column(db.Integer, primary_key=True)
     machine_id = db.Column(db.Integer, db.ForeignKey('machine.id'), nullable=False)
     subuser_id = db.Column(db.Integer, db.ForeignKey('sub_user.id'), nullable=False)
-
     heads = db.Column(db.Integer, nullable=False)
     issue = db.Column(db.Text, nullable=True)
-
-    # ✅ Resolution status and timestamp
     resolved = db.Column(db.Boolean, default=False, nullable=False)
     resolved_at = db.Column(db.DateTime, nullable=True)
-
-    # ✅ Created time
     timestamp = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
 
-    # ✅ Relationships
     machine = db.relationship("Machine", backref="service_requests")
     subuser = db.relationship("SubUser", backref="service_requests")
 
