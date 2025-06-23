@@ -64,7 +64,12 @@
           <span class="text-sm font-medium mt-1">Last Oiling</span>
           <span class="text-xs mt-1 {% if oil_alert %}text-red-600{% else %}text-slate-600{% endif %}">
             {% if last_oil_time %}
-              {{ last_oil_time.strftime('%b %d') }}
+              {% set diff = (now - last_oil_time).total_seconds() %}
+              {% if diff < 86400 %}
+                Done {{ (diff // 3600)|int }} hours ago
+              {% else %}
+                Done {{ (diff // 86400)|int }} days ago
+              {% endif %}
             {% else %}
               Not done yet
             {% endif %}
@@ -85,7 +90,12 @@
           <span class="text-sm font-medium mt-1">Last Lubrication</span>
           <span class="text-xs mt-1 {% if lube_alert %}text-red-600{% else %}text-slate-600{% endif %}">
             {% if last_lube_time %}
-              {{ last_lube_time.strftime('%b %d') }}
+              {% set diff = (now - last_lube_time).total_seconds() %}
+              {% if diff < 86400 %}
+                Done {{ (diff // 3600)|int }} hours ago
+              {% else %}
+                Done {{ (diff // 86400)|int }} days ago
+              {% endif %}
             {% else %}
               Not done yet
             {% endif %}
