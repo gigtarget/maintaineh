@@ -245,7 +245,7 @@ def user_login():
 
 @routes.route("/user/dashboard", methods=["GET", "POST"])
 @login_required
- def user_dashboard():
+def user_dashboard():
     if current_user.role != "user":
         return redirect(url_for("routes.user_login"))
 
