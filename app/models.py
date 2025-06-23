@@ -118,8 +118,8 @@ class ServiceRequest(db.Model):
     resolved_at = db.Column(db.DateTime, nullable=True)
     timestamp = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
 
-    machine = db.relationship("Machine", backref="service_requests")
-    subuser = db.relationship("SubUser", backref="service_requests")
+    machine = db.relationship("Machine", back_populates="service_requests")
+    subuser = db.relationship("SubUser", back_populates="service_requests")
 
 # -------------------------
 # ✅ ACTIONS LOGGED BY SUB USERS
