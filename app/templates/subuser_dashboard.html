@@ -51,66 +51,84 @@
     <!-- Smart Action Buttons -->
     <div class="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-8">
 
-      <!-- Oiling Button -->
-      <form method="POST" action="{{ url_for('routes.subuser_action', type='oil') }}">
-        <button class="w-full px-4 py-3 rounded-xl shadow-sm flex flex-col items-center justify-center
-          {% if oil_alert %}
-            bg-red-100 text-red-700 border border-red-300 hover:bg-red-200
-          {% else %}
-            bg-green-100 text-green-700 border border-green-300 hover:bg-green-200
-          {% endif %}
-          transition duration-200">
-          <span class="text-xl">🛢️</span>
-          <span class="text-sm font-medium mt-1">Last Oiling</span>
-          <span class="text-xs mt-1 {% if oil_alert %}text-red-600{% else %}text-slate-600{% endif %}">
-            {% if last_oil_time %}
-              {% set diff = (now - last_oil_time).total_seconds() %}
-              {% if diff < 86400 %}
-                Done {{ (diff // 3600)|int }} hours ago
-              {% else %}
-                Done {{ (diff // 86400)|int }} days ago
-              {% endif %}
+      <!-- Oiling Button with Tooltip -->
+      <div class="relative">
+        <form method="POST" action="{{ url_for('routes.subuser_action', type='oil') }}">
+          <button class="w-full px-4 py-3 rounded-xl shadow-sm flex flex-col items-center justify-center
+            {% if oil_alert %}
+              bg-red-100 text-red-700 border border-red-300 hover:bg-red-200
             {% else %}
-              Not done yet
+              bg-green-100 text-green-700 border border-green-300 hover:bg-green-200
             {% endif %}
-          </span>
-        </button>
-      </form>
-
-      <!-- Lube Button -->
-      <form method="POST" action="{{ url_for('routes.subuser_action', type='lube') }}">
-        <button class="w-full px-4 py-3 rounded-xl shadow-sm flex flex-col items-center justify-center
-          {% if lube_alert %}
-            bg-red-100 text-red-700 border border-red-300 hover:bg-red-200
-          {% else %}
-            bg-green-100 text-green-700 border border-green-300 hover:bg-green-200
-          {% endif %}
-          transition duration-200">
-          <span class="text-xl">🧴</span>
-          <span class="text-sm font-medium mt-1">Last Lubrication</span>
-          <span class="text-xs mt-1 {% if lube_alert %}text-red-600{% else %}text-slate-600{% endif %}">
-            {% if last_lube_time %}
-              {% set diff = (now - last_lube_time).total_seconds() %}
-              {% if diff < 86400 %}
-                Done {{ (diff // 3600)|int }} hours ago
+            transition duration-200">
+            <span class="text-xl">🛢️</span>
+            <span class="text-sm font-medium mt-1">Last Oiling</span>
+            <span class="text-xs mt-1 {% if oil_alert %}text-red-600{% else %}text-slate-600{% endif %}">
+              {% if last_oil_time %}
+                {% set diff = (now - last_oil_time).total_seconds() %}
+                {% if diff < 86400 %}
+                  Done {{ (diff // 3600)|int }} hours ago
+                {% else %}
+                  Done {{ (diff // 86400)|int }} days ago
+                {% endif %}
               {% else %}
-                Done {{ (diff // 86400)|int }} days ago
+                Not done yet
               {% endif %}
-            {% else %}
-              Not done yet
-            {% endif %}
-          </span>
-        </button>
-      </form>
+            </span>
+          </button>
+        </form>
+        <button onclick="toggleInfo('info-sub-oil')" class="absolute top-2 right-2 text-blue-600 hover:text-blue-800 text-xs">ℹ️</button>
+        <div id="info-sub-oil" class="absolute z-10 bg-white border border-gray-300 text-xs text-gray-700 rounded-md p-3 shadow-lg w-56 hidden">
+          Clicking this logs the oiling and starts a 12-hour countdown. It will auto-mark overdue if not clicked again within 12 hours.
+        </div>
+      </div>
 
-      <!-- Raise Service Button -->
-      <form onsubmit="openModal(); return false;">
-        <button type="button" onclick="openModal()" class="w-full px-4 py-3 rounded-xl border border-yellow-300 bg-yellow-100 text-yellow-800 shadow-sm hover:bg-yellow-200 transition duration-200 flex flex-col items-center justify-center">
-          <span class="text-xl">🚨</span>
-          <span class="text-sm font-medium mt-1">Raise Service</span>
-          <span class="text-xs opacity-80">Manual Alert</span>
-        </button>
-      </form>
+      <!-- Lube Button with Tooltip -->
+      <div class="relative">
+        <form method="POST" action="{{ url_for('routes.subuser_action', type='lube') }}">
+          <button class="w-full px-4 py-3 rounded-xl shadow-sm flex flex-col items-center justify-center
+            {% if lube_alert %}
+              bg-red-100 text-red-700 border border-red-300 hover:bg-red-200
+            {% else %}
+              bg-green-100 text-green-700 border border-green-300 hover:bg-green-200
+            {% endif %}
+            transition duration-200">
+            <span class="text-xl">🧴</span>
+            <span class="text-sm font-medium mt-1">Last Lubrication</span>
+            <span class="text-xs mt-1 {% if lube_alert %}text-red-600{% else %}text-slate-600{% endif %}">
+              {% if last_lube_time %}
+                {% set diff = (now - last_lube_time).total_seconds() %}
+                {% if diff < 86400 %}
+                  Done {{ (diff // 3600)|int }} hours ago
+                {% else %}
+                  Done {{ (diff // 86400)|int }} days ago
+                {% endif %}
+              {% else %}
+                Not done yet
+              {% endif %}
+            </span>
+          </button>
+        </form>
+        <button onclick="toggleInfo('info-sub-lube')" class="absolute top-2 right-2 text-blue-600 hover:text-blue-800 text-xs">ℹ️</button>
+        <div id="info-sub-lube" class="absolute z-10 bg-white border border-gray-300 text-xs text-gray-700 rounded-md p-3 shadow-lg w-56 hidden">
+          Clicking this logs the lubrication and starts a weekly timer. It will auto-mark overdue if not updated within 6 days.
+        </div>
+      </div>
+
+      <!-- Raise Service Button with Tooltip -->
+      <div class="relative">
+        <form onsubmit="openModal(); return false;">
+          <button type="button" onclick="openModal()" class="w-full px-4 py-3 rounded-xl border border-yellow-300 bg-yellow-100 text-yellow-800 shadow-sm hover:bg-yellow-200 transition duration-200 flex flex-col items-center justify-center">
+            <span class="text-xl">🚨</span>
+            <span class="text-sm font-medium mt-1">Raise Service</span>
+            <span class="text-xs opacity-80">Manual Alert</span>
+          </button>
+        </form>
+        <button onclick="toggleInfo('info-sub-service')" class="absolute top-2 right-2 text-blue-600 hover:text-blue-800 text-xs">ℹ️</button>
+        <div id="info-sub-service" class="absolute z-10 bg-white border border-gray-300 text-xs text-gray-700 rounded-md p-3 shadow-lg w-56 hidden">
+          Opens a modal to submit an issue description. Your request will appear for the main user to review.
+        </div>
+      </div>
 
     </div>
 
@@ -169,7 +187,7 @@
     </form>
   </div>
 
-  <!-- Modal Scripts -->
+  <!-- Modal Scripts & Tooltip Logic -->
   <script>
     function openModal() {
       document.getElementById('serviceModal').classList.remove('hidden');
@@ -179,6 +197,21 @@
       document.getElementById('serviceModal').classList.add('hidden');
       document.getElementById('serviceModalBackdrop').classList.add('hidden');
     }
+
+    /* Tooltip Toggle Logic */
+    function toggleInfo(id) {
+      const el = document.getElementById(id);
+      const allInfos = document.querySelectorAll('[id^="info-sub-"]');
+      allInfos.forEach(i => { if (i.id !== id) i.classList.add('hidden'); });
+      el.classList.toggle('hidden');
+    }
+    document.addEventListener('click', function(e) {
+      const isInfo = e.target.closest('[id^="info-sub-"]');
+      const isButton = e.target.tagName === 'BUTTON' && e.target.innerText === 'ℹ️';
+      if (!isInfo && !isButton) {
+        document.querySelectorAll('[id^="info-sub-"]').forEach(el => el.classList.add('hidden'));
+      }
+    });
   </script>
 
 </body>
