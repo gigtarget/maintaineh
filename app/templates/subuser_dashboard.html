@@ -8,6 +8,33 @@
 </head>
 <body class="bg-gradient-to-br from-blue-100 to-white min-h-screen text-gray-800 p-4">
 
+  <!-- ✅ Flash Toast Notification -->
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      <div id="toast-container" class="fixed top-4 right-4 space-y-3 z-50">
+        {% for category, message in messages %}
+          <div class="bg-green-100 border border-green-300 text-green-800 px-4 py-2 rounded shadow-lg animate-slide-in-right">
+            {{ message }}
+          </div>
+        {% endfor %}
+      </div>
+      <script>
+        setTimeout(() => {
+          document.getElementById('toast-container').style.display = 'none';
+        }, 2500);
+      </script>
+      <style>
+        @keyframes slide-in-right {
+          0% { opacity: 0; transform: translateX(100%); }
+          100% { opacity: 1; transform: translateX(0); }
+        }
+        .animate-slide-in-right {
+          animation: slide-in-right 0.3s ease-out;
+        }
+      </style>
+    {% endif %}
+  {% endwith %}
+
   <div class="max-w-4xl mx-auto">
 
     <!-- Header with Logout -->
@@ -37,20 +64,11 @@
           <span class="text-sm font-medium mt-1">Last Oiling</span>
           <span class="text-xs mt-1 {% if oil_alert %}text-red-600{% else %}text-slate-600{% endif %}">
             {% if last_oil_time %}
-              {{ last_oil_time.strftime('%b %d, %-I:%M %p') }}
+              {{ last_oil_time.strftime('%b %d') }}
             {% else %}
               Not done yet
             {% endif %}
           </span>
-
-          {# Optional: Show how late it is #}
-          {# 
-          {% if oil_alert and last_oil_time %}
-            <span class="text-xs text-red-500 mt-1">
-              Overdue by {{ ((now - last_oil_time).total_seconds() // 3600) | int }} hrs
-            </span>
-          {% endif %}
-          #}
         </button>
       </form>
 
