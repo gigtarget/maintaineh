@@ -47,7 +47,7 @@
   <!-- batches list -->
   <div class="max-w-6xl mx-auto space-y-8">
     {% for item in batches %}
-      <div class="bg-white/30 backdrop-blur-lg border border-white/20 rounded-2xl shadow-lg p-6">
+      <div class="bg-white/30 backdrop-blur-lg border border-white/20 rounded-2xl shadow-lg p-6" data-batch-id="{{ item.id }}">
         <!-- header row -->
         <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-4">
           <div>
@@ -85,6 +85,14 @@
           </div>
         </div>
 
+        <!-- Download All QRs (individual files) -->
+        <div class="flex justify-end mb-4">
+          <button onclick="downloadAllQRs({{ item.id }})"
+            class="px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-xl text-sm shadow transition">
+            ⬇️ Download All QRs
+          </button>
+        </div>
+
         <!-- QR Cards: Always correct order! -->
         <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
           {% set qr_type_order = ['master', 'service', 'sub1', 'sub2', 'sub3', 'sub4', 'sub5', 'sub6', 'sub7', 'sub8'] %}
@@ -92,7 +100,11 @@
             {% for qr in item.qrcodes if qr.qr_type == qr_type %}
               <div class="bg-white rounded-xl border border-slate-200 p-4 shadow flex flex-col items-center">
                 <!-- Clean QR Image (no circle) -->
-                <img src="{{ qr.image_url }}" alt="" class="w-full h-auto max-h-[360px] object-contain rounded-xl">
+                <img src="{{ qr.image_url }}" 
+                     alt="" 
+                     class="w-full h-auto max-h-[360px] object-contain rounded-xl qr-img-download"
+                     data-qr-url="{{ qr.image_url }}"
+                     data-qr-name="{% if qr.qr_type.startswith('sub') %}HEAD {{ qr.qr_type[3:] }}{% else %}{{ qr.qr_type.upper() }}{% endif %}.png">
                 <!-- Download buttons -->
                 <a href="{{ qr.image_url }}" download class="mt-2 px-2 py-1 text-xs rounded bg-slate-200 text-blue-800 hover:underline">⬇️ Download</a>
                 <button onclick="downloadRotatedQR('{{ qr.image_url }}', '{{ qr.qr_type }}', '{{ qr.id }}')" class="mt-2 px-2 py-1 text-xs rounded bg-blue-200 text-blue-800 hover:bg-blue-300 transition">
@@ -116,7 +128,7 @@
     {% endfor %}
   </div>
 
-  <!-- JS for Rotated Download -->
+  <!-- JS for Rotated Download + Download All -->
   <script>
     function downloadRotatedQR(imgUrl, qrType, qrId) {
       const img = new Image();
@@ -135,6 +147,24 @@
         link.click();
       };
       img.src = imgUrl;
+    }
+
+    function downloadAllQRs(batchId) {
+      // Find all QR images in this batch's card
+      const batchCard = document.querySelector(`[data-batch-id='${batchId}']`);
+      if (!batchCard) return;
+      const qrImgs = batchCard.querySelectorAll('.qr-img-download');
+      qrImgs.forEach(img => {
+        const url = img.getAttribute('data-qr-url');
+        const name = img.getAttribute('data-qr-name');
+        // Trigger download
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = name || 'qr-code.png';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      });
     }
   </script>
 
