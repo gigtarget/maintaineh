@@ -3,14 +3,12 @@ from flask import session, redirect, url_for, flash
 from flask_login import current_user
 
 def user_or_subuser_required(view_func):
-    """
-    Allows access if either a main user (Flask-Login) or a subuser (session['subuser_id']) is logged in.
-    Otherwise, redirects to user login.
-    """
     @wraps(view_func)
     def wrapper(*args, **kwargs):
+        # Main user (Flask-Login)
         if current_user.is_authenticated:
             return view_func(*args, **kwargs)
+        # Subuser (session-based)
         elif session.get('subuser_id'):
             return view_func(*args, **kwargs)
         else:
