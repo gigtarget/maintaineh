@@ -10,7 +10,7 @@ import string
 
 from app import db
 from app.utils import generate_and_store_qr_batch
-from app.decorators import subuser_required
+from app.decorators import subuser_required, user_or_subuser_required   # <-- CHANGED
 from app.models import (
     User, QRBatch, QRCode, Machine, QRTag,
     NeedleChange, ServiceLog, SubUser,
@@ -38,7 +38,7 @@ def scan_sub(sub_tag_id):
     return redirect(url_for("routes.sub_tag_options", sub_tag_id=sub_tag_id))
 
 @routes.route("/sub/<int:sub_tag_id>/choose")
-@login_required
+@user_or_subuser_required  # <-- CHANGED
 def sub_tag_options(sub_tag_id):
     sub_tag = QRTag.query.get_or_404(sub_tag_id)
     # Check for main user or subuser session
@@ -52,12 +52,17 @@ def sub_tag_options(sub_tag_id):
 
 
 @routes.route("/sub/<int:sub_tag_id>/needle-change", methods=["GET", "POST"])
-@login_required
+@user_or_subuser_required   # <-- CHANGED
 def sub_tag_view(sub_tag_id):
     sub_tag = QRTag.query.get_or_404(sub_tag_id)
     if not sub_tag.tag_type.startswith("sub"):
         flash("Invalid QR Tag. Only Sub QR tags represent machine heads.", "danger")
-        return redirect(url_for("routes.user_dashboard"))
+        # User or subuser, both should go to a generic home/dashboard
+        if hasattr(current_user, "is_authenticated") and current_user.is_authenticated and current_user.role == "user":
+            return redirect(url_for("routes.user_dashboard"))
+        elif 'subuser_id' in session:
+            return redirect(url_for("routes.subuser_dashboard"))
+        return redirect(url_for("routes.home"))
 
     if request.method == "POST":
         needle_number = int(request.form["needle_number"])
@@ -83,13 +88,18 @@ def sub_tag_view(sub_tag_id):
 
     return render_template("sub_tag_view.html", sub_tag=sub_tag, last_change_dict=last_change_dict, now=datetime.utcnow())
 
+
 @routes.route("/sub/<int:sub_tag_id>/service-log", methods=["GET", "POST"])
-@login_required
+@user_or_subuser_required    # <-- CHANGED
 def sub_tag_service_log(sub_tag_id):
     sub_tag = QRTag.query.get_or_404(sub_tag_id)
     if not sub_tag.tag_type.startswith("sub"):
         flash("Invalid QR Tag for service logging.", "danger")
-        return redirect(url_for("routes.user_dashboard"))
+        if hasattr(current_user, "is_authenticated") and current_user.is_authenticated and current_user.role == "user":
+            return redirect(url_for("routes.user_dashboard"))
+        elif 'subuser_id' in session:
+            return redirect(url_for("routes.subuser_dashboard"))
+        return redirect(url_for("routes.home"))
 
     if request.method == "POST":
         part_name = request.form.get("part_name")
@@ -122,6 +132,7 @@ def sub_tag_service_log(sub_tag_id):
 
     service_logs = ServiceLog.query.filter_by(sub_tag_id=sub_tag.id).order_by(ServiceLog.timestamp.desc()).all()
     return render_template("sub_service_log.html", sub_tag=sub_tag, logs=service_logs, now=datetime.utcnow().date())
+
 
 @routes.route("/claim/<int:batch_id>")
 @login_required
