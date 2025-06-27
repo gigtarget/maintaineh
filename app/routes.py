@@ -41,7 +41,15 @@ def scan_sub(sub_tag_id):
 @login_required
 def sub_tag_options(sub_tag_id):
     sub_tag = QRTag.query.get_or_404(sub_tag_id)
-    return render_template("sub_options.html", sub_tag=sub_tag)
+    # Check for main user or subuser session
+    if hasattr(current_user, "is_authenticated") and current_user.is_authenticated and current_user.role == "user":
+        back_url = url_for('routes.user_dashboard')
+    elif 'subuser_id' in session:
+        back_url = url_for('routes.subuser_dashboard')
+    else:
+        back_url = url_for('routes.home')  # fallback
+    return render_template("sub_options.html", sub_tag=sub_tag, back_url=back_url)
+
 
 @routes.route("/sub/<int:sub_tag_id>/needle-change", methods=["GET", "POST"])
 @login_required
