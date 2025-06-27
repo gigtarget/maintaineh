@@ -40,30 +40,31 @@ def generate_custom_qr_image(data, tag_type, logo_path='app/static/logo/qr code 
 
     base.paste(qr_img, ((img_width - qr_img.width) // 2, 60), qr_img)
 
-    # ✅ Tag type (larger font, bold, custom Agrandir font)
+    # ✅ Tag type label: "HEAD 1", "HEAD 2", ..., or "MASTER", "SERVICE"
     try:
         font = ImageFont.truetype("app/fonts/Agrandir.ttf", 70)
     except Exception as e:
         print(f"⚠️ Font load failed: {e}")
         font = ImageFont.load_default()
 
-    text = tag_type.upper()
-    bbox = font.getbbox(text)
+    # --- Updated label logic ---
+    if tag_type.lower().startswith("sub"):
+        display_text = f"HEAD {tag_type[3:]}"
+    else:
+        display_text = tag_type.upper()
+    bbox = font.getbbox(display_text)
     w = bbox[2] - bbox[0]
-    draw.text(((img_width - w) // 2, 850), text, font=font, fill="black")
+    draw.text(((img_width - w) // 2, 850), display_text, font=font, fill="black")
 
     # ✅ Logo as box image
     try:
-        # Force resize without keeping aspect ratio
         logo_img = Image.open(logo_path).convert("RGBA")
         logo_img = logo_img.resize((550, 140))  # force size
         base.paste(logo_img, ((img_width - logo_img.width) // 2, 980), logo_img)
-
     except Exception as e:
         print(f"❌ Logo error: {e}")
 
     return base.convert("RGB")
-
 
 def generate_and_store_qr_batch():
     print("👉 Creating new QR batch...")
