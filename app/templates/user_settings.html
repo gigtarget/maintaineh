@@ -86,16 +86,16 @@
             <label class="block text-sm mb-1">New Password</label>
             <div class="relative">
               <input type="password" name="password" id="passwordInput"
-                     class="w-full px-4 py-2 rounded-xl bg-white/60 border border-white/30 shadow-inner pr-12"
-                     oninput="toggleEyeIcon()">
-              <button type="button" tabindex="-1"
-                id="toggleEyeBtn"
+                     class="w-full px-4 py-2 rounded-xl bg-white/60 border border-white/30 shadow-inner pr-12">
+              <button type="button" id="passwordEyeBtn" tabindex="-1"
                 class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-blue-700"
-                onclick="togglePassword()" style="display:none;">
+                onclick="togglePassword()" style="display: none;">
+                <!-- Open Eye Icon -->
                 <svg id="eyeOpen" class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M1.5 12S5.5 5 12 5s10.5 7 10.5 7-4 7-10.5 7S1.5 12 1.5 12z"/>
                   <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2" fill="none"/>
                 </svg>
+                <!-- Closed Eye Icon -->
                 <svg id="eyeClosed" class="h-6 w-6 hidden" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M17.94 17.94A10.06 10.06 0 0 1 12 19.5c-6.5 0-10.5-7.5-10.5-7.5a17.47 17.47 0 0 1 5.4-6.13m3.17-2.17A10.06 10.06 0 0 1 12 4.5c6.5 0 10.5 7.5 10.5 7.5a17.4 17.4 0 0 1-3.1 3.57M3 3l18 18"/>
                   <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2" fill="none"/>
@@ -140,7 +140,26 @@
     // Set default tab on page load
     document.addEventListener('DOMContentLoaded', () => {
       showTab('profile');
-      toggleEyeIcon();
+
+      // Eye icon show/hide logic
+      const passwordInput = document.getElementById('passwordInput');
+      const passwordEyeBtn = document.getElementById('passwordEyeBtn');
+
+      function updateEyeVisibility() {
+        if (passwordInput.value) {
+          passwordEyeBtn.style.display = 'block';
+        } else {
+          passwordEyeBtn.style.display = 'none';
+          // Always reset eye to "open" when empty (optional, but clean)
+          document.getElementById("eyeOpen").classList.remove('hidden');
+          document.getElementById("eyeClosed").classList.add('hidden');
+          passwordInput.type = "password";
+        }
+      }
+      // Initial check
+      updateEyeVisibility();
+      passwordInput.addEventListener('input', updateEyeVisibility);
+      passwordInput.addEventListener('change', updateEyeVisibility);
     });
 
     // Toggle password visibility
@@ -157,13 +176,6 @@
         open.classList.remove('hidden');
         closed.classList.add('hidden');
       }
-    }
-
-    // Show/hide the eye icon based on password length
-    function toggleEyeIcon() {
-      const input = document.getElementById("passwordInput");
-      const btn = document.getElementById("toggleEyeBtn");
-      btn.style.display = input.value.length ? "block" : "none";
     }
   </script>
 </body>
