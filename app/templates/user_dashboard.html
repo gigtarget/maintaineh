@@ -100,6 +100,20 @@
     </div>
   {% endif %}
 
+  <!-- Add Machine Form for unregistered batches -->
+  {% for batch in batches %}
+    {% if not batch.machine %}
+      <div class="max-w-2xl mx-auto my-6 p-4 border border-blue-200 rounded-xl bg-blue-50 text-center">
+        <h2 class="text-lg font-bold mb-2 text-blue-800">No machine registered for Batch #{{ batch.id }}</h2>
+        <form method="POST" class="flex flex-col gap-2 items-center">
+          <input type="hidden" name="batch_id" value="{{ batch.id }}">
+          <input type="text" name="name" placeholder="Enter machine name" class="px-4 py-2 rounded border" required>
+          <input type="text" name="type" placeholder="Machine type (e.g. Model/Location)" class="px-4 py-2 rounded border" required>
+          <button type="submit" class="px-4 py-2 rounded bg-blue-600 text-white font-semibold hover:bg-blue-700 transition">Add Machine</button>
+        </form>
+      </div>
+    {% endif %}
+  {% endfor %}
 
   <!-- Machine Dashboard -->
   <div id="machine-dashboard" class="hidden max-w-2xl mx-auto mt-4">
