@@ -28,18 +28,15 @@ def generate_custom_qr_image(data, tag_type, logo_path='app/static/logo/qr code 
 
     draw = ImageDraw.Draw(base)
 
-    # ✅ QR Code with central hole
+    # ✅ QR Code (NO circle)
     qr = qrcode.QRCode(version=2, error_correction=qrcode.constants.ERROR_CORRECT_H, box_size=10, border=4)
     qr.add_data(data)
     qr.make(fit=True)
     qr_img = qr.make_image(fill_color="black", back_color="white").convert('RGB')
     qr_img = qr_img.resize((800, 800))
 
-    qr_mask = Image.new('L', qr_img.size, 255)
-    draw_qr_mask = ImageDraw.Draw(qr_mask)
-    cx, cy, r = qr_img.size[0] // 2, qr_img.size[1] // 2, 150  # ⬅️ same as HTML
-    draw_qr_mask.ellipse((cx - r, cy - r, cx + r, cy + r), fill=0)
-    qr_img.putalpha(qr_mask)
+    # Set QR as fully opaque (remove transparent circle!)
+    qr_img.putalpha(255)
 
     base.paste(qr_img, ((img_width - qr_img.width) // 2, 60), qr_img)
 
@@ -54,7 +51,6 @@ def generate_custom_qr_image(data, tag_type, logo_path='app/static/logo/qr code 
     bbox = font.getbbox(text)
     w = bbox[2] - bbox[0]
     draw.text(((img_width - w) // 2, 850), text, font=font, fill="black")
-
 
     # ✅ Logo as box image
     try:
