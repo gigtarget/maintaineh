@@ -86,10 +86,12 @@
             <label class="block text-sm mb-1">New Password</label>
             <div class="relative">
               <input type="password" name="password" id="passwordInput"
-                     class="w-full px-4 py-2 rounded-xl bg-white/60 border border-white/30 shadow-inner pr-12">
+                     class="w-full px-4 py-2 rounded-xl bg-white/60 border border-white/30 shadow-inner pr-12"
+                     oninput="toggleEyeIcon()">
               <button type="button" tabindex="-1"
+                id="toggleEyeBtn"
                 class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-blue-700"
-                onclick="togglePassword()">
+                onclick="togglePassword()" style="display:none;">
                 <svg id="eyeOpen" class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M1.5 12S5.5 5 12 5s10.5 7 10.5 7-4 7-10.5 7S1.5 12 1.5 12z"/>
                   <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2" fill="none"/>
@@ -138,6 +140,7 @@
     // Set default tab on page load
     document.addEventListener('DOMContentLoaded', () => {
       showTab('profile');
+      toggleEyeIcon();
     });
 
     // Toggle password visibility
@@ -154,6 +157,13 @@
         open.classList.remove('hidden');
         closed.classList.add('hidden');
       }
+    }
+
+    // Show/hide the eye icon based on password length
+    function toggleEyeIcon() {
+      const input = document.getElementById("passwordInput");
+      const btn = document.getElementById("toggleEyeBtn");
+      btn.style.display = input.value.length ? "block" : "none";
     }
   </script>
 </body>
