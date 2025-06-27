@@ -38,16 +38,16 @@ def scan_sub(sub_tag_id):
     return redirect(url_for("routes.sub_tag_options", sub_tag_id=sub_tag_id))
 
 @routes.route("/sub/<int:sub_tag_id>/choose")
-@user_or_subuser_required
+@user_or_subuser_required  # <-- CHANGED
 def sub_tag_options(sub_tag_id):
     sub_tag = QRTag.query.get_or_404(sub_tag_id)
-    # Set correct back_url based on login type
-    if hasattr(current_user, "is_authenticated") and current_user.is_authenticated and getattr(current_user, "role", None) == "user":
+    # Check for main user or subuser session
+    if hasattr(current_user, "is_authenticated") and current_user.is_authenticated and current_user.role == "user":
         back_url = url_for('routes.user_dashboard')
     elif 'subuser_id' in session:
         back_url = url_for('routes.subuser_dashboard')
     else:
-        back_url = url_for('routes.home')  # fallback, just in case
+        back_url = url_for('routes.home')  # fallback
     return render_template("sub_options.html", sub_tag=sub_tag, back_url=back_url)
 
 
