@@ -89,8 +89,15 @@
         <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
           {% for qr in item.qrcodes %}
             <div class="bg-white rounded-xl border border-slate-200 p-4 shadow flex flex-col items-center">
+              <!-- Clean QR Image (no circle) -->
               <img src="{{ qr.image_url }}" alt="" class="w-full h-auto max-h-[360px] object-contain rounded-xl">
+              
+              <!-- Download buttons -->
               <a href="{{ qr.image_url }}" download class="mt-2 px-2 py-1 text-xs rounded bg-slate-200 text-blue-800 hover:underline">⬇️ Download</a>
+              <button onclick="downloadRotatedQR('{{ qr.image_url }}', '{{ qr.qr_type }}', '{{ qr.id }}')" class="mt-2 px-2 py-1 text-xs rounded bg-blue-200 text-blue-800 hover:bg-blue-300 transition">
+                ⤴️ Download Rotated 90°
+              </button>
+
               <p class="mt-1 text-sm font-semibold text-center uppercase">{{ qr.qr_type }}</p>
               <a href="{{ qr.qr_url }}" target="_blank" class="text-xs text-blue-500 break-all underline mt-1">🔗 {{ qr.qr_url }}</a>
             </div>
@@ -101,6 +108,28 @@
       <p class="text-center text-slate-500">No batches yet.</p>
     {% endfor %}
   </div>
+
+  <!-- JS for Rotated Download -->
+  <script>
+    function downloadRotatedQR(imgUrl, qrType, qrId) {
+      const img = new Image();
+      img.crossOrigin = "anonymous"; // Ensure proper loading from cloud/CDN
+      img.onload = function() {
+        const canvas = document.createElement('canvas');
+        canvas.width = img.height;
+        canvas.height = img.width;
+        const ctx = canvas.getContext('2d');
+        ctx.translate(img.height, 0);
+        ctx.rotate(Math.PI / 2);
+        ctx.drawImage(img, 0, 0);
+        const link = document.createElement('a');
+        link.download = `${qrType || 'qr'}-rotated-${qrId || ''}.png`;
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+      };
+      img.src = imgUrl;
+    }
+  </script>
 
 </body>
 </html>
