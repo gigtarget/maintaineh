@@ -98,7 +98,13 @@
                 <button onclick="downloadRotatedQR('{{ qr.image_url }}', '{{ qr.qr_type }}', '{{ qr.id }}')" class="mt-2 px-2 py-1 text-xs rounded bg-blue-200 text-blue-800 hover:bg-blue-300 transition">
                   ⤴️ Download Rotated 90°
                 </button>
-                <p class="mt-1 text-sm font-semibold text-center uppercase">{{ qr.qr_type }}</p>
+                <p class="mt-1 text-sm font-semibold text-center uppercase">
+                  {% if qr.qr_type.startswith('sub') %}
+                    HEAD {{ qr.qr_type[3:] }}
+                  {% else %}
+                    {{ qr.qr_type.upper() }}
+                  {% endif %}
+                </p>
                 <a href="{{ qr.qr_url }}" target="_blank" class="text-xs text-blue-500 break-all underline mt-1">🔗 {{ qr.qr_url }}</a>
               </div>
             {% endfor %}
