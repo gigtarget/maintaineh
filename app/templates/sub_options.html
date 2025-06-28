@@ -14,7 +14,7 @@
     </a>
   </div>
 
-  <!-- Main Card: moved up with margin-top -->
+  <!-- Main Card -->
   <div class="bg-white/30 backdrop-blur-lg border border-white/20 shadow-lg rounded-2xl p-6 sm:p-10 w-full max-w-sm sm:max-w-md mx-auto mt-2 text-center">
 
     <!-- Logo -->
@@ -24,6 +24,13 @@
     <h2 class="text-lg sm:text-xl font-semibold text-slate-800 mb-4 sm:mb-6">
       Sub QR: {{ sub_tag.tag_type }}
     </h2>
+
+    <!-- Show user type (for debugging, optional) -->
+    {% if current_user.is_authenticated and current_user.role == "user" %}
+      <div class="mb-2 text-xs text-slate-500">Logged in as Main User</div>
+    {% elif session.subuser_id %}
+      <div class="mb-2 text-xs text-slate-500">Logged in as Sub-user</div>
+    {% endif %}
 
     <!-- Action Buttons -->
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
@@ -43,6 +50,5 @@
       </a>
     </div>
   </div>
-
 </body>
 </html>
