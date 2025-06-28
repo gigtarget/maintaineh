@@ -30,3 +30,4 @@ def user_or_subuser_required(view_func):
             flash("Please log in to continue.", "danger")
             return redirect(url_for("routes.user_login"))
     return wrapper
+    
