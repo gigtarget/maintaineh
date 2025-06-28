@@ -22,12 +22,16 @@ routes = Blueprint("routes", __name__)
 @routes.route("/")
 def home():
     return render_template("index.html")
-
 @routes.route("/scan/master/<int:batch_id>")
 def scan_master(batch_id):
+    # If a sub-user is logged in, go to sub-user dashboard
+    if 'subuser_id' in session:
+        return redirect(url_for("routes.subuser_dashboard"))
+    # If not logged in as a user, redirect to user login and claim flow
     if not current_user.is_authenticated:
         session['pending_batch_id'] = batch_id
         return redirect(url_for("routes.user_login", next=url_for("routes.claim_batch", batch_id=batch_id)))
+    # Otherwise, main user is logged in: proceed to claim batch
     return redirect(url_for("routes.claim_batch", batch_id=batch_id))
 
 @routes.route("/scan/sub/<int:sub_tag_id>")
