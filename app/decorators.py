@@ -2,6 +2,15 @@ from functools import wraps
 from flask import session, redirect, url_for, flash
 from flask_login import current_user
 
+def subuser_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if not session.get('subuser_id'):
+            flash("Please log in as sub-user", "danger")
+            return redirect(url_for("routes.subuser_login"))
+        return f(*args, **kwargs)
+    return decorated_function
+
 def user_or_subuser_required(view_func):
     """
     Allows access if either a main user (Flask-Login) or a subuser (session['subuser_id']) is logged in.
