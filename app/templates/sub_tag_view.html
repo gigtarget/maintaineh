@@ -2,208 +2,173 @@
 <html lang="en">
 <head>
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Needle Tracker</title>
+  <title>Needle Change Log</title>
+  <link href="https://fonts.googleapis.com/css?family=Inter:400,600,700&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
   <style>
     body {
-      font-family: 'Segoe UI', sans-serif;
-      background: linear-gradient(to bottom right, #e0f2fe, #ffffff);
+      font-family: 'Inter', 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #e4eeff 0%, #d6e7fa 100%);
+      min-height: 100vh;
       margin: 0;
-      padding: 0;
-      color: #1e293b;
+      color: #16213e;
     }
-
-    .header {
-      display: flex;
-      align-items: center;
-      padding: 16px 0 8px 0;
-      max-width: 480px;
-      margin: 0 auto;
+    .glass {
+      background: rgba(255,255,255,0.75);
+      backdrop-filter: blur(16px);
+      border-radius: 1.5rem;
+      box-shadow: 0 6px 32px 0 rgba(31, 68, 138, 0.10);
     }
-
-    .back-btn {
-      margin-right: 12px;
-      padding: 7px 16px;
-      border-radius: 8px;
-      border: 1px solid #38bdf8;
-      background: #f0faff;
-      color: #0284c7;
-      font-size: 14px;
-      text-decoration: none;
-      font-weight: 500;
-      transition: background 0.2s;
-    }
-    .back-btn:hover {
-      background: #bae6fd;
-      color: #0369a1;
-      border-color: #0369a1;
-    }
-
-    .header img {
-      height: 48px;
-      margin: 0 auto;
-      flex: 1;
-    }
-
-    .container {
-      max-width: 480px;
-      margin: auto;
-      padding: 16px;
-      background: rgba(255, 255, 255, 0.4);
-      backdrop-filter: blur(10px);
-      border-radius: 16px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-    }
-
-    h2 {
+    .tokatap-header {
       text-align: center;
-      font-size: 18px;
-      font-weight: 600;
-      margin-bottom: 24px;
+      padding-top: 32px;
+      padding-bottom: 8px;
     }
-
-    h3 {
-      font-size: 16px;
-      margin: 16px 0 8px;
-      font-weight: 600;
-    }
-
-    .needle-grid {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      gap: 12px;
-    }
-
     .needle-shape {
       position: relative;
-      width: 32px;
-      height: 90px;
-      background-color: white;
-      border: 2px solid #444;
-      border-radius: 10px 10px 30px 30px;
+      width: 38px;
+      height: 94px;
+      background: #fff;
+      border: 2px solid #C6D6F6;
+      border-radius: 12px 12px 32px 32px;
       text-align: center;
+      font-weight: 600;
+      font-size: 15px;
+      color: #28326e;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
       padding-top: 10px;
-      font-weight: bold;
-      font-size: 14px;
-      color: #333;
-      transition: all 0.3s ease;
+      user-select: none;
     }
-
     .needle-shape::after {
       content: "";
       position: absolute;
-      bottom: -12px;
+      bottom: -14px;
       left: 50%;
       transform: translateX(-50%);
       width: 0;
       height: 0;
-      border-left: 10px solid transparent;
-      border-right: 10px solid transparent;
-      border-top: 12px solid #444;
+      border-left: 11px solid transparent;
+      border-right: 11px solid transparent;
+      border-top: 13px solid #C6D6F6;
     }
-
     .needle-shape .date {
-      font-size: 10px;
-      line-height: 1.1;
+      font-size: 11px;
       margin-top: 6px;
+      color: #7b88c4;
+      line-height: 1.2;
     }
-
-    .needle-selected {
-      background-color: #10b981 !important;
-      color: white;
-      border-color: #10b981 !important;
+    .needle-selected, .needle-shape:hover {
+      background: #2e73fa !important;
+      color: #fff !important;
+      border-color: #2e73fa !important;
     }
-
-    .needle-selected::after {
-      border-top-color: #10b981;
+    .needle-selected::after, .needle-shape:hover::after {
+      border-top-color: #2e73fa !important;
     }
-
     .needle-stale {
-      background-color: #fff3cd;
-      border-color: #e0a800;
-      color: #856404;
+      background: #fef7e0;
+      color: #a87809;
+      border-color: #ffe187 !important;
     }
-
     .needle-stale::after {
-      border-top-color: #e0a800;
+      border-top-color: #ffe187 !important;
     }
-
-    .type-buttons {
-      display: flex;
-      justify-content: center;
-      gap: 16px;
-      margin-bottom: 20px;
-    }
-
     .type-btn {
-      width: 70px;
-      height: 40px;
-      border: 2px solid #1e293b;
-      border-radius: 8px;
-      font-size: 1rem;
+      min-width: 70px;
+      height: 44px;
+      border: 2px solid #2e73fa;
+      border-radius: 12px;
+      background: #fff;
+      color: #2e73fa;
+      font-size: 18px;
       font-weight: 600;
-      background: white;
-      color: #1e293b;
+      transition: all 0.15s;
       display: flex;
       align-items: center;
       justify-content: center;
       cursor: pointer;
     }
-
-    .type-btn.selected {
-      background-color: #0ea5e9;
-      border-color: #0ea5e9;
-      color: white;
+    .type-btn.selected, .type-btn:hover {
+      background: #2e73fa;
+      color: #fff;
+      border-color: #2e73fa;
     }
-
     #submit-btn {
       width: 100%;
       padding: 12px;
-      background-color: #1e293b;
-      color: white;
+      background: #16213e;
+      color: #fff;
       font-weight: 600;
       border: none;
-      border-radius: 10px;
-      margin-bottom: 24px;
-      font-size: 16px;
+      border-radius: 14px;
+      font-size: 17px;
+      margin: 20px 0 16px;
+      transition: background .13s;
+      box-shadow: 0 2px 12px 0 #90b9ff22;
     }
-
+    #submit-btn:hover {
+      background: #2e73fa;
+    }
     .log-box {
-      background: white;
-      border-radius: 10px;
-      padding: 16px;
-      box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+      background: rgba(255,255,255,0.88);
+      border-radius: 16px;
+      padding: 18px 18px 8px 18px;
+      margin-top: 24px;
+      box-shadow: 0 2px 14px #e5ebfa99;
     }
-
+    .log-box h3 {
+      font-size: 17px;
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: #16213e;
+    }
     .log-box ul {
       list-style: none;
       padding-left: 0;
+      margin: 0;
     }
-
     .log-box li {
-      padding: 8px;
-      border-bottom: 1px solid #eee;
-      font-size: 14px;
+      padding: 7px 0;
+      font-size: 15px;
+      border-bottom: 1px solid #eef3fa;
+      color: #27347d;
     }
-
     .log-box li:last-child {
       border-bottom: none;
+    }
+    @media (max-width: 500px) {
+      .container {
+        padding: 10px;
+      }
+      .glass {
+        border-radius: 1rem;
+      }
     }
   </style>
 </head>
 <body>
-
-  <div class="header">
-    <a href="{{ back_url }}" class="back-btn">← Dashboard</a>
-    <img src="{{ url_for('static', filename='logo/logo.svg') }}" alt="Logo" />
+  <!-- Back Button -->
+  <div class="max-w-lg mx-auto mt-6 mb-2 flex">
+    <a href="{{ back_url }}" class="inline-flex items-center px-4 py-2 border border-blue-300 text-blue-700 hover:text-white hover:bg-blue-500 rounded-xl text-base font-medium bg-white/90 transition shadow-sm">
+      &larr; Dashboard
+    </a>
   </div>
-
-  <div class="container">
-    <h2>Head {{ sub_tag.tag_type[3:] }}</h2>
-
+  <!-- Tokatap logo header -->
+  <div class="tokatap-header">
+    <img src="{{ url_for('static', filename='logo/logo.svg') }}" alt="Logo" style="height: 48px;" />
+  </div>
+  <div class="container max-w-md glass mx-auto mt-2 p-6 sm:p-10">
+    <!-- Title: "Head X" -->
+    <h2 class="text-center text-xl sm:text-2xl font-semibold mb-4 text-[#16213e]">Head {{ sub_tag.head_number if sub_tag.head_number else sub_tag.tag_type[3:] }}</h2>
+    <!-- Needle selection form -->
     <form method="POST">
-      <h3>Select Needle Number</h3>
-      <div class="needle-grid">
+      <h3 class="text-lg font-semibold mb-2">Select Needle Number</h3>
+      <div class="needle-grid flex flex-wrap justify-center gap-2 mb-6">
         {% for i in range(1, 16) %}
           {% set log = last_change_dict.get(i) %}
           {% set is_stale = log and (now - log.timestamp).days > 10 %}
@@ -215,20 +180,17 @@
           </div>
         {% endfor %}
       </div>
-
       <input type="hidden" name="needle_number" id="needle_number" required>
-      <input type="hidden" name="needle_type" id="needle_type" required>
-
-      <h3>Select Needle Type</h3>
-      <div class="type-buttons">
+      <h3 class="text-lg font-semibold mb-2">Select Needle Type</h3>
+      <div class="type-buttons flex justify-center gap-4 mb-5">
         <div class="type-btn" data-type="11">11</div>
         <div class="type-btn" data-type="12">12</div>
       </div>
-
+      <input type="hidden" name="needle_type" id="needle_type" required>
       <button type="submit" id="submit-btn">Log Needle Change</button>
     </form>
-
-    <div class="log-box">
+    <!-- Needle logs -->
+    <div class="log-box mt-3">
       <h3>Latest Changes:</h3>
       <ul>
         {% for needle in range(1, 16) %}
@@ -244,7 +206,6 @@
       </ul>
     </div>
   </div>
-
   <script>
     const needles = document.querySelectorAll('.needle-shape');
     const types = document.querySelectorAll('.type-btn');
@@ -267,6 +228,5 @@
       });
     });
   </script>
-
 </body>
 </html>
