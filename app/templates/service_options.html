@@ -27,12 +27,12 @@
 
     <!-- Actions -->
     <div class="grid grid-cols-1 gap-5">
-      <a href="{{ url_for('routes.service_log_view', service_tag_id=service_tag.id) }}"
+      <a href="{{ url_for('routes.sub_tag_service_log', sub_tag_id=service_tag.id) }}"
         class="flex flex-col items-center justify-center bg-white/60 hover:bg-blue-100 rounded-xl shadow p-4 transition border border-blue-400 hover:border-blue-600">
         <img src="{{ url_for('static', filename='emb assets/setting.png') }}" alt="Service" class="h-8 sm:h-10 mb-2">
         <span class="text-blue-700 font-semibold text-sm sm:text-base">View Service Logs</span>
       </a>
-      <a href="{{ url_for('routes.add_service_log', service_tag_id=service_tag.id) }}"
+      <a href="{{ url_for('routes.sub_tag_service_log', sub_tag_id=service_tag.id) }}"
         class="flex flex-col items-center justify-center bg-white/60 hover:bg-green-100 rounded-xl shadow p-4 transition border border-green-400 hover:border-green-600">
         <img src="{{ url_for('static', filename='emb assets/setting.png') }}" alt="Log Service" class="h-8 sm:h-10 mb-2">
         <span class="text-green-700 font-semibold text-sm sm:text-base">Log New Service</span>
