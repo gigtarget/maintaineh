@@ -917,3 +917,12 @@ def subuser_logout():
     session.pop('subuser_id', None)
     flash("Sub-user logged out.", "info")
     return redirect(url_for("routes.subuser_login"))
+
+@routes.route("/debug/session")
+def debug_session():
+    return f"""
+    current_user.is_authenticated: {getattr(current_user, 'is_authenticated', None)}<br>
+    session['subuser_id']: {session.get('subuser_id')}<br>
+    session: {dict(session)}
+    """
+
