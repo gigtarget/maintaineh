@@ -25,19 +25,15 @@
       opacity: 1;
     }
     @keyframes float {
-      0%, 100% {
-        transform: translateY(0px) translateX(0px);
-      }
-      50% {
-        transform: translateY(-6px) translateX(6px);
-      }
+      0%, 100% { transform: translateY(0px) translateX(0px);}
+      50%      { transform: translateY(-6px) translateX(6px);}
     }
     .mascot-float {
       animation: float 4s ease-in-out infinite;
     }
   </style>
 </head>
-<body class="bg-gradient-to-br from-blue-100 to-white min-h-screen p-4">
+<body class="bg-gradient-to-br from-blue-100 to-white min-h-screen p-4 relative overflow-x-hidden">
 
   <!-- ✅ Toast for successful login -->
   {% with messages = get_flashed_messages(with_categories=true) %}
@@ -57,9 +53,15 @@
     {% endfor %}
   {% endwith %}
 
-  <div class="bg-white/30 backdrop-blur-xl border border-white/20 rounded-2xl shadow-xl w-full max-w-xl mx-auto mt-10 text-center relative overflow-hidden">
+  <!-- Mascot Background -->
+  <div class="pointer-events-none select-none absolute z-0" style="left:-80px; bottom:-70px; width:280px; opacity:0.14;">
+    <img src="{{ url_for('static', filename='logo/octatoka.png') }}" alt="Tokatap Mascot" class="w-full mascot-float" draggable="false">
+  </div>
 
-    <!-- Big Logo (matches home page) -->
+  <!-- Main Card -->
+  <div class="relative z-10 bg-white/30 backdrop-blur-xl border border-white/20 rounded-2xl shadow-xl w-full max-w-xl mx-auto mt-10 text-center overflow-hidden pb-40">
+
+    <!-- Big Logo -->
     <img src="{{ url_for('static', filename='logo/logo.svg') }}" alt="Tokatap Logo" class="w-56 sm:w-64 h-auto mx-auto mt-4 object-contain">
 
     <!-- Welcome Heading -->
@@ -112,13 +114,6 @@
          class="px-4 py-1.5 bg-blue-50 border border-blue-300 text-blue-700 hover:bg-blue-100 hover:border-blue-500 font-medium rounded-full shadow-sm transition-all duration-200 text-xs">
         Sub-User Login (using code)
       </a>
-    </div>
-
-    <!-- Mascot Half Inside and Clipped (bottom left, floating) -->
-    <div class="absolute bottom-0 left-[-60px] w-48 sm:w-56 overflow-hidden">
-      <img src="{{ url_for('static', filename='logo/octatoka.png') }}"
-           alt="Tokatap Mascot"
-           class="mascot-float pointer-events-none select-none">
     </div>
   </div>
 </body>
