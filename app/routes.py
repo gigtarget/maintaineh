@@ -32,9 +32,7 @@ def scan_master(batch_id):
 
 @routes.route("/scan/sub/<int:sub_tag_id>")
 def scan_sub(sub_tag_id):
-    if not current_user.is_authenticated:
-        session['pending_sub_tag_id'] = sub_tag_id
-        return redirect(url_for("routes.user_login", next=url_for("routes.sub_tag_options", sub_tag_id=sub_tag_id)))
+    # Publicly redirect anyone (logged in or not) to the sub options page
     return redirect(url_for("routes.sub_tag_options", sub_tag_id=sub_tag_id))
 
 @routes.route("/sub/<int:sub_tag_id>/choose")
