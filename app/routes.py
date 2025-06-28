@@ -47,18 +47,18 @@ def sub_tag_options(sub_tag_id):
     elif 'subuser_id' in session:
         back_url = url_for('routes.subuser_dashboard')
     else:
-        back_url = url_for('routes.home')  # fallback, just in case
+        back_url = url_for('routes.home')
     return render_template("sub_options.html", sub_tag=sub_tag, back_url=back_url)
 
 
 @routes.route("/sub/<int:sub_tag_id>/needle-change", methods=["GET", "POST"])
-@user_or_subuser_required   # <-- CHANGED
+@user_or_subuser_required
 def sub_tag_view(sub_tag_id):
     sub_tag = QRTag.query.get_or_404(sub_tag_id)
     if not sub_tag.tag_type.startswith("sub"):
         flash("Invalid QR Tag. Only Sub QR tags represent machine heads.", "danger")
         # User or subuser, both should go to a generic home/dashboard
-        if hasattr(current_user, "is_authenticated") and current_user.is_authenticated and current_user.role == "user":
+        if hasattr(current_user, "is_authenticated") and current_user.is_authenticated and getattr(current_user, "role", None) == "user":
             return redirect(url_for("routes.user_dashboard"))
         elif 'subuser_id' in session:
             return redirect(url_for("routes.subuser_dashboard"))
@@ -86,16 +86,24 @@ def sub_tag_view(sub_tag_id):
         if log.needle_number not in last_change_dict:
             last_change_dict[log.needle_number] = log
 
-    return render_template("sub_tag_view.html", sub_tag=sub_tag, last_change_dict=last_change_dict, now=datetime.utcnow())
+    # --- BACK URL LOGIC ADDED ---
+    if hasattr(current_user, "is_authenticated") and current_user.is_authenticated and getattr(current_user, "role", None) == "user":
+        back_url = url_for('routes.user_dashboard')
+    elif 'subuser_id' in session:
+        back_url = url_for('routes.subuser_dashboard')
+    else:
+        back_url = url_for('routes.home')
+
+    return render_template("sub_tag_view.html", sub_tag=sub_tag, last_change_dict=last_change_dict, now=datetime.utcnow(), back_url=back_url)
 
 
 @routes.route("/sub/<int:sub_tag_id>/service-log", methods=["GET", "POST"])
-@user_or_subuser_required    # <-- CHANGED
+@user_or_subuser_required
 def sub_tag_service_log(sub_tag_id):
     sub_tag = QRTag.query.get_or_404(sub_tag_id)
     if not sub_tag.tag_type.startswith("sub"):
         flash("Invalid QR Tag for service logging.", "danger")
-        if hasattr(current_user, "is_authenticated") and current_user.is_authenticated and current_user.role == "user":
+        if hasattr(current_user, "is_authenticated") and current_user.is_authenticated and getattr(current_user, "role", None) == "user":
             return redirect(url_for("routes.user_dashboard"))
         elif 'subuser_id' in session:
             return redirect(url_for("routes.subuser_dashboard"))
@@ -131,8 +139,16 @@ def sub_tag_service_log(sub_tag_id):
         return redirect(url_for("routes.sub_tag_service_log", sub_tag_id=sub_tag_id))
 
     service_logs = ServiceLog.query.filter_by(sub_tag_id=sub_tag.id).order_by(ServiceLog.timestamp.desc()).all()
-    return render_template("sub_service_log.html", sub_tag=sub_tag, logs=service_logs, now=datetime.utcnow().date())
 
+    # --- BACK URL LOGIC ADDED ---
+    if hasattr(current_user, "is_authenticated") and current_user.is_authenticated and getattr(current_user, "role", None) == "user":
+        back_url = url_for('routes.user_dashboard')
+    elif 'subuser_id' in session:
+        back_url = url_for('routes.subuser_dashboard')
+    else:
+        back_url = url_for('routes.home')
+
+    return render_template("sub_service_log.html", sub_tag=sub_tag, logs=service_logs, now=datetime.utcnow().date(), back_url=back_url)
 
 @routes.route("/claim/<int:batch_id>")
 @login_required
