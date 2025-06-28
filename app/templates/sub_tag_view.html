@@ -11,76 +11,75 @@
       padding: 0;
       color: #1e293b;
     }
-    .header {
+
+    .topbar {
       display: flex;
       align-items: center;
       justify-content: space-between;
       max-width: 480px;
-      margin: 0 auto 0 auto;
-      padding: 20px 8px 8px 8px;
-    }
-    .logo {
-      height: 44px;
-      margin-left: 8px;
+      margin: 0 auto;
+      padding: 10px 16px 0 16px;
     }
     .back-btn {
-      display: inline-block;
-      padding: 8px 18px;
-      font-size: 1rem;
-      color: #2563eb;
-      border: 1.5px solid #93c5fd;
-      background: #fff;
-      border-radius: 12px;
-      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      font-size: 15px;
       font-weight: 500;
-      transition: all 0.13s;
-      box-shadow: 0 2px 8px 0 #dbeafe44;
+      color: #0284c7;
+      background: #e0f2fe;
+      border: 1.5px solid #0284c7;
+      border-radius: 8px;
+      padding: 5px 14px 5px 8px;
+      text-decoration: none;
+      transition: background .17s, border-color .17s, color .17s;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.04);
     }
     .back-btn:hover {
-      background: #2563eb;
-      color: #fff;
-      border-color: #2563eb;
+      background: #bae6fd;
+      color: #0369a1;
+      border-color: #0369a1;
     }
-    @media (max-width: 600px) {
-      .header {
-        max-width: 100vw;
-        padding: 10px 4px 8px 4px;
-      }
-      .logo {
-        height: 32px;
-        margin-left: 4px;
-      }
-      .back-btn {
-        font-size: 15px;
-        padding: 7px 12px;
-      }
+    .back-btn .arrow {
+      margin-right: 7px;
+      font-size: 18px;
+      font-weight: bold;
     }
+    .logo-right {
+      height: 38px;
+      margin-left: auto;
+      display: block;
+    }
+
     .container {
       max-width: 480px;
-      margin: auto;
+      margin: 16px auto;
       padding: 16px;
       background: rgba(255, 255, 255, 0.4);
       backdrop-filter: blur(10px);
       border-radius: 16px;
       box-shadow: 0 4px 12px rgba(0,0,0,0.08);
     }
+
     h2 {
       text-align: center;
       font-size: 18px;
       font-weight: 600;
       margin-bottom: 24px;
     }
+
     h3 {
       font-size: 16px;
       margin: 16px 0 8px;
       font-weight: 600;
     }
+
     .needle-grid {
       display: flex;
       flex-wrap: wrap;
       justify-content: center;
       gap: 12px;
     }
+
     .needle-shape {
       position: relative;
       width: 32px;
@@ -93,8 +92,9 @@
       font-weight: bold;
       font-size: 14px;
       color: #333;
-      transition: all 0.3s ease;
+      transition: background 0.25s, color 0.25s, border-color 0.25s, transform 0.15s;
     }
+
     .needle-shape::after {
       content: "";
       position: absolute;
@@ -107,35 +107,52 @@
       border-right: 10px solid transparent;
       border-top: 12px solid #444;
     }
+
     .needle-shape .date {
       font-size: 10px;
       line-height: 1.1;
       margin-top: 6px;
     }
+
     .needle-selected {
       background-color: #10b981 !important;
       color: white;
       border-color: #10b981 !important;
+      z-index: 1;
+      box-shadow: 0 4px 16px 0 rgba(16, 185, 129, 0.13);
+      animation: selectPop .22s cubic-bezier(.52,1.48,.6,1.03);
+      transform: scale(1.08);
     }
+
     .needle-selected::after {
       border-top-color: #10b981;
     }
+
     .needle-stale {
       background-color: #fff3cd;
       border-color: #e0a800;
       color: #856404;
     }
+
     .needle-stale::after {
       border-top-color: #e0a800;
     }
+
+    @keyframes selectPop {
+      0% { transform: scale(1); }
+      70% { transform: scale(1.13); }
+      100% { transform: scale(1.08); }
+    }
+
     .type-buttons {
       display: flex;
       justify-content: center;
-      gap: 16px;
+      gap: 12px;
       margin-bottom: 20px;
     }
+
     .type-btn {
-      width: 70px;
+      width: 58px;
       height: 40px;
       border: 2px solid #1e293b;
       border-radius: 8px;
@@ -147,12 +164,18 @@
       align-items: center;
       justify-content: center;
       cursor: pointer;
+      transition: background 0.25s, color 0.25s, border-color 0.25s, transform 0.15s;
     }
+
     .type-btn.selected {
       background-color: #0ea5e9;
       border-color: #0ea5e9;
       color: white;
+      box-shadow: 0 3px 12px 0 rgba(14, 165, 233, 0.12);
+      animation: selectPop .20s cubic-bezier(.52,1.48,.6,1.03);
+      transform: scale(1.1);
     }
+
     #submit-btn {
       width: 100%;
       padding: 12px;
@@ -164,40 +187,59 @@
       margin-bottom: 24px;
       font-size: 16px;
     }
+
     .log-box {
       background: white;
       border-radius: 10px;
       padding: 16px;
       box-shadow: 0 1px 4px rgba(0,0,0,0.1);
     }
+
     .log-box ul {
       list-style: none;
       padding-left: 0;
     }
+
     .log-box li {
       padding: 8px;
       border-bottom: 1px solid #eee;
       font-size: 14px;
     }
+
     .log-box li:last-child {
       border-bottom: none;
+    }
+
+    /* Mobile tweaks */
+    @media (max-width: 500px) {
+      .topbar, .container {
+        max-width: 100vw !important;
+        border-radius: 0;
+      }
+      .container {
+        margin: 8px 0 0 0;
+        padding: 10px 2vw;
+      }
+      .logo-right { height: 30px; }
+    }
+
+    .note-bottom {
+      color: #64748b;
+      font-size: 12px;
+      margin-top: 28px;
+      text-align: center;
     }
   </style>
 </head>
 <body>
-  <div class="header">
-    <a href="{{ back_url }}" class="back-btn">&larr; Dashboard</a>
-    <img src="{{ url_for('static', filename='logo/logo.svg') }}" class="logo" alt="Logo" />
+
+  <div class="topbar">
+    <a href="{{ back_url }}" class="back-btn"><span class="arrow">&#8592;</span>Back to Dashboard</a>
+    <img src="{{ url_for('static', filename='logo/logo.svg') }}" alt="Logo" class="logo-right" />
   </div>
+
   <div class="container">
-    <h2>
-      Head 
-      {%- if sub_tag.head_number is defined and sub_tag.head_number %}
-        {{ sub_tag.head_number }}
-      {%- else %}
-        {{ sub_tag.tag_type[3:] }}
-      {%- endif %}
-    </h2>
+    <h2>Head {{ sub_tag.tag_type|replace("sub ", "") }}</h2>
 
     <form method="POST">
       <h3>Select Needle Number</h3>
@@ -213,17 +255,21 @@
           </div>
         {% endfor %}
       </div>
+
       <input type="hidden" name="needle_number" id="needle_number" required>
       <input type="hidden" name="needle_type" id="needle_type" required>
+
       <h3>Select Needle Type</h3>
       <div class="type-buttons">
-        <div class="type-btn" data-type="11">9</div>
-        <div class="type-btn" data-type="12">11</div>
-        <div class="type-btn" data-type="14">12</div>
-        <div class="type-btn" data-type="16">14</div>
+        <div class="type-btn" data-type="9">9</div>
+        <div class="type-btn" data-type="11">11</div>
+        <div class="type-btn" data-type="12">12</div>
+        <div class="type-btn" data-type="14">14</div>
       </div>
+
       <button type="submit" id="submit-btn">Log Needle Change</button>
     </form>
+
     <div class="log-box">
       <h3>Latest Changes:</h3>
       <ul>
@@ -239,7 +285,11 @@
         {% endfor %}
       </ul>
     </div>
+    <div class="note-bottom">
+      * Needle sizes are American system (smaller number = thicker needle)
+    </div>
   </div>
+
   <script>
     const needles = document.querySelectorAll('.needle-shape');
     const types = document.querySelectorAll('.type-btn');
@@ -262,5 +312,6 @@
       });
     });
   </script>
+
 </body>
 </html>
