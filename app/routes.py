@@ -37,18 +37,23 @@ def scan_sub(sub_tag_id):
         return redirect(url_for("routes.user_login", next=url_for("routes.sub_tag_options", sub_tag_id=sub_tag_id)))
     return redirect(url_for("routes.sub_tag_options", sub_tag_id=sub_tag_id))
 
-@routes.route("/sub/<int:sub_tag_id>/choose")
-@user_or_subuser_required
-def sub_tag_options(sub_tag_id):
-    sub_tag = QRTag.query.get_or_404(sub_tag_id)
-    # Set correct back_url based on login type
-    if hasattr(current_user, "is_authenticated") and current_user.is_authenticated and getattr(current_user, "role", None) == "user":
-        back_url = url_for('routes.user_dashboard')
-    elif 'subuser_id' in session:
-        back_url = url_for('routes.subuser_dashboard')
-    else:
-        back_url = url_for('routes.home')
-    return render_template("sub_options.html", sub_tag=sub_tag, back_url=back_url)
+def user_or_subuser_required(view_func):
+    @wraps(view_func)
+    def wrapper(*args, **kwargs):
+        print("==== DEBUG: user_or_subuser_required ====")
+        print("current_user.is_authenticated:", current_user.is_authenticated)
+        print("session.get('subuser_id'):", session.get('subuser_id'))
+        print("session contents:", dict(session))
+        print("==== END DEBUG ====")
+        if current_user.is_authenticated:
+            return view_func(*args, **kwargs)
+        elif session.get('subuser_id'):
+            return view_func(*args, **kwargs)
+        else:
+            flash("Please log in to continue.", "danger")
+            return redirect(url_for("routes.user_login"))
+    return wrapper
+
 
 
 @routes.route("/sub/<int:sub_tag_id>/needle-change", methods=["GET", "POST"])
