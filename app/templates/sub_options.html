@@ -7,13 +7,6 @@
 </head>
 <body class="bg-gradient-to-br from-blue-100 to-white min-h-screen px-2 py-6">
 
-  <!-- DEBUG BAR (optional, for development only) -->
-  <!--
-  <div style="background: #fff7b2; color: #c00; font-weight: bold; padding: 4px; border: 1px solid #c90;">
-    DEBUG: session.subuser_id = {{ session.subuser_id }}, current_user.is_authenticated = {{ current_user.is_authenticated }}
-  </div>
-  -->
-
   <!-- Back Button -->
   <div class="max-w-sm sm:max-w-md w-full mx-auto mt-2 mb-2 px-1">
     <a href="{{ back_url }}" class="inline-flex items-center px-4 py-1.5 border border-blue-400 text-blue-600 hover:text-blue-800 rounded-xl text-sm font-medium hover:bg-blue-50 transition shadow-sm">
@@ -27,21 +20,23 @@
     <!-- Logo -->
     <img src="{{ url_for('static', filename='logo/logo.svg') }}" class="mx-auto h-10 sm:h-14 mb-4 sm:mb-6" alt="Logo">
     
-    <!-- Sub QR Info -->
+    <!-- Head Info (simple, clean) -->
     <h2 class="text-lg sm:text-xl font-semibold text-slate-800 mb-4 sm:mb-6">
-      Sub QR: {{ sub_tag.tag_type }}
+      {% if sub_tag.tag_type.startswith('sub') %}
+        Head: {{ sub_tag.tag_type.replace('sub', '').strip() }}
+      {% else %}
+        {{ sub_tag.tag_type|capitalize }} Tag
+      {% endif %}
     </h2>
 
     <!-- Action Buttons - always visible -->
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
-
       <!-- Needle Change -->
       <a href="{{ url_for('routes.sub_tag_view', sub_tag_id=sub_tag.id) }}"
         class="flex flex-col items-center justify-center bg-white/60 hover:bg-green-100 rounded-xl shadow p-4 transition border border-green-400 hover:border-green-600">
         <img src="{{ url_for('static', filename='emb assets/needle.png') }}" alt="Needle" class="h-8 sm:h-10 mb-2">
         <span class="text-green-700 font-semibold text-sm sm:text-base">Needle Change</span>
       </a>
-
       <!-- Service Part -->
       <a href="{{ url_for('routes.sub_tag_service_log', sub_tag_id=sub_tag.id) }}"
         class="flex flex-col items-center justify-center bg-white/60 hover:bg-blue-100 rounded-xl shadow p-4 transition border border-blue-400 hover:border-blue-600">
