@@ -12,12 +12,10 @@ def subuser_required(f):
     return decorated_function
 
 def user_or_subuser_required(view_func):
-    """
-    Allows access if either a main user (Flask-Login) or a subuser (session['subuser_id']) is logged in.
-    Otherwise, redirects to user login.
-    """
     @wraps(view_func)
     def wrapper(*args, **kwargs):
+        print("DEBUG: current_user.is_authenticated:", current_user.is_authenticated)
+        print("DEBUG: session.get('subuser_id'):", session.get('subuser_id'))
         if current_user.is_authenticated:
             return view_func(*args, **kwargs)
         elif session.get('subuser_id'):
@@ -26,3 +24,4 @@ def user_or_subuser_required(view_func):
             flash("Please log in to continue.", "danger")
             return redirect(url_for("routes.user_login"))
     return wrapper
+
