@@ -915,6 +915,31 @@ def scan_service(service_tag_id):
         back_url=back_url
     )
 
+@routes.route("/service/<int:service_tag_id>/logs")
+def service_log_view(service_tag_id):
+    service_tag = QRTag.query.get_or_404(service_tag_id)
+    # Fetch all service logs for this service tag
+    logs = ServiceLog.query.filter_by(sub_tag_id=service_tag_id).order_by(ServiceLog.timestamp.desc()).all()
+    return render_template("service_logs.html", service_tag=service_tag, logs=logs)
+
+@routes.route("/service/<int:service_tag_id>/add", methods=["GET", "POST"])
+def add_service_log(service_tag_id):
+    service_tag = QRTag.query.get_or_404(service_tag_id)
+    if request.method == "POST":
+        description = request.form.get("description")
+        if not description:
+            flash("Description is required", "danger")
+        else:
+            log = ServiceLog(
+                sub_tag_id=service_tag_id,
+                description=description,
+                timestamp=datetime.utcnow()
+            )
+            db.session.add(log)
+            db.session.commit()
+            flash("Service log added!", "success")
+            return redirect(url_for('routes.service_log_view', service_tag_id=service_tag_id))
+    return render_template("add_service_log.html", service_tag=service_tag)
 
 # ---- Main User Logout ----
 @routes.route("/logout")
