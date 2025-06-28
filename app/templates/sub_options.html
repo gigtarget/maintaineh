@@ -7,10 +7,12 @@
 </head>
 <body class="bg-gradient-to-br from-blue-100 to-white min-h-screen px-2 py-6">
 
-  <!-- DEBUG BAR: Shows your session/subuser info at the top -->
+  <!-- DEBUG BAR (optional, for development only) -->
+  <!--
   <div style="background: #fff7b2; color: #c00; font-weight: bold; padding: 4px; border: 1px solid #c90;">
     DEBUG: session.subuser_id = {{ session.subuser_id }}, current_user.is_authenticated = {{ current_user.is_authenticated }}
   </div>
+  -->
 
   <!-- Back Button -->
   <div class="max-w-sm sm:max-w-md w-full mx-auto mt-2 mb-2 px-1">
@@ -30,34 +32,23 @@
       Sub QR: {{ sub_tag.tag_type }}
     </h2>
 
-    <!-- Show user type (for debugging, optional) -->
-    {% if current_user.is_authenticated and current_user.role == "user" %}
-      <div class="mb-2 text-xs text-slate-500">Logged in as Main User</div>
-    {% elif session.subuser_id %}
-      <div class="mb-2 text-xs text-slate-500">Logged in as Sub-user</div>
-    {% endif %}
+    <!-- Action Buttons - always visible -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
 
-    {% if current_user.is_authenticated or session.subuser_id %}
-      <!-- Action Buttons -->
-      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+      <!-- Needle Change -->
+      <a href="{{ url_for('routes.sub_tag_view', sub_tag_id=sub_tag.id) }}"
+        class="flex flex-col items-center justify-center bg-white/60 hover:bg-green-100 rounded-xl shadow p-4 transition border border-green-400 hover:border-green-600">
+        <img src="{{ url_for('static', filename='emb assets/needle.png') }}" alt="Needle" class="h-8 sm:h-10 mb-2">
+        <span class="text-green-700 font-semibold text-sm sm:text-base">Needle Change</span>
+      </a>
 
-        <!-- Needle Change -->
-        <a href="{{ url_for('routes.sub_tag_view', sub_tag_id=sub_tag.id) }}"
-          class="flex flex-col items-center justify-center bg-white/60 hover:bg-green-100 rounded-xl shadow p-4 transition border border-green-400 hover:border-green-600">
-          <img src="{{ url_for('static', filename='emb assets/needle.png') }}" alt="Needle" class="h-8 sm:h-10 mb-2">
-          <span class="text-green-700 font-semibold text-sm sm:text-base">Needle Change</span>
-        </a>
-
-        <!-- Service Part -->
-        <a href="{{ url_for('routes.sub_tag_service_log', sub_tag_id=sub_tag.id) }}"
-          class="flex flex-col items-center justify-center bg-white/60 hover:bg-blue-100 rounded-xl shadow p-4 transition border border-blue-400 hover:border-blue-600">
-          <img src="{{ url_for('static', filename='emb assets/setting.png') }}" alt="Setting" class="h-8 sm:h-10 mb-2">
-          <span class="text-blue-700 font-semibold text-sm sm:text-base">Service Part</span>
-        </a>
-      </div>
-    {% else %}
-      <div class="mt-6 text-red-600 text-sm font-semibold">Please log in as a user or sub-user to access actions.</div>
-    {% endif %}
+      <!-- Service Part -->
+      <a href="{{ url_for('routes.sub_tag_service_log', sub_tag_id=sub_tag.id) }}"
+        class="flex flex-col items-center justify-center bg-white/60 hover:bg-blue-100 rounded-xl shadow p-4 transition border border-blue-400 hover:border-blue-600">
+        <img src="{{ url_for('static', filename='emb assets/setting.png') }}" alt="Setting" class="h-8 sm:h-10 mb-2">
+        <span class="text-blue-700 font-semibold text-sm sm:text-base">Service Part</span>
+      </a>
+    </div>
   </div>
 </body>
 </html>
