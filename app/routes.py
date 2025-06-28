@@ -38,7 +38,6 @@ def scan_sub(sub_tag_id):
     return redirect(url_for("routes.sub_tag_options", sub_tag_id=sub_tag_id))
 
 @routes.route("/sub/<int:sub_tag_id>/choose")
-@user_or_subuser_required
 def sub_tag_options(sub_tag_id):
     sub_tag = QRTag.query.get_or_404(sub_tag_id)
     # Set correct back_url based on login type
@@ -52,7 +51,6 @@ def sub_tag_options(sub_tag_id):
 
 
 @routes.route("/sub/<int:sub_tag_id>/needle-change", methods=["GET", "POST"])
-@user_or_subuser_required
 def sub_tag_view(sub_tag_id):
     sub_tag = QRTag.query.get_or_404(sub_tag_id)
     # --- Permission check REMOVED: all subusers can access all heads ---
@@ -105,7 +103,6 @@ def sub_tag_view(sub_tag_id):
 
 
 @routes.route("/sub/<int:sub_tag_id>/service-log", methods=["GET", "POST"])
-@user_or_subuser_required
 def sub_tag_service_log(sub_tag_id):
     sub_tag = QRTag.query.get_or_404(sub_tag_id)
     # --- Permission check REMOVED: all subusers can access all heads ---
