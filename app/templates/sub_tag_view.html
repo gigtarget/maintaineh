@@ -100,6 +100,14 @@
       border-right: 10px solid transparent;
       border-top: 12px solid #444;
     }
+    .needle-number-top {
+      font-size: 15px;
+      font-weight: 600;
+      color: #222;
+      margin-bottom: 1px;
+      letter-spacing: 0.5px;
+      /* no circle, just plain */
+    }
     .needle-shape .date {
       font-size: 10px;
       line-height: 1.1;
@@ -108,7 +116,7 @@
     .needle-badge-inside {
       position: absolute;
       left: 50%;
-      bottom: 8px;    /* INSIDE the needle, not at the tip! */
+      bottom: 8px;
       transform: translateX(-50%);
       background: #111;
       color: #fff;
@@ -245,6 +253,7 @@
           {% set log = last_change_dict.get(i) %}
           {% set is_stale = log and (now - log.timestamp).days > 10 %}
           <div class="needle-shape {% if is_stale %}needle-stale{% endif %}" data-id="{{ i }}">
+            <div class="needle-number-top">{{ i }}</div>
             {% if log %}
               <div class="date">{{ log.timestamp.strftime('%d') }}<br>{{ log.timestamp.strftime('%b') }}</div>
               <div class="needle-badge-inside">{{ log.needle_type }}</div>
