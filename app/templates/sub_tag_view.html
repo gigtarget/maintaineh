@@ -11,7 +11,6 @@
       padding: 0;
       color: #1e293b;
     }
-
     .topbar {
       display: flex;
       align-items: center;
@@ -49,7 +48,6 @@
       margin-left: auto;
       display: block;
     }
-
     .container {
       max-width: 480px;
       margin: 16px auto;
@@ -59,27 +57,23 @@
       border-radius: 16px;
       box-shadow: 0 4px 12px rgba(0,0,0,0.08);
     }
-
     h2 {
       text-align: center;
       font-size: 18px;
       font-weight: 600;
       margin-bottom: 24px;
     }
-
     h3 {
       font-size: 16px;
       margin: 16px 0 8px;
       font-weight: 600;
     }
-
     .needle-grid {
       display: flex;
       flex-wrap: wrap;
       justify-content: center;
       gap: 12px;
     }
-
     .needle-shape {
       position: relative;
       width: 32px;
@@ -94,7 +88,6 @@
       color: #333;
       transition: background 0.25s, color 0.25s, border-color 0.25s, transform 0.15s;
     }
-
     .needle-shape::after {
       content: "";
       position: absolute;
@@ -107,13 +100,11 @@
       border-right: 10px solid transparent;
       border-top: 12px solid #444;
     }
-
     .needle-shape .date {
       font-size: 10px;
       line-height: 1.1;
       margin-top: 6px;
     }
-
     .needle-badge-inside {
       position: absolute;
       left: 50%;
@@ -134,7 +125,6 @@
       z-index: 3;
       pointer-events: none;
     }
-
     .needle-selected {
       background-color: #10b981 !important;
       color: white;
@@ -144,34 +134,28 @@
       animation: selectPop .22s cubic-bezier(.52,1.48,.6,1.03);
       transform: scale(1.08);
     }
-
     .needle-selected::after {
       border-top-color: #10b981;
     }
-
     .needle-stale {
       background-color: #fff3cd;
       border-color: #e0a800;
       color: #856404;
     }
-
     .needle-stale::after {
       border-top-color: #e0a800;
     }
-
     @keyframes selectPop {
       0% { transform: scale(1); }
       70% { transform: scale(1.13); }
       100% { transform: scale(1.08); }
     }
-
     .type-buttons {
       display: flex;
       justify-content: center;
       gap: 12px;
       margin-bottom: 20px;
     }
-
     .type-btn {
       width: 58px;
       height: 40px;
@@ -187,7 +171,6 @@
       cursor: pointer;
       transition: background 0.25s, color 0.25s, border-color 0.25s, transform 0.15s;
     }
-
     .type-btn.selected {
       background-color: #0ea5e9;
       border-color: #0ea5e9;
@@ -196,7 +179,6 @@
       animation: selectPop .20s cubic-bezier(.52,1.48,.6,1.03);
       transform: scale(1.1);
     }
-
     #submit-btn {
       width: 100%;
       padding: 12px;
@@ -208,29 +190,24 @@
       margin-bottom: 24px;
       font-size: 16px;
     }
-
     .log-box {
       background: white;
       border-radius: 10px;
       padding: 16px;
       box-shadow: 0 1px 4px rgba(0,0,0,0.1);
     }
-
     .log-box ul {
       list-style: none;
       padding-left: 0;
     }
-
     .log-box li {
       padding: 8px;
       border-bottom: 1px solid #eee;
       font-size: 14px;
     }
-
     .log-box li:last-child {
       border-bottom: none;
     }
-
     /* Mobile tweaks */
     @media (max-width: 500px) {
       .topbar, .container {
@@ -243,7 +220,6 @@
       }
       .logo-right { height: 30px; }
     }
-
     .note-bottom {
       color: #64748b;
       font-size: 12px;
@@ -271,8 +247,8 @@
           <div class="needle-shape {% if is_stale %}needle-stale{% endif %}" data-id="{{ i }}">
             {% if log %}
               <div class="date">{{ log.timestamp.strftime('%d') }}<br>{{ log.timestamp.strftime('%b') }}</div>
+              <div class="needle-badge-inside">{{ log.needle_type }}</div>
             {% endif %}
-            <div class="needle-badge-inside">{{ i }}</div>
           </div>
         {% endfor %}
       </div>
