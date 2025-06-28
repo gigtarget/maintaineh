@@ -24,6 +24,17 @@
     .toast.show {
       opacity: 1;
     }
+    @keyframes float {
+      0%, 100% {
+        transform: translateY(0px) translateX(0px);
+      }
+      50% {
+        transform: translateY(-6px) translateX(6px);
+      }
+    }
+    .mascot-float {
+      animation: float 4s ease-in-out infinite;
+    }
   </style>
 </head>
 <body class="bg-gradient-to-br from-blue-100 to-white min-h-screen p-4">
@@ -46,10 +57,10 @@
     {% endfor %}
   {% endwith %}
 
-  <div class="bg-white/30 backdrop-blur-xl border border-white/20 rounded-2xl shadow-xl w-full max-w-sm mx-auto mt-10 text-center">
+  <div class="bg-white/30 backdrop-blur-xl border border-white/20 rounded-2xl shadow-xl w-full max-w-xl mx-auto mt-10 text-center relative overflow-hidden">
 
-    <!-- Logo -->
-    <img src="{{ url_for('static', filename='logo/logo.svg') }}" alt="Tokatap Logo" class="w-20 h-auto mx-auto mt-4 object-contain">
+    <!-- Big Logo (matches home page) -->
+    <img src="{{ url_for('static', filename='logo/logo.svg') }}" alt="Tokatap Logo" class="w-56 sm:w-64 h-auto mx-auto mt-4 object-contain">
 
     <!-- Welcome Heading -->
     <h2 class="text-2xl font-bold text-slate-800 mt-2">Welcome</h2>
@@ -103,9 +114,11 @@
       </a>
     </div>
 
-    <!-- Mascot -->
-    <div class="mt-6 mb-4">
-      <img src="{{ url_for('static', filename='logo/octatoka.png') }}" alt="Tokatap Mascot" class="w-28 h-auto mx-auto">
+    <!-- Mascot Half Inside and Clipped (bottom left, floating) -->
+    <div class="absolute bottom-0 left-[-60px] w-48 sm:w-56 overflow-hidden">
+      <img src="{{ url_for('static', filename='logo/octatoka.png') }}"
+           alt="Tokatap Mascot"
+           class="mascot-float pointer-events-none select-none">
     </div>
   </div>
 </body>
