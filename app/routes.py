@@ -107,8 +107,8 @@ def sub_tag_view(sub_tag_id):
 def sub_tag_service_log(sub_tag_id):
     sub_tag = QRTag.query.get_or_404(sub_tag_id)
 
-    # Only allow service logs for sub-tags
-    if not sub_tag.tag_type.startswith("sub"):
+    # Allow both "sub" and "service" tag types for service logging
+    if not (sub_tag.tag_type.startswith("sub") or sub_tag.tag_type.startswith("service")):
         flash("Invalid QR Tag for service logging.", "danger")
         if current_user.is_authenticated and getattr(current_user, "role", None) == "user":
             return redirect(url_for("routes.user_dashboard"))
@@ -163,6 +163,7 @@ def sub_tag_service_log(sub_tag_id):
         now=datetime.utcnow().date(),
         back_url=back_url
     )
+
 
 @routes.route("/claim/<int:batch_id>")
 @login_required
