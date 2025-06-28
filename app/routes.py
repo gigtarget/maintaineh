@@ -103,15 +103,14 @@ def sub_tag_view(sub_tag_id):
         back_url=back_url
     )
 
-
 @routes.route("/sub/<int:sub_tag_id>/service-log", methods=["GET", "POST"])
 def sub_tag_service_log(sub_tag_id):
     sub_tag = QRTag.query.get_or_404(sub_tag_id)
-    # --- Permission check REMOVED: all subusers can access all heads ---
 
+    # Only allow service logs for sub-tags
     if not sub_tag.tag_type.startswith("sub"):
         flash("Invalid QR Tag for service logging.", "danger")
-        if hasattr(current_user, "is_authenticated") and current_user.is_authenticated and getattr(current_user, "role", None) == "user":
+        if current_user.is_authenticated and getattr(current_user, "role", None) == "user":
             return redirect(url_for("routes.user_dashboard"))
         elif 'subuser_id' in session:
             return redirect(url_for("routes.subuser_dashboard"))
@@ -146,18 +145,24 @@ def sub_tag_service_log(sub_tag_id):
         flash(f"Logged replacement for '{part_name}' successfully!", "success")
         return redirect(url_for("routes.sub_tag_service_log", sub_tag_id=sub_tag_id))
 
+    # Fetch logs
     service_logs = ServiceLog.query.filter_by(sub_tag_id=sub_tag.id).order_by(ServiceLog.timestamp.desc()).all()
 
     # Back URL logic
-    if hasattr(current_user, "is_authenticated") and current_user.is_authenticated and getattr(current_user, "role", None) == "user":
+    if current_user.is_authenticated and getattr(current_user, "role", None) == "user":
         back_url = url_for('routes.user_dashboard')
     elif 'subuser_id' in session:
         back_url = url_for('routes.subuser_dashboard')
     else:
         back_url = url_for('routes.home')
 
-    return render_template("sub_service_log.html", sub_tag=sub_tag, logs=service_logs, now=datetime.utcnow().date(), back_url=back_url)
-
+    return render_template(
+        "sub_service_log.html",
+        sub_tag=sub_tag,
+        logs=service_logs,
+        now=datetime.utcnow().date(),
+        back_url=back_url
+    )
 
 @routes.route("/claim/<int:batch_id>")
 @login_required
