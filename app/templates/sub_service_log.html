@@ -9,7 +9,7 @@
 <body class="bg-gradient-to-br from-blue-100 to-white min-h-screen px-4 py-6">
 
   <div class="max-w-md sm:max-w-2xl mx-auto bg-white/30 backdrop-blur-xl p-6 sm:p-8 rounded-2xl shadow-xl">
-    
+
     <!-- Logo -->
     <img src="{{ url_for('static', filename='logo/logo.svg') }}" class="h-12 sm:h-14 mx-auto mb-4">
 
@@ -18,7 +18,7 @@
       Sub QR: {{ sub_tag.tag_type }} | Log Component
     </h2>
 
-    <!-- User type info (optional, for clarity) -->
+    <!-- User type info -->
     <div class="mb-3 text-center text-xs text-slate-500">
       {% if current_user.is_authenticated and current_user.role == "user" %}
         Main User Access
@@ -27,7 +27,16 @@
       {% endif %}
     </div>
 
-    <!-- Form -->
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% for category, message in messages %}
+        <div class="mb-4 text-center text-sm font-semibold {% if category == 'success' %}text-green-700{% else %}text-red-600{% endif %}">
+          {{ message }}
+        </div>
+      {% endfor %}
+    {% endwith %}
+
+    <!-- Service Log Form -->
     <form method="POST" class="space-y-4">
       <div>
         <label class="block text-sm font-medium text-slate-700 mb-1">Part Name</label>
@@ -55,21 +64,27 @@
     </form>
 
     <!-- Logs -->
-    {% if logs %}
-    <div class="mt-8 sm:mt-10">
+    <div class="mt-10">
       <h3 class="text-base sm:text-lg font-semibold mb-3">Recent Logs</h3>
+      {% if logs %}
       <ul class="space-y-3">
         {% for log in logs %}
         <li class="bg-white/40 border border-white/20 p-4 rounded-xl text-sm text-slate-800 shadow-sm">
-          <p class="font-bold">{{ log.part_name }}</p>
-          <p class="text-slate-600">{{ log.description or 'No details' }}</p>
-          <p class="text-slate-500">Warranty: <span class="font-medium">{{ log.warranty_till.strftime('%d %b %Y') if log.warranty_till else 'N/A' }}</span></p>
-          <p class="text-slate-500">Logged: <span class="font-medium">{{ log.timestamp.strftime('%Y-%m-%d %H:%M') }}</span></p>
+          <div class="font-bold">{{ log.part_name }}</div>
+          <div class="text-slate-600">{{ log.description or 'No details' }}</div>
+          <div class="text-slate-500">Warranty:
+            <span class="font-medium">{{ log.warranty_till.strftime('%d %b %Y') if log.warranty_till else 'N/A' }}</span>
+          </div>
+          <div class="text-slate-500">Logged:
+            <span class="font-medium">{{ log.timestamp.strftime('%Y-%m-%d %H:%M') }}</span>
+          </div>
         </li>
         {% endfor %}
       </ul>
+      {% else %}
+        <div class="text-center text-slate-500 py-6">No service logs yet.</div>
+      {% endif %}
     </div>
-    {% endif %}
 
     <!-- Back Button -->
     <div class="mt-8 text-center">
