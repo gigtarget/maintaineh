@@ -21,7 +21,6 @@
       opacity: 0;
       transition: opacity 0.5s ease;
     }
-
     .toast.show {
       opacity: 1;
     }
@@ -94,6 +93,14 @@
     <div class="mt-6 text-sm text-slate-600">
       <p>New user? <a href="{{ url_for('routes.user_signup') }}" class="text-blue-600 hover:underline">Sign up here</a></p>
       <p class="mt-2"><a href="{{ url_for('routes.home') }}" class="text-blue-600 hover:underline">← Back to Home</a></p>
+    </div>
+
+    <!-- Sub-User Login Button -->
+    <div class="flex justify-end mt-4 px-4">
+      <a href="{{ url_for('routes.subuser_login') }}"
+         class="px-4 py-1.5 bg-blue-50 border border-blue-300 text-blue-700 hover:bg-blue-100 hover:border-blue-500 font-medium rounded-full shadow-sm transition-all duration-200 text-xs">
+        Sub-User Login (using code)
+      </a>
     </div>
 
     <!-- Mascot -->
