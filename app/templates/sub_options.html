@@ -7,6 +7,11 @@
 </head>
 <body class="bg-gradient-to-br from-blue-100 to-white min-h-screen px-2 py-6">
 
+  <!-- DEBUG BAR: Shows your session/subuser info at the top -->
+  <div style="background: #fff7b2; color: #c00; font-weight: bold; padding: 4px; border: 1px solid #c90;">
+    DEBUG: session.subuser_id = {{ session.subuser_id }}, current_user.is_authenticated = {{ current_user.is_authenticated }}
+  </div>
+
   <!-- Back Button -->
   <div class="max-w-sm sm:max-w-md w-full mx-auto mt-2 mb-2 px-1">
     <a href="{{ back_url }}" class="inline-flex items-center px-4 py-1.5 border border-blue-400 text-blue-600 hover:text-blue-800 rounded-xl text-sm font-medium hover:bg-blue-50 transition shadow-sm">
