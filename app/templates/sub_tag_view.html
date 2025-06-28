@@ -13,12 +13,35 @@
     }
 
     .header {
-      text-align: center;
-      padding: 16px 0 8px;
+      display: flex;
+      align-items: center;
+      padding: 16px 0 8px 0;
+      max-width: 480px;
+      margin: 0 auto;
+    }
+
+    .back-btn {
+      margin-right: 12px;
+      padding: 7px 16px;
+      border-radius: 8px;
+      border: 1px solid #38bdf8;
+      background: #f0faff;
+      color: #0284c7;
+      font-size: 14px;
+      text-decoration: none;
+      font-weight: 500;
+      transition: background 0.2s;
+    }
+    .back-btn:hover {
+      background: #bae6fd;
+      color: #0369a1;
+      border-color: #0369a1;
     }
 
     .header img {
       height: 48px;
+      margin: 0 auto;
+      flex: 1;
     }
 
     .container {
@@ -171,11 +194,12 @@
 <body>
 
   <div class="header">
+    <a href="{{ back_url }}" class="back-btn">← Dashboard</a>
     <img src="{{ url_for('static', filename='logo/logo.svg') }}" alt="Logo" />
   </div>
 
   <div class="container">
-    <h2>Batch {{ sub_tag.batch.id }} – Sub QR: {{ sub_tag.tag_type }}</h2>
+    <h2>Head {{ sub_tag.tag_type[3:] }}</h2>
 
     <form method="POST">
       <h3>Select Needle Number</h3>
