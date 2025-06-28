@@ -55,13 +55,8 @@ def sub_tag_options(sub_tag_id):
 @user_or_subuser_required
 def sub_tag_view(sub_tag_id):
     sub_tag = QRTag.query.get_or_404(sub_tag_id)
-    # Only allow subuser if assigned to this machine/head
-    if 'subuser_id' in session:
-        subuser = SubUser.query.get(session['subuser_id'])
-        # Only allow if subuser assigned to this machine
-        if subuser and sub_tag.batch.machine.id != subuser.assigned_machine_id:
-            flash("Access denied: This head is not assigned to you.", "danger")
-            return redirect(url_for("routes.subuser_dashboard"))
+    # --- Permission check REMOVED: all subusers can access all heads ---
+
     if not sub_tag.tag_type.startswith("sub"):
         flash("Invalid QR Tag. Only Sub QR tags represent machine heads.", "danger")
         if hasattr(current_user, "is_authenticated") and current_user.is_authenticated and getattr(current_user, "role", None) == "user":
@@ -100,7 +95,13 @@ def sub_tag_view(sub_tag_id):
     else:
         back_url = url_for('routes.home')
 
-    return render_template("sub_tag_view.html", sub_tag=sub_tag, last_change_dict=last_change_dict, now=datetime.utcnow(), back_url=back_url)
+    return render_template(
+        "sub_tag_view.html",
+        sub_tag=sub_tag,
+        last_change_dict=last_change_dict,
+        now=datetime.utcnow(),
+        back_url=back_url
+    )
 
 
 @routes.route("/sub/<int:sub_tag_id>/service-log", methods=["GET", "POST"])
