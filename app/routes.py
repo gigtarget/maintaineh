@@ -898,6 +898,24 @@ def resolve_service_request(request_id):
     return redirect(url_for("routes.user_dashboard"))
 
 
+
+@routes.route("/scan/service/<int:service_tag_id>")
+def scan_service(service_tag_id):
+    service_tag = QRTag.query.get_or_404(service_tag_id)
+    # Determine who is logged in for proper back URL
+    if 'subuser_id' in session:
+        back_url = url_for('routes.subuser_dashboard')
+    elif current_user.is_authenticated:
+        back_url = url_for('routes.user_dashboard')
+    else:
+        back_url = url_for('routes.home')
+    return render_template(
+        "service_options.html",
+        service_tag=service_tag,
+        back_url=back_url
+    )
+
+
 # ---- Main User Logout ----
 @routes.route("/logout")
 @login_required
