@@ -18,6 +18,15 @@
       Sub QR: {{ sub_tag.tag_type }} | Log Component
     </h2>
 
+    <!-- User type info (optional, for clarity) -->
+    <div class="mb-3 text-center text-xs text-slate-500">
+      {% if current_user.is_authenticated and current_user.role == "user" %}
+        Main User Access
+      {% elif session.subuser_id %}
+        Sub-user Access
+      {% endif %}
+    </div>
+
     <!-- Form -->
     <form method="POST" class="space-y-4">
       <div>
@@ -62,7 +71,13 @@
     </div>
     {% endif %}
 
+    <!-- Back Button -->
+    <div class="mt-8 text-center">
+      <a href="{{ back_url }}"
+         class="inline-block px-5 py-2 rounded-xl border border-blue-400 bg-white/70 text-blue-700 hover:bg-blue-50 shadow transition text-sm font-semibold">
+        ← Back to Dashboard
+      </a>
+    </div>
   </div>
-
 </body>
 </html>
