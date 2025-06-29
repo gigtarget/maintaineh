@@ -108,6 +108,7 @@ def sub_tag_service_log(sub_tag_id):
     from datetime import datetime
 
     sub_tag = QRTag.query.get_or_404(sub_tag_id)
+    batch_id = sub_tag.batch.id
 
     # Allow both "sub" and "service" tag types for service logging
     if not (sub_tag.tag_type.startswith("sub") or sub_tag.tag_type.startswith("service")):
@@ -118,7 +119,12 @@ def sub_tag_service_log(sub_tag_id):
             return redirect(url_for("routes.subuser_dashboard"))
         return redirect(url_for("routes.home"))
 
+    # Find main service tag and all heads (sub tags) for this batch
+    service_tag = QRTag.query.filter_by(batch_id=batch_id, tag_type='service').first()
+    sub_tags = QRTag.query.filter(QRTag.batch_id == batch_id, QRTag.tag_type.startswith('sub')).all()
+
     if request.method == "POST":
+        selected_tag_id = int(request.form.get("belongs_to"))
         part_name = request.form.get("part_name")
         description = request.form.get("description")
         warranty_str = request.form.get("warranty_till")
@@ -135,8 +141,8 @@ def sub_tag_service_log(sub_tag_id):
                 return redirect(url_for("routes.sub_tag_service_log", sub_tag_id=sub_tag_id))
 
         log = ServiceLog(
-            batch_id=sub_tag.batch.id,
-            sub_tag_id=sub_tag.id,
+            batch_id=batch_id,
+            sub_tag_id=selected_tag_id,  # <-- user's selection
             part_name=part_name,
             description=description,
             warranty_till=warranty_till,
@@ -147,31 +153,21 @@ def sub_tag_service_log(sub_tag_id):
         flash(f"Logged replacement for '{part_name}' successfully!", "success")
         return redirect(url_for("routes.sub_tag_service_log", sub_tag_id=sub_tag_id))
 
-    # ---- Fetch logs for this tag as before ----
-    service_logs = ServiceLog.query.filter_by(sub_tag_id=sub_tag.id).order_by(ServiceLog.timestamp.desc()).all()
+    # Logs for all tags (machine and heads) for this batch
+    all_tags = [service_tag] + list(sub_tags) if service_tag else list(sub_tags)
+    all_tag_ids = [t.id for t in all_tags]
+    all_logs = (
+        ServiceLog.query
+        .filter(ServiceLog.sub_tag_id.in_(all_tag_ids))
+        .order_by(ServiceLog.timestamp.desc())
+        .all()
+    )
+    # Attach sub_tag for log label
+    for log in all_logs:
+        if not hasattr(log, "sub_tag") or log.sub_tag is None:
+            log.sub_tag = QRTag.query.get(log.sub_tag_id)
 
-    # ---- Fetch logs for ALL HEADS/SERVICE TAGS of this machine (same batch) ----
-    # Get the machine by batch (assuming 1 machine per batch, adjust if needed)
-    machine = Machine.query.filter_by(batch_id=sub_tag.batch.id).first()
-    if machine:
-        # Get all QRTag ids for this batch (all heads/service tags)
-        all_sub_tags = QRTag.query.filter_by(batch_id=machine.batch_id).all()
-        all_tag_ids = [t.id for t in all_sub_tags]
-        # Fetch all service logs for all heads/tags of this machine, newest first
-        all_logs = (
-            ServiceLog.query
-            .filter(ServiceLog.sub_tag_id.in_(all_tag_ids))
-            .order_by(ServiceLog.timestamp.desc())
-            .all()
-        )
-        # Attach sub_tag objects to each log (if not automatically loaded)
-        for log in all_logs:
-            if not hasattr(log, "sub_tag") or log.sub_tag is None:
-                log.sub_tag = QRTag.query.get(log.sub_tag_id)
-    else:
-        all_logs = []
-    
-    # ---- Back URL logic ----
+    # Back URL logic
     if current_user.is_authenticated and getattr(current_user, "role", None) == "user":
         back_url = url_for('routes.user_dashboard')
     elif 'subuser_id' in session:
@@ -182,8 +178,9 @@ def sub_tag_service_log(sub_tag_id):
     return render_template(
         "sub_service_log.html",
         sub_tag=sub_tag,
-        logs=service_logs,      # (individual tag logs, if you want)
-        all_logs=all_logs,      # (logs for all heads, for the bottom list)
+        service_tag=service_tag,
+        sub_tags=sub_tags,
+        all_logs=all_logs,
         now=datetime.utcnow(),
         back_url=back_url
     )
