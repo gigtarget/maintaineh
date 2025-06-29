@@ -105,6 +105,8 @@ def sub_tag_view(sub_tag_id):
 
 @routes.route("/sub/<int:sub_tag_id>/service-log", methods=["GET", "POST"])
 def sub_tag_service_log(sub_tag_id):
+    from datetime import datetime
+
     sub_tag = QRTag.query.get_or_404(sub_tag_id)
 
     # Allow both "sub" and "service" tag types for service logging
@@ -145,10 +147,31 @@ def sub_tag_service_log(sub_tag_id):
         flash(f"Logged replacement for '{part_name}' successfully!", "success")
         return redirect(url_for("routes.sub_tag_service_log", sub_tag_id=sub_tag_id))
 
-    # Fetch logs
+    # ---- Fetch logs for this tag as before ----
     service_logs = ServiceLog.query.filter_by(sub_tag_id=sub_tag.id).order_by(ServiceLog.timestamp.desc()).all()
 
-    # Back URL logic
+    # ---- Fetch logs for ALL HEADS/SERVICE TAGS of this machine (same batch) ----
+    # Get the machine by batch (assuming 1 machine per batch, adjust if needed)
+    machine = Machine.query.filter_by(batch_id=sub_tag.batch.id).first()
+    if machine:
+        # Get all QRTag ids for this batch (all heads/service tags)
+        all_sub_tags = QRTag.query.filter_by(batch_id=machine.batch_id).all()
+        all_tag_ids = [t.id for t in all_sub_tags]
+        # Fetch all service logs for all heads/tags of this machine, newest first
+        all_logs = (
+            ServiceLog.query
+            .filter(ServiceLog.sub_tag_id.in_(all_tag_ids))
+            .order_by(ServiceLog.timestamp.desc())
+            .all()
+        )
+        # Attach sub_tag objects to each log (if not automatically loaded)
+        for log in all_logs:
+            if not hasattr(log, "sub_tag") or log.sub_tag is None:
+                log.sub_tag = QRTag.query.get(log.sub_tag_id)
+    else:
+        all_logs = []
+    
+    # ---- Back URL logic ----
     if current_user.is_authenticated and getattr(current_user, "role", None) == "user":
         back_url = url_for('routes.user_dashboard')
     elif 'subuser_id' in session:
@@ -159,11 +182,11 @@ def sub_tag_service_log(sub_tag_id):
     return render_template(
         "sub_service_log.html",
         sub_tag=sub_tag,
-        logs=service_logs,
-        now=datetime.utcnow().date(),
+        logs=service_logs,      # (individual tag logs, if you want)
+        all_logs=all_logs,      # (logs for all heads, for the bottom list)
+        now=datetime.utcnow(),
         back_url=back_url
     )
-
 
 @routes.route("/claim/<int:batch_id>")
 @login_required
