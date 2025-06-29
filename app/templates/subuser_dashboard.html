@@ -152,7 +152,7 @@
             {% if qr.qr_type == 'master' %}
               {% set url = url_for('routes.machine_dashboard', machine_id=machine.id) %}
             {% elif qr.qr_type == 'service' %}
-              {% set url = url_for('routes.service_tag', tag_id=qr.id) %}
+              {% set url = url_for('routes.service_log_view', service_tag_id=qr.id) %}
             {% elif qr.qr_type.startswith('sub') %}
               {% set tag = tags | selectattr("qr_code_id", "equalto", qr.id) | list | first %}
               {% if tag %}
@@ -261,3 +261,4 @@
   </script>
 </body>
 </html>
+
