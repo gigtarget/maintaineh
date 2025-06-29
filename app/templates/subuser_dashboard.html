@@ -104,7 +104,7 @@
             </span>
           </button>
         </form>
-        <button onclick="toggleInfo('info-sub-oil')" class="absolute top-2 right-2 text-slate-400 hover:text-blue-700 text-xs transition">
+        <button onclick="toggleInfo('info-sub-oil')" class="info-btn absolute top-2 right-2 text-slate-400 hover:text-blue-700 text-xs transition">
           <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
             <circle cx="12" cy="12" r="10"/>
             <line x1="12" y1="16" x2="12" y2="12"/>
@@ -150,7 +150,7 @@
             </span>
           </button>
         </form>
-        <button onclick="toggleInfo('info-sub-lube')" class="absolute top-2 right-2 text-slate-400 hover:text-blue-700 text-xs transition">
+        <button onclick="toggleInfo('info-sub-lube')" class="info-btn absolute top-2 right-2 text-slate-400 hover:text-blue-700 text-xs transition">
           <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
             <circle cx="12" cy="12" r="10"/>
             <line x1="12" y1="16" x2="12" y2="12"/>
@@ -180,7 +180,7 @@
             </span>
           </button>
         </form>
-        <button onclick="toggleInfo('info-sub-service')" class="absolute top-2 right-2 text-slate-400 hover:text-blue-700 text-xs transition">
+        <button onclick="toggleInfo('info-sub-service')" class="info-btn absolute top-2 right-2 text-slate-400 hover:text-blue-700 text-xs transition">
           <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
             <circle cx="12" cy="12" r="10"/>
             <line x1="12" y1="16" x2="12" y2="12"/>
@@ -234,16 +234,26 @@
       document.getElementById('serviceModalBackdrop').classList.add('hidden');
     }
 
-    // Tooltip Logic
+    // Tooltip Logic - robust SVG/btn handling
     function toggleInfo(id) {
       const el = document.getElementById(id);
       const allInfos = document.querySelectorAll('[id^="info-sub-"]');
       allInfos.forEach(i => { if (i.id !== id) i.classList.add('hidden'); });
       el.classList.toggle('hidden');
     }
+
     document.addEventListener('click', function(e) {
+      // Detect if clicked element or any parent has 'info-btn' class
+      let el = e.target;
+      let isButton = false;
+      while (el) {
+        if (el.classList && el.classList.contains('info-btn')) {
+          isButton = true;
+          break;
+        }
+        el = el.parentElement;
+      }
       const isInfo = e.target.closest('[id^="info-sub-"]');
-      const isButton = e.target.tagName === 'BUTTON' && e.target.innerText === 'ℹ️';
       if (!isInfo && !isButton) {
         document.querySelectorAll('[id^="info-sub-"]').forEach(el => el.classList.add('hidden'));
       }
