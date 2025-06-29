@@ -42,6 +42,8 @@ def scan_sub(sub_tag_id):
 @routes.route("/sub/<int:sub_tag_id>/choose")
 def sub_tag_options(sub_tag_id):
     sub_tag = QRTag.query.get_or_404(sub_tag_id)
+    # Get the machine from the batch_id
+    machine = Machine.query.filter_by(batch_id=sub_tag.batch_id).first()
     # Set correct back_url based on login type
     if hasattr(current_user, "is_authenticated") and current_user.is_authenticated and getattr(current_user, "role", None) == "user":
         back_url = url_for('routes.user_dashboard')
@@ -49,7 +51,8 @@ def sub_tag_options(sub_tag_id):
         back_url = url_for('routes.subuser_dashboard')
     else:
         back_url = url_for('routes.home')
-    return render_template("sub_options.html", sub_tag=sub_tag, back_url=back_url)
+    # Pass machine to template
+    return render_template("sub_options.html", sub_tag=sub_tag, machine=machine, back_url=back_url)
 
 
 @routes.route("/sub/<int:sub_tag_id>/needle-change", methods=["GET", "POST"])
