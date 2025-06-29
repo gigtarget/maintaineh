@@ -5,10 +5,47 @@
   <title>Sub-user Dashboard</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Heroicons CDN for outline icons -->
+  <link href="https://unpkg.com/@tabler/icons@1.39.1/iconfont/tabler-icons.min.css" rel="stylesheet">
+  <style>
+    body {
+      background: radial-gradient(ellipse at top left, #f8fafc 60%, #e3e9f7 100%);
+    }
+    .glass-card {
+      background: rgba(255,255,255,0.9);
+      border: 1.5px solid #e5e7eb;
+      border-radius: 20px;
+      box-shadow: 0 2px 12px 0 rgba(0,0,0,0.04);
+      transition: box-shadow .2s;
+    }
+    .glass-card:hover {
+      box-shadow: 0 4px 20px 0 rgba(0,0,0,0.09);
+      border-color: #cbd5e1;
+    }
+    .icon-lg {
+      font-size: 2.7rem;
+      color: #475569;
+      margin-bottom: 0.5rem;
+    }
+    .info-btn {
+      position: absolute;
+      top: 0.7rem;
+      right: 0.8rem;
+      font-size: 1.1rem;
+      color: #94a3b8;
+      cursor: pointer;
+      background: none;
+      border: none;
+      transition: color .18s;
+    }
+    .info-btn:hover {
+      color: #64748b;
+    }
+  </style>
 </head>
-<body class="bg-gradient-to-br from-blue-100 to-white min-h-screen text-gray-800 p-4">
+<body class="min-h-screen text-gray-800 p-4">
 
-  <!-- ✅ Flash Toast Notification -->
+  <!-- Flash Toast Notification -->
   {% with messages = get_flashed_messages(with_categories=true) %}
     {% if messages %}
       <div id="toast-container" class="fixed top-4 right-4 space-y-3 z-50">
@@ -38,130 +75,109 @@
   <div class="max-w-4xl mx-auto">
 
     <!-- Header with Logout -->
-    <div class="flex items-center justify-between mb-6">
+    <div class="flex items-center justify-between mb-8">
       <div>
-        <h1 class="text-2xl sm:text-3xl font-bold text-slate-800">Welcome, {{ subuser.name }}</h1>
-        <p class="text-sm text-slate-600">Machine Access Panel for: <strong>{{ machine.name }}</strong> ({{ machine.type }})</p>
+        <h1 class="text-3xl font-bold text-slate-800">Welcome, {{ subuser.name }}</h1>
+        <p class="text-base text-slate-500 mt-1">Machine Access Panel for: <strong>{{ machine.name }}</strong> ({{ machine.type }})</p>
       </div>
-      <a href="{{ url_for('routes.subuser_logout') }}" class="bg-red-500 text-white px-4 py-2 rounded-lg shadow hover:bg-red-600 transition">
+      <a href="{{ url_for('routes.subuser_logout') }}" class="bg-red-500/90 hover:bg-red-600 transition text-white font-semibold px-5 py-2 rounded-xl shadow">
         Logout
       </a>
     </div>
 
-    <!-- Smart Action Buttons -->
-    <div class="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-8">
-
-      <!-- Oiling Button with Tooltip -->
-      <div class="relative">
-        <form method="POST" action="{{ url_for('routes.subuser_action', type='oil') }}">
-          <button class="w-full px-4 py-3 rounded-xl shadow-sm flex flex-col items-center justify-center
-            {% if oil_alert %}
-              bg-red-100 text-red-700 border border-red-300 hover:bg-red-200
+    <!-- Professional Cards Row -->
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-12">
+      <!-- Oiling Card -->
+      <div class="glass-card relative px-8 py-8 flex flex-col items-center text-center">
+        <i class="ti ti-barrel icon-lg"></i>
+        <div class="font-semibold text-xl text-slate-700 mt-1 mb-0.5">Last Oiling</div>
+        <div class="text-gray-500 text-base mb-1">
+          {% if last_oil_time %}
+            {% set diff = (now - last_oil_time).total_seconds() %}
+            {% if diff < 86400 %}
+              Done {{ (diff // 3600)|int }} hours ago
             {% else %}
-              bg-green-100 text-green-700 border border-green-300 hover:bg-green-200
+              Done {{ (diff // 86400)|int }} days ago
             {% endif %}
-            transition duration-200">
-            <span class="text-xl">🛢️</span>
-            <span class="text-sm font-medium mt-1">Last Oiling</span>
-            <span class="text-xs mt-1 {% if oil_alert %}text-red-600{% else %}text-slate-600{% endif %}">
-              {% if last_oil_time %}
-                {% set diff = (now - last_oil_time).total_seconds() %}
-                {% if diff < 86400 %}
-                  Done {{ (diff // 3600)|int }} hours ago
-                {% else %}
-                  Done {{ (diff // 86400)|int }} days ago
-                {% endif %}
-              {% else %}
-                Not done yet
-              {% endif %}
-            </span>
-          </button>
-        </form>
-        <button onclick="toggleInfo('info-sub-oil')" class="absolute top-2 right-2 text-blue-600 hover:text-blue-800 text-xs">ℹ️</button>
-        <div id="info-sub-oil" class="absolute z-10 bg-white border border-gray-300 text-xs text-gray-700 rounded-md p-3 shadow-lg w-56 hidden">
+          {% else %}
+            Not done yet
+          {% endif %}
+        </div>
+        <button onclick="toggleInfo('info-sub-oil')" class="info-btn" title="More info">
+          <i class="ti ti-info-circle"></i>
+        </button>
+        <div id="info-sub-oil" class="absolute z-20 bg-white border border-gray-300 text-xs text-gray-700 rounded-md p-3 shadow-lg w-56 hidden left-1/2 -translate-x-1/2 mt-2">
           Clicking this logs the oiling and starts a 12-hour countdown. It will auto-mark overdue if not clicked again within 12 hours.
         </div>
       </div>
-
-      <!-- Lube Button with Tooltip -->
-      <div class="relative">
-        <form method="POST" action="{{ url_for('routes.subuser_action', type='lube') }}">
-          <button class="w-full px-4 py-3 rounded-xl shadow-sm flex flex-col items-center justify-center
-            {% if lube_alert %}
-              bg-red-100 text-red-700 border border-red-300 hover:bg-red-200
+      <!-- Lube Card -->
+      <div class="glass-card relative px-8 py-8 flex flex-col items-center text-center">
+        <i class="ti ti-droplet icon-lg"></i>
+        <div class="font-semibold text-xl text-slate-700 mt-1 mb-0.5">Last Lubrication</div>
+        <div class="text-gray-500 text-base mb-1">
+          {% if last_lube_time %}
+            {% set diff = (now - last_lube_time).total_seconds() %}
+            {% if diff < 86400 %}
+              Done {{ (diff // 3600)|int }} hours ago
             {% else %}
-              bg-green-100 text-green-700 border border-green-300 hover:bg-green-200
+              Done {{ (diff // 86400)|int }} days ago
             {% endif %}
-            transition duration-200">
-            <span class="text-xl">🧴</span>
-            <span class="text-sm font-medium mt-1">Last Lubrication</span>
-            <span class="text-xs mt-1 {% if lube_alert %}text-red-600{% else %}text-slate-600{% endif %}">
-              {% if last_lube_time %}
-                {% set diff = (now - last_lube_time).total_seconds() %}
-                {% if diff < 86400 %}
-                  Done {{ (diff // 3600)|int }} hours ago
-                {% else %}
-                  Done {{ (diff // 86400)|int }} days ago
-                {% endif %}
-              {% else %}
-                Not done yet
-              {% endif %}
-            </span>
-          </button>
-        </form>
-        <button onclick="toggleInfo('info-sub-lube')" class="absolute top-2 right-2 text-blue-600 hover:text-blue-800 text-xs">ℹ️</button>
-        <div id="info-sub-lube" class="absolute z-10 bg-white border border-gray-300 text-xs text-gray-700 rounded-md p-3 shadow-lg w-56 hidden">
+          {% else %}
+            Not done yet
+          {% endif %}
+        </div>
+        <button onclick="toggleInfo('info-sub-lube')" class="info-btn" title="More info">
+          <i class="ti ti-info-circle"></i>
+        </button>
+        <div id="info-sub-lube" class="absolute z-20 bg-white border border-gray-300 text-xs text-gray-700 rounded-md p-3 shadow-lg w-56 hidden left-1/2 -translate-x-1/2 mt-2">
           Clicking this logs the lubrication and starts a weekly timer. It will auto-mark overdue if not updated within 6 days.
         </div>
       </div>
-
-      <!-- Raise Service Button with Tooltip -->
-      <div class="relative">
-        <form onsubmit="openModal(); return false;">
-          <button type="button" onclick="openModal()" class="w-full px-4 py-3 rounded-xl border border-yellow-300 bg-yellow-100 text-yellow-800 shadow-sm hover:bg-yellow-200 transition duration-200 flex flex-col items-center justify-center">
-            <span class="text-xl">🚨</span>
-            <span class="text-sm font-medium mt-1">Raise Service</span>
-            <span class="text-xs opacity-80">Manual Alert</span>
+      <!-- Service Card -->
+      <div class="glass-card relative px-8 py-8 flex flex-col items-center text-center">
+        <form onsubmit="openModal(); return false;" class="contents">
+          <button type="button" onclick="openModal()" class="focus:outline-none flex flex-col items-center w-full">
+            <i class="ti ti-alert-triangle icon-lg"></i>
+            <div class="font-semibold text-xl text-slate-700 mt-1 mb-0.5">Raise Service</div>
+            <div class="text-gray-500 text-base mb-1">Manual Alert</div>
           </button>
         </form>
-        <button onclick="toggleInfo('info-sub-service')" class="absolute top-2 right-2 text-blue-600 hover:text-blue-800 text-xs">ℹ️</button>
-        <div id="info-sub-service" class="absolute z-10 bg-white border border-gray-300 text-xs text-gray-700 rounded-md p-3 shadow-lg w-56 hidden">
+        <button onclick="toggleInfo('info-sub-service')" class="info-btn" title="More info">
+          <i class="ti ti-info-circle"></i>
+        </button>
+        <div id="info-sub-service" class="absolute z-20 bg-white border border-gray-300 text-xs text-gray-700 rounded-md p-3 shadow-lg w-56 hidden left-1/2 -translate-x-1/2 mt-2">
           Opens a modal to submit an issue description. Your request will appear for the main user to review.
         </div>
       </div>
     </div>
 
+    <!-- Service Modal -->
+    <div id="serviceModalBackdrop" class="fixed inset-0 bg-black/50 hidden z-40" onclick="closeModal()"></div>
+    <div id="serviceModal" class="fixed top-1/2 left-1/2 z-50 transform -translate-x-1/2 -translate-y-1/2 bg-white rounded-xl shadow-lg p-6 w-full max-w-md hidden">
+      <h2 class="text-lg font-semibold mb-4 text-slate-800">Raise a Service Request</h2>
+      <form method="POST" action="{{ url_for('routes.subuser_action', type='service') }}">
+        <div class="mb-4">
+          <label for="machine" class="block text-sm font-medium text-slate-700 mb-1">Select Machine</label>
+          <select id="machine" name="machine_id" required class="w-full border border-slate-300 rounded-lg px-3 py-2">
+            <option value="{{ machine.id }}">{{ machine.name }} ({{ machine.type }})</option>
+          </select>
+        </div>
+        <div class="mb-4">
+          <label for="heads" class="block text-sm font-medium text-slate-700 mb-1">Number of Heads</label>
+          <input type="number" id="heads" name="heads" min="1" max="15" required class="w-full border border-slate-300 rounded-lg px-3 py-2" />
+        </div>
+        <div class="mb-4">
+          <label for="issue" class="block text-sm font-medium text-slate-700 mb-1">Issue Description</label>
+          <textarea id="issue" name="message" rows="3" required class="w-full border border-slate-300 rounded-lg px-3 py-2"></textarea>
+        </div>
+        <div class="flex justify-between mt-6">
+          <button type="button" onclick="closeModal()" class="bg-slate-200 text-slate-800 px-4 py-2 rounded hover:bg-slate-300">Cancel</button>
+          <button type="submit" class="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600">Submit</button>
+        </div>
+      </form>
+    </div>
   </div>
 
-  <!-- Modal Backdrop -->
-  <div id="serviceModalBackdrop" class="fixed inset-0 bg-black/50 hidden z-40" onclick="closeModal()"></div>
-
-  <!-- Modal -->
-  <div id="serviceModal" class="fixed top-1/2 left-1/2 z-50 transform -translate-x-1/2 -translate-y-1/2 bg-white rounded-xl shadow-lg p-6 w-full max-w-md hidden">
-    <h2 class="text-lg font-semibold mb-4 text-slate-800">Raise a Service Request</h2>
-    <form method="POST" action="{{ url_for('routes.subuser_action', type='service') }}">
-      <div class="mb-4">
-        <label for="machine" class="block text-sm font-medium text-slate-700 mb-1">Select Machine</label>
-        <select id="machine" name="machine_id" required class="w-full border border-slate-300 rounded-lg px-3 py-2">
-          <option value="{{ machine.id }}">{{ machine.name }} ({{ machine.type }})</option>
-        </select>
-      </div>
-      <div class="mb-4">
-        <label for="heads" class="block text-sm font-medium text-slate-700 mb-1">Number of Heads</label>
-        <input type="number" id="heads" name="heads" min="1" max="15" required class="w-full border border-slate-300 rounded-lg px-3 py-2" />
-      </div>
-      <div class="mb-4">
-        <label for="issue" class="block text-sm font-medium text-slate-700 mb-1">Issue Description</label>
-        <textarea id="issue" name="message" rows="3" required class="w-full border border-slate-300 rounded-lg px-3 py-2"></textarea>
-      </div>
-      <div class="flex justify-between mt-6">
-        <button type="button" onclick="closeModal()" class="bg-slate-200 text-slate-800 px-4 py-2 rounded hover:bg-slate-300">Cancel</button>
-        <button type="submit" class="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600">Submit</button>
-      </div>
-    </form>
-  </div>
-
-  <!-- Modal & Tooltip Scripts -->
   <script>
     // Modal
     function openModal() {
@@ -182,7 +198,7 @@
     }
     document.addEventListener('click', function(e) {
       const isInfo = e.target.closest('[id^="info-sub-"]');
-      const isButton = e.target.tagName === 'BUTTON' && e.target.innerText === 'ℹ️';
+      const isButton = e.target.classList.contains('info-btn') || e.target.closest('.info-btn');
       if (!isInfo && !isButton) {
         document.querySelectorAll('[id^="info-sub-"]').forEach(el => el.classList.add('hidden'));
       }
