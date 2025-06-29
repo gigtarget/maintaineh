@@ -2,9 +2,25 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Log Service Part</title>
+  <title>Log Repaired Part</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    .expand-form {
+      transition: max-height 0.3s cubic-bezier(.4,0,.2,1);
+      overflow: hidden;
+    }
+    .expand-form.collapsed {
+      max-height: 0;
+      padding-top: 0 !important;
+      padding-bottom: 0 !important;
+    }
+    .expand-form.expanded {
+      max-height: 800px;
+      padding-top: 1.5rem;
+      padding-bottom: 1.5rem;
+    }
+  </style>
 </head>
 <body class="bg-gradient-to-br from-blue-100 to-white min-h-screen px-4 py-6">
 
@@ -15,7 +31,7 @@
 
     <!-- Header -->
     <h2 class="text-lg sm:text-xl font-bold text-center text-slate-800 mb-6">
-      Sub QR: {{ sub_tag.tag_type }} | Log Component
+      Service & Repair Logs
     </h2>
 
     <!-- User type info -->
@@ -36,53 +52,62 @@
       {% endfor %}
     {% endwith %}
 
-    <!-- Service Log Form -->
-    <form method="POST" class="space-y-4">
-      <div>
-        <label class="block text-sm font-medium text-slate-700 mb-1">Part Name</label>
-        <input type="text" name="part_name" required
-               class="w-full px-4 py-2 rounded-xl bg-white/50 border border-white/30 backdrop-blur text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-400">
-      </div>
-
-      <div>
-        <label class="block text-sm font-medium text-slate-700 mb-1">Description (optional)</label>
-        <textarea name="description" rows="3"
-                  class="w-full px-4 py-2 rounded-xl bg-white/50 border border-white/30 backdrop-blur text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-400"></textarea>
-      </div>
-
-      <div>
-        <label class="block text-sm font-medium text-slate-700 mb-1">Warranty Till (optional)</label>
-        <input type="date" name="warranty_till"
-               min="{{ now.strftime('%Y-%m-%d') }}"
-               class="w-full px-4 py-2 rounded-xl bg-white/50 border border-white/30 backdrop-blur text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-400">
-      </div>
-
-      <button type="submit"
-              class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 rounded-xl shadow-md transition">
-        Submit Log
+    <!-- Log Repaired Part (Collapsible Form) -->
+    <div class="mb-8">
+      <button id="expandBtn" type="button"
+        class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 rounded-xl shadow-md transition text-base flex items-center justify-center gap-2 mb-2">
+        <svg xmlns="http://www.w3.org/2000/svg" class="inline-block" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14m7-7H5"/></svg>
+        Log Repaired Part
       </button>
-    </form>
+      <form id="logForm" method="POST" class="expand-form collapsed space-y-4 bg-white/50 border border-white/30 rounded-xl mt-0">
+        <div>
+          <label class="block text-sm font-medium text-slate-700 mb-1">Part Name</label>
+          <input type="text" name="part_name" required
+                 class="w-full px-4 py-2 rounded-xl bg-white border border-slate-200 text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-400">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-slate-700 mb-1">Description (optional)</label>
+          <textarea name="description" rows="3"
+                    class="w-full px-4 py-2 rounded-xl bg-white border border-slate-200 text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-400"></textarea>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-slate-700 mb-1">Warranty Till (optional)</label>
+          <input type="date" name="warranty_till"
+                 min="{{ now.strftime('%Y-%m-%d') }}"
+                 class="w-full px-4 py-2 rounded-xl bg-white border border-slate-200 text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-400">
+        </div>
+        <button type="submit"
+                class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 rounded-xl shadow-md transition">
+          Submit Log
+        </button>
+      </form>
+    </div>
 
-    <!-- Logs -->
-    <div class="mt-10">
-      <h3 class="text-base sm:text-lg font-semibold mb-3">Recent Logs</h3>
-      {% if logs %}
+    <!-- Recent Logs for all heads of machine -->
+    <div class="mt-6">
+      <h3 class="text-base sm:text-lg font-semibold mb-3">Recent Logs (All Heads)</h3>
+      {% if all_logs %}
       <ul class="space-y-3">
-        {% for log in logs %}
+        {% for log in all_logs %}
         <li class="bg-white/40 border border-white/20 p-4 rounded-xl text-sm text-slate-800 shadow-sm">
-          <div class="font-bold">{{ log.part_name }}</div>
-          <div class="text-slate-600">{{ log.description or 'No details' }}</div>
+          <div class="flex items-center justify-between mb-1">
+            <div class="font-bold">
+              {{ log.part_name }}
+              <span class="ml-2 text-xs px-2 py-0.5 rounded-full bg-blue-100 text-blue-800 font-medium tracking-wide">
+                {{ log.sub_tag.tag_type|upper if log.sub_tag else "N/A" }}
+              </span>
+            </div>
+            <div class="text-xs text-slate-500">{{ log.timestamp.strftime('%Y-%m-%d %H:%M') }}</div>
+          </div>
+          <div class="text-slate-600 mb-1">{{ log.description or 'No details' }}</div>
           <div class="text-slate-500">Warranty:
             <span class="font-medium">{{ log.warranty_till.strftime('%d %b %Y') if log.warranty_till else 'N/A' }}</span>
-          </div>
-          <div class="text-slate-500">Logged:
-            <span class="font-medium">{{ log.timestamp.strftime('%Y-%m-%d %H:%M') }}</span>
           </div>
         </li>
         {% endfor %}
       </ul>
       {% else %}
-        <div class="text-center text-slate-500 py-6">No service logs yet.</div>
+        <div class="text-center text-slate-500 py-6">No service logs yet for this machine.</div>
       {% endif %}
     </div>
 
@@ -94,5 +119,15 @@
       </a>
     </div>
   </div>
+
+  <script>
+    // Collapsible Log Repaired Part Form
+    const btn = document.getElementById('expandBtn');
+    const form = document.getElementById('logForm');
+    btn.addEventListener('click', () => {
+      form.classList.toggle('collapsed');
+      form.classList.toggle('expanded');
+    });
+  </script>
 </body>
 </html>
