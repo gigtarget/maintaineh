@@ -131,59 +131,6 @@
       </div>
     </div>
 
-    <!-- Collapsible QR Grid Section -->
-    <div class="w-full mb-8">
-      <button
-        id="toggleQrGrid"
-        class="w-full bg-white/40 backdrop-blur-2xl border border-blue-300 hover:bg-blue-100/80 transition font-semibold text-blue-800 py-4 px-8 rounded-2xl shadow-lg text-xl flex items-center justify-between select-none"
-        onclick="toggleQrSection()"
-        type="button"
-      >
-        <span id="qrToggleText">Show QR Codes</span>
-        <svg id="qrToggleIcon" class="w-6 h-6 transition-transform duration-200" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/>
-        </svg>
-      </button>
-      <div id="qrGridSection" class="hidden transition-all duration-300">
-        <div class="grid grid-cols-2 sm:grid-cols-3 gap-4 mt-6">
-          {% set sub_counter = 1 %}
-          {% for qr in qr_codes %}
-            {% set url = None %}
-            {% if qr.qr_type == 'master' %}
-              {% set url = url_for('routes.machine_dashboard', machine_id=machine.id) %}
-            {% elif qr.qr_type == 'service' %}
-              {% set url = url_for('routes.service_log_view', service_tag_id=qr.id) %}
-            {% elif qr.qr_type.startswith('sub') %}
-              {% set tag = tags | selectattr("qr_code_id", "equalto", qr.id) | list | first %}
-              {% if tag %}
-                {% set url = url_for('routes.sub_tag_options', sub_tag_id=tag.id) %}
-              {% endif %}
-            {% endif %}
-            <a href="{{ url or '#' }}" class="group block bg-white/20 backdrop-blur-xl border border-white/20 p-4 rounded-xl shadow hover:shadow-lg hover:border-blue-400 hover:bg-blue-50/60 transition cursor-pointer focus:ring-2 focus:ring-blue-400 relative">
-              <div class="flex justify-center mb-2">
-                <img src="{{ qr.image_url }}" alt="{{ qr.qr_type }} QR" class="h-20 w-20 object-contain bg-white rounded-xl p-2 shadow-inner group-hover:scale-105 transition">
-              </div>
-              <div class="text-center">
-                {% if qr.qr_type == 'master' %}
-                  <p class="font-bold text-lg text-slate-800 tracking-wider">MASTER</p>
-                {% elif qr.qr_type == 'service' %}
-                  <p class="font-bold text-lg text-slate-800 tracking-wider">SERVICE</p>
-                {% elif qr.qr_type.startswith('sub') %}
-                  <p class="font-bold text-lg text-slate-800 tracking-wider">HEAD {{ sub_counter }}</p>
-                  {% set sub_counter = sub_counter + 1 %}
-                {% endif %}
-                <span class="block mt-1 text-xs text-blue-500 group-hover:underline">
-                  {% if url %}Open{% else %}Not Linked{% endif %}
-                </span>
-              </div>
-              <span class="absolute inset-0"></span>
-            </a>
-          {% endfor %}
-        </div>
-      </div>
-    </div>
-    <!-- End Collapsible QR Grid Section -->
-
   </div>
 
   <!-- Modal Backdrop -->
@@ -214,26 +161,8 @@
     </form>
   </div>
 
-  <!-- Modal & QR Section Scripts -->
+  <!-- Modal & Tooltip Scripts -->
   <script>
-    // Collapsible QR grid logic
-    let qrExpanded = false;
-    function toggleQrSection() {
-      const grid = document.getElementById('qrGridSection');
-      const text = document.getElementById('qrToggleText');
-      const icon = document.getElementById('qrToggleIcon');
-      qrExpanded = !qrExpanded;
-      if (qrExpanded) {
-        grid.classList.remove('hidden');
-        text.innerText = "Hide QR Codes";
-        icon.style.transform = "rotate(180deg)";
-      } else {
-        grid.classList.add('hidden');
-        text.innerText = "Show QR Codes";
-        icon.style.transform = "";
-      }
-    }
-
     // Modal
     function openModal() {
       document.getElementById('serviceModal').classList.remove('hidden');
@@ -261,4 +190,3 @@
   </script>
 </body>
 </html>
-
