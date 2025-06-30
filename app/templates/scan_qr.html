@@ -1,0 +1,20 @@
+<!-- app/templates/scan_qr.html -->
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Scan Admin QR</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-blue-50 min-h-screen flex flex-col items-center justify-center">
+  <div class="bg-white rounded-2xl shadow-xl p-8 max-w-md w-full text-center border border-blue-200">
+    <h1 class="text-2xl font-bold mb-4 text-blue-800">Scan QR or Enter Code</h1>
+    <p class="mb-4 text-slate-600">Scan the admin QR code with your device, or enter the code below:</p>
+    <form method="POST" action="{{ url_for('routes.claim_batch') }}">
+      <input type="text" name="batch_id" class="border rounded px-4 py-2 w-full mb-3" placeholder="Enter Batch Code">
+      <button class="bg-blue-600 text-white rounded px-4 py-2 hover:bg-blue-700 w-full">Claim Batch</button>
+    </form>
+    <p class="mt-4 text-xs text-slate-400">Coming soon: Camera-based QR scanning!</p>
+  </div>
+</body>
+</html>
