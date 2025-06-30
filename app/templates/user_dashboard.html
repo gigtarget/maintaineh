@@ -234,34 +234,34 @@
   <h2 class="text-xl font-bold text-slate-800 mb-4 text-center">Quick Machine Overview</h2>
   <div class="flex flex-col sm:flex-row flex-wrap gap-4 justify-center items-start">
     {% for machine in quick_overview %}
-      {% set status_ok = (machine['pending_count'] == 0) %}
+      {% set status_ok = (machine.pending_count == 0) %}
       <div class="rounded-xl border shadow bg-white p-4 relative flex flex-col self-start min-h-[200px] w-full sm:w-[47%]">
         <span class="absolute top-3 right-3 w-3 h-3 rounded-full {{ 'bg-green-500' if status_ok else 'bg-red-500' }}"></span>
-        <h3 class="text-lg font-semibold text-gray-800 mb-1">{{ machine['name'] }}</h3>
-        {% if machine['assigned_subuser'] %}
-          <p class="text-sm text-slate-500 mb-2">Assigned to: {{ machine['assigned_subuser'] }}</p>
+        <h3 class="text-lg font-semibold text-gray-800 mb-1">{{ machine.name }}</h3>
+        {% if machine.assigned_subuser %}
+          <p class="text-sm text-slate-500 mb-2">Assigned to: {{ machine.assigned_subuser }}</p>
         {% endif %}
 
         <!-- Action Buttons: Oiling, Lube, Raise Service -->
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 mt-2">
           <!-- Log Oiling -->
-          <form method="POST" action="{{ url_for('routes.user_action_log', type='oil', machine_id=machine['id']) }}">
-            <button class="w-full text-left rounded-xl px-3 py-2 text-sm font-medium border shadow-sm {{ 'bg-red-100 text-red-700 border-red-300 hover:bg-red-200' if not machine['oiled_today'] else 'bg-green-100 text-green-700 border-green-300 hover:bg-green-200' }}">
+          <form method="POST" action="{{ url_for('routes.user_action_log', type='oil', machine_id=machine.id) }}">
+            <button class="w-full text-left rounded-xl px-3 py-2 text-sm font-medium border shadow-sm {{ 'bg-red-100 text-red-700 border-red-300 hover:bg-red-200' if not machine.oiled_today else 'bg-green-100 text-green-700 border-green-300 hover:bg-green-200' }}">
               Last Oiling<br>
-              <span class="text-xs font-normal">{{ 'Done' if machine['oiled_today'] else 'Not Done' }}</span>
+              <span class="text-xs font-normal">{{ 'Done' if machine.oiled_today else 'Not Done' }}</span>
             </button>
           </form>
 
           <!-- Log Lube -->
-          <form method="POST" action="{{ url_for('routes.user_action_log', type='lube', machine_id=machine['id']) }}">
-            <button class="w-full text-left rounded-xl px-3 py-2 text-sm font-medium border shadow-sm {{ 'bg-red-100 text-red-700 border-red-300 hover:bg-red-200' if not machine['weekly_lube_done'] else 'bg-green-100 text-green-700 border-green-300 hover:bg-green-200' }}">
+          <form method="POST" action="{{ url_for('routes.user_action_log', type='lube', machine_id=machine.id) }}">
+            <button class="w-full text-left rounded-xl px-3 py-2 text-sm font-medium border shadow-sm {{ 'bg-red-100 text-red-700 border-red-300 hover:bg-red-200' if not machine.weekly_lube_done else 'bg-green-100 text-green-700 border-green-300 hover:bg-green-200' }}">
               Weekly Lube<br>
-              <span class="text-xs font-normal">{{ 'Done' if machine['weekly_lube_done'] else 'Not Done' }}</span>
+              <span class="text-xs font-normal">{{ 'Done' if machine.weekly_lube_done else 'Not Done' }}</span>
             </button>
           </form>
 
           <!-- Raise Service -->
-          <form method="POST" action="{{ url_for('routes.user_raise_service_request', machine_id=machine['id']) }}">
+          <form method="POST" action="{{ url_for('routes.user_raise_service_request', machine_id=machine.id) }}">
             <button class="w-full text-left rounded-xl px-3 py-2 text-sm font-medium border shadow-sm bg-yellow-100 text-yellow-800 border-yellow-300 hover:bg-yellow-200">
               Raise Service<br>
               <span class="text-xs font-normal">Manual Alert</span>
@@ -273,14 +273,14 @@
         <p class="mt-3 text-sm">
           <strong>Service Requests:</strong>
           <span class="text-blue-600 font-semibold hover:underline cursor-pointer" onclick="toggleRequests({{ loop.index0 }})">
-            {{ machine['pending_count'] }} pending
+            {{ machine.pending_count }} pending
             <span class="text-xs text-slate-500">(Click to view)</span>
           </span>
         </p>
 
         <!-- Expandable Request List -->
         <div id="requests-{{ loop.index0 }}" class="hidden mt-3 space-y-2 bg-gray-50 p-3 rounded">
-          {% for req in machine['pending_requests'] %}
+          {% for req in machine.pending_requests %}
             <div class="border border-gray-200 p-2 rounded-lg">
               <p class="text-sm"><strong>From:</strong> {{ req.subuser_name or 'Unknown' }}</p>
               <p class="text-sm"><strong>Heads:</strong> {{ req.heads or 'N/A' }}</p>
@@ -300,6 +300,7 @@
     {% endfor %}
   </div>
 </div>
+
 
 <script>
   function toggleRequests(index) {
