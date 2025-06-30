@@ -80,7 +80,6 @@ def user_create_batch():
     return redirect(url_for("routes.user_dashboard"))
 
 @routes.route("/machine/<int:machine_id>/mark/<string:action>")
-@login_required
 def mark_action_done(machine_id, action):
     machine = Machine.query.get_or_404(machine_id)
 
