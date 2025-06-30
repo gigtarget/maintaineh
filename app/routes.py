@@ -84,8 +84,8 @@ def user_create_batch():
 def mark_action_done(machine_id, action):
     machine = Machine.query.get_or_404(machine_id)
 
-    # ✅ Check permission via machine.batch.user_id
-    if machine.batch.user_id != current_user.id:
+    # ✅ Correct check based on batch ownership
+    if machine.batch.owner_id != current_user.id:
         abort(403)
 
     if action not in ["oil", "lube"]:
