@@ -131,6 +131,30 @@ def sub_tag_view(sub_tag_id):
         back_url=back_url
     )
 
+@routes.route("/user/log/<type>/<int:machine_id>", methods=["POST"])
+@login_required
+def user_action_log(type, machine_id):
+    # Basic logging logic for oil/lube
+    if type not in ['oil', 'lube']:
+        flash("Invalid action type.", "danger")
+        return redirect(url_for("routes.user_dashboard"))
+
+    try:
+        action = SubUserAction(
+            machine_id=machine_id,
+            subuser_id=None,  # or current_user.id if you want to log who clicked it
+            action_type=type,
+            timestamp=datetime.utcnow()
+        )
+        db.session.add(action)
+        db.session.commit()
+        flash(f"✅ {type.capitalize()} logged successfully.", "success")
+    except Exception as e:
+        print("Error logging action:", e)
+        flash("Something went wrong. Please try again.", "danger")
+
+    return redirect(url_for("routes.user_dashboard"))
+
 @routes.route("/sub/<int:sub_tag_id>/service-log", methods=["GET", "POST"])
 def sub_tag_service_log(sub_tag_id):
     from datetime import datetime
