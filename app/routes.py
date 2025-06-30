@@ -208,26 +208,32 @@ def sub_tag_service_log(sub_tag_id):
 @routes.route("/claim/<int:batch_id>")
 @login_required
 def claim_batch(batch_id):
+    # Only allow users to claim
     if current_user.role != "user":
         flash("Only users can claim batches.", "danger")
         return redirect(url_for("routes.home"))
 
+    # Fetch batch by ID
     batch = QRBatch.query.get(batch_id)
     if not batch:
         flash("Batch not found.", "danger")
         return redirect(url_for("routes.user_dashboard"))
 
+    # Batch already claimed
     if batch.owner_id is not None:
         if batch.owner_id == current_user.id:
             flash("You already claimed this batch.", "info")
         else:
             flash("This batch has already been claimed by another user.", "danger")
     else:
+        # Claim the batch
         batch.owner_id = current_user.id
         db.session.commit()
         flash("Batch successfully claimed!", "success")
 
+    # Always redirect to dashboard
     return redirect(url_for("routes.user_dashboard"))
+
 
 @routes.route("/settings", methods=["GET", "POST"])
 @login_required
