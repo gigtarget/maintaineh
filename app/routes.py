@@ -54,6 +54,12 @@ def sub_tag_options(sub_tag_id):
     # Pass machine to template
     return render_template("sub_options.html", sub_tag=sub_tag, machine=machine, back_url=back_url)
 
+@routes.route("/scan-qr", methods=["GET"])
+@login_required
+def scan_qr_page():
+    # Show instructions or input field for scanning/entering QR from admin
+    return render_template("scan_qr.html")
+
 @routes.route("/user/create-batch", methods=["POST"])
 @login_required
 def user_create_batch():
