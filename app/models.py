@@ -124,7 +124,7 @@ class ServiceRequest(db.Model):
 # -------------------------
 class SubUserAction(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    subuser_id = db.Column(db.Integer, db.ForeignKey('sub_user.id'), nullable=False)
+    subuser_id = db.Column(db.Integer, db.ForeignKey('sub_user.id'), nullable=True)
     machine_id = db.Column(db.Integer, db.ForeignKey('machine.id'), nullable=False)
     action_type = db.Column(db.String(20))     # "oiling", "lube", "service"
     status = db.Column(db.String(20))          # "done", "pending", "completed"
