@@ -79,28 +79,41 @@ def user_create_batch():
     flash("QR batch generated! You can now set up your machine.", "success")
     return redirect(url_for("routes.user_dashboard"))
 
-@routes.route("/machine/<int:machine_id>/mark/<string:action>")
+@routes.route("/machine/<int:machine_id>/mark/<action>")
 def mark_action_done(machine_id, action):
+    # Fetch machine and validate existence
     machine = Machine.query.get_or_404(machine_id)
 
-    # ✅ Correct check based on batch ownership
-    if machine.batch.owner_id != current_user.id:
+    # If user is logged in, ensure it's their machine
+    owner_id = getattr(current_user, "id", None)
+    if owner_id and machine.batch.owner_id != owner_id:
         abort(403)
 
-    if action not in ["oil", "lube"]:
-        flash("Invalid action type.", "danger")
-        return redirect(url_for("routes.user_dashboard"))
+    # Mark oiling or lube action
+    if action == "oil":
+        new_action = SubUserAction(
+            machine_id=machine.id,
+            action_type="oil",
+            timestamp=datetime.utcnow()
+        )
+        db.session.add(new_action)
+        db.session.commit()
+        flash("✅ Oiling marked as done.", "success")
 
-    new_action = SubUserAction(
-        machine_id=machine.id,
-        action=action,
-        timestamp=datetime.utcnow()
-    )
-    db.session.add(new_action)
-    db.session.commit()
-    flash(f"✅ Marked '{action}' as done successfully.", "success")
+    elif action == "lube":
+        new_action = SubUserAction(
+            machine_id=machine.id,
+            action_type="lube",
+            timestamp=datetime.utcnow()
+        )
+        db.session.add(new_action)
+        db.session.commit()
+        flash("✅ Lubrication marked as done.", "success")
+
+    else:
+        flash("Invalid action.", "danger")
+
     return redirect(url_for("routes.user_dashboard"))
-
 
 @routes.route("/sub/<int:sub_tag_id>/needle-change", methods=["GET", "POST"])
 def sub_tag_view(sub_tag_id):
