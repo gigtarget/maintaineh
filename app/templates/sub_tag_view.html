@@ -331,9 +331,9 @@
     <div class="log-box">
       <div class="log-header" onclick="toggleLogs()">
         <h3>Latest Changes:</h3>
-        <span id="log-toggle" class="log-toggle">&#9660;</span>
+        <span id="log-toggle" class="log-toggle collapsed">&#9660;</span>
       </div>
-      <ul id="log-list" class="log-list expanded">
+      <ul id="log-list" class="log-list collapsed">
         {% for needle in range(1, 16) %}
           {% if last_change_dict.get(needle) %}
             {% set log = last_change_dict.get(needle) %}
