@@ -84,30 +84,24 @@ def user_create_batch():
 def mark_action_done(machine_id, action):
     machine = Machine.query.get_or_404(machine_id)
 
-    if machine.user_id != current_user.id:
+    # ✅ Check permission via machine.batch.user_id
+    if machine.batch.user_id != current_user.id:
         abort(403)
 
-    now = datetime.utcnow()
+    if action not in ["oil", "lube"]:
+        flash("Invalid action type.", "danger")
+        return redirect(url_for("routes.user_dashboard"))
 
-    if action == "oil":
-        DailyMaintenance.query.filter_by(machine_id=machine.id, date=now.date()).delete()
-        db.session.add(DailyMaintenance(machine_id=machine.id, date=now))
-        db.session.commit()
-        flash("✅ Oiling marked as done.", "success")
-
-    elif action == "lube":
-        week_start = now - timedelta(days=now.weekday())
-        existing = DailyMaintenance.query.filter(
-            DailyMaintenance.machine_id == machine.id,
-            DailyMaintenance.date >= week_start
-        ).all()
-
-        if not any("lube" in d.note.lower() for d in existing):
-            db.session.add(DailyMaintenance(machine_id=machine.id, date=now, note="Weekly Lube"))
-            db.session.commit()
-            flash("✅ Weekly lube marked as done.", "success")
-
+    new_action = SubUserAction(
+        machine_id=machine.id,
+        action=action,
+        timestamp=datetime.utcnow()
+    )
+    db.session.add(new_action)
+    db.session.commit()
+    flash(f"✅ Marked '{action}' as done successfully.", "success")
     return redirect(url_for("routes.user_dashboard"))
+
 
 @routes.route("/sub/<int:sub_tag_id>/needle-change", methods=["GET", "POST"])
 def sub_tag_view(sub_tag_id):
