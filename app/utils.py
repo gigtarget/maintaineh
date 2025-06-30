@@ -5,6 +5,7 @@ import cloudinary.uploader
 from PIL import Image, ImageDraw, ImageFont
 from app import db
 from app.models import QRBatch, QRCode, QRTag
+from datetime import datetime
 
 BASE_URL = "https://www.tokatap.com"
 
@@ -17,37 +18,25 @@ cloudinary.config(
 def generate_custom_qr_image(data, tag_type, logo_path='app/static/logo/qr code logo.jpg'):
     img_width, img_height = 800, 1200
     base = Image.new('RGBA', (img_width, img_height), (255, 255, 255, 0))
-
-    # ✅ Rounded white card background
     card = Image.new('RGB', (img_width, img_height), 'white')
     mask = Image.new('L', (img_width, img_height), 0)
     draw_mask = ImageDraw.Draw(mask)
     draw_mask.rounded_rectangle([0, 0, img_width, img_height], radius=40, fill=255)
     card.putalpha(mask)
     base.paste(card, (0, 0), mask)
-
     draw = ImageDraw.Draw(base)
-
-    # ✅ QR Code (NO circle)
     qr = qrcode.QRCode(version=2, error_correction=qrcode.constants.ERROR_CORRECT_H, box_size=10, border=4)
     qr.add_data(data)
     qr.make(fit=True)
     qr_img = qr.make_image(fill_color="black", back_color="white").convert('RGB')
     qr_img = qr_img.resize((800, 800))
-
-    # Set QR as fully opaque (remove transparent circle!)
     qr_img.putalpha(255)
-
     base.paste(qr_img, ((img_width - qr_img.width) // 2, 60), qr_img)
-
-    # ✅ Tag type label: "HEAD 1", "HEAD 2", ..., or "MASTER", "SERVICE"
     try:
         font = ImageFont.truetype("app/fonts/Agrandir.ttf", 70)
     except Exception as e:
         print(f"⚠️ Font load failed: {e}")
         font = ImageFont.load_default()
-
-    # --- Updated label logic ---
     if tag_type.lower().startswith("sub"):
         display_text = f"HEAD {tag_type[3:]}"
     else:
@@ -55,20 +44,21 @@ def generate_custom_qr_image(data, tag_type, logo_path='app/static/logo/qr code 
     bbox = font.getbbox(display_text)
     w = bbox[2] - bbox[0]
     draw.text(((img_width - w) // 2, 850), display_text, font=font, fill="black")
-
-    # ✅ Logo as box image
     try:
         logo_img = Image.open(logo_path).convert("RGBA")
-        logo_img = logo_img.resize((550, 140))  # force size
+        logo_img = logo_img.resize((550, 140))
         base.paste(logo_img, ((img_width - logo_img.width) // 2, 980), logo_img)
     except Exception as e:
         print(f"❌ Logo error: {e}")
-
     return base.convert("RGB")
 
-def generate_and_store_qr_batch():
+def generate_and_store_qr_batch(user_id=None):
+    """
+    Create a QRBatch and all QRTags (Master, Service, 8 Subs) for the specified user.
+    Returns the batch id.
+    """
     print("👉 Creating new QR batch...")
-    batch = QRBatch()
+    batch = QRBatch(owner_id=user_id, created_at=datetime.utcnow())  # Ensure owner_id is the user
     db.session.add(batch)
     db.session.commit()
 
@@ -104,6 +94,7 @@ def generate_and_store_qr_batch():
             print(f"✅ Uploaded {qr_type} → {image_url}")
 
             qr_tag.qr_url = qr_url
+            qr_tag.image_url = image_url
             db.session.commit()
 
             qr_code = QRCode(
