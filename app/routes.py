@@ -54,6 +54,17 @@ def sub_tag_options(sub_tag_id):
     # Pass machine to template
     return render_template("sub_options.html", sub_tag=sub_tag, machine=machine, back_url=back_url)
 
+@routes.route("/user/create-batch", methods=["POST"])
+@login_required
+def user_create_batch():
+    # Prevent duplicate batch for user
+    if QRBatch.query.filter_by(owner_id=current_user.id).count() > 0:
+        flash("You already have a batch.", "info")
+        return redirect(url_for("routes.user_dashboard"))
+    batch_id = generate_and_store_qr_batch(user_id=current_user.id)
+    flash("QR batch generated! You can now set up your machine.", "success")
+    return redirect(url_for("routes.user_dashboard"))
+
 
 @routes.route("/sub/<int:sub_tag_id>/needle-change", methods=["GET", "POST"])
 def sub_tag_view(sub_tag_id):
@@ -298,13 +309,13 @@ def user_signup():
         # Log the user in right after signup
         login_user(new_user)
 
-        # Generate a batch for the new user
-        batch_id = generate_and_store_qr_batch(user_id=new_user.id)
+        # ❌ REMOVE: Do NOT auto-generate a batch here
 
-        flash("Signup successful! Your QR batch has been generated.", "success")
+        flash("Signup successful! Please scan a QR code from admin or generate your own batch.", "success")
         return redirect(url_for("routes.user_dashboard"))
 
     return render_template("signup.html")
+
 @routes.route("/login", methods=["GET", "POST"], endpoint="user_login")
 def user_login():
     next_url = request.args.get('next')
