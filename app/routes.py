@@ -79,6 +79,35 @@ def user_create_batch():
     flash("QR batch generated! You can now set up your machine.", "success")
     return redirect(url_for("routes.user_dashboard"))
 
+@routes.route("/machine/<int:machine_id>/mark/<string:action>")
+@login_required
+def mark_action_done(machine_id, action):
+    machine = Machine.query.get_or_404(machine_id)
+
+    if machine.user_id != current_user.id:
+        abort(403)
+
+    now = datetime.utcnow()
+
+    if action == "oil":
+        DailyMaintenance.query.filter_by(machine_id=machine.id, date=now.date()).delete()
+        db.session.add(DailyMaintenance(machine_id=machine.id, date=now))
+        db.session.commit()
+        flash("✅ Oiling marked as done.", "success")
+
+    elif action == "lube":
+        week_start = now - timedelta(days=now.weekday())
+        existing = DailyMaintenance.query.filter(
+            DailyMaintenance.machine_id == machine.id,
+            DailyMaintenance.date >= week_start
+        ).all()
+
+        if not any("lube" in d.note.lower() for d in existing):
+            db.session.add(DailyMaintenance(machine_id=machine.id, date=now, note="Weekly Lube"))
+            db.session.commit()
+            flash("✅ Weekly lube marked as done.", "success")
+
+    return redirect(url_for("routes.user_dashboard"))
 
 @routes.route("/sub/<int:sub_tag_id>/needle-change", methods=["GET", "POST"])
 def sub_tag_view(sub_tag_id):
