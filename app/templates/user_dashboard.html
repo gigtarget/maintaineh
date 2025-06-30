@@ -284,6 +284,75 @@
     {% endfor %}
   </div>
 </div>
+<!-- Smart Action Buttons for Main User -->
+<div class="max-w-4xl mx-auto mt-10">
+  <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+    <!-- Oiling -->
+    <div class="rounded-xl flex items-center px-4 py-4 border shadow-sm bg-red-100 border-red-300 relative">
+      <div class="icon-side">
+        <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-barrel" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+          <ellipse cx="12" cy="5" rx="9" ry="3"></ellipse>
+          <path d="M3 5v6c0 1.657 4.03 3 9 3s9-1.343 9-3V5"></path>
+          <path d="M3 11v6c0 1.657 4.03 3 9 3s9-1.343 9-3v-6"></path>
+        </svg>
+      </div>
+      <div class="flex flex-col text-left">
+        <p class="font-semibold text-red-700">Last Oiling</p>
+        <p class="text-xs text-red-600">Done {{ last_oil_days }} days ago</p>
+      </div>
+      <div class="absolute top-2 right-2 text-slate-400">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.7">
+          <circle cx="12" cy="12" r="10" />
+          <line x1="12" y1="16" x2="12" y2="12" />
+          <line x1="12" y1="8" x2="12.01" y2="8" />
+        </svg>
+      </div>
+    </div>
+
+    <!-- Lubrication -->
+    <div class="rounded-xl flex items-center px-4 py-4 border shadow-sm bg-green-100 border-green-300 relative">
+      <div class="icon-side">
+        <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-droplet" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 2C12 2 5 8.5 5 14.5C5 19.1944 8.58172 22 12 22C15.4183 22 19 19.1944 19 14.5C19 8.5 12 2 12 2Z"></path>
+          <path d="M12 17V17.01"></path>
+        </svg>
+      </div>
+      <div class="flex flex-col text-left">
+        <p class="font-semibold text-green-700">Last Lubrication</p>
+        <p class="text-xs text-slate-600">Done {{ last_lube_hours }} hours ago</p>
+      </div>
+      <div class="absolute top-2 right-2 text-slate-400">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.7">
+          <circle cx="12" cy="12" r="10" />
+          <line x1="12" y1="16" x2="12" y2="12" />
+          <line x1="12" y1="8" x2="12.01" y2="8" />
+        </svg>
+      </div>
+    </div>
+
+    <!-- Raise Service -->
+    <div onclick="openModal()" class="cursor-pointer rounded-xl flex items-center px-4 py-4 border shadow-sm bg-yellow-100 border-yellow-300 relative">
+      <div class="icon-side">
+        <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-alert-triangle" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M10.29 3.86L1.82 18A2 2 0 0 0 3.73 21h16.54a2 2 0 0 0 1.91-3l-8.47-14.14a2 2 0 0 0-3.42 0z"></path>
+          <line x1="12" y1="9" x2="12" y2="13"></line>
+          <line x1="12" y1="17" x2="12.01" y2="17"></line>
+        </svg>
+      </div>
+      <div class="flex flex-col text-left">
+        <p class="font-semibold text-yellow-800">Raise Service</p>
+        <p class="text-xs text-yellow-700">Manual Alert</p>
+      </div>
+      <div class="absolute top-2 right-2 text-slate-400">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.7">
+          <circle cx="12" cy="12" r="10" />
+          <line x1="12" y1="16" x2="12" y2="12" />
+          <line x1="12" y1="8" x2="12.01" y2="8" />
+        </svg>
+      </div>
+    </div>
+  </div>
+</div>
 
 <script>
   function toggleRequests(index) {
