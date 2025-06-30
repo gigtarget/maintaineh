@@ -287,18 +287,24 @@ def user_signup():
 
         new_user = User(
             email=email,
-            password=password,  # In production, hash this!
+            password=password,  # Hash in production!
             name=name,
             company_name=company_name,
             role="user"
         )
         db.session.add(new_user)
         db.session.commit()
-        flash("Signup successful! Please login.", "success")
-        return redirect(url_for("routes.user_login"))
+
+        # Log the user in right after signup
+        login_user(new_user)
+
+        # Generate a batch for the new user
+        batch_id = generate_and_store_qr_batch(user_id=new_user.id)
+
+        flash("Signup successful! Your QR batch has been generated.", "success")
+        return redirect(url_for("routes.user_dashboard"))
 
     return render_template("signup.html")
-
 @routes.route("/login", methods=["GET", "POST"], endpoint="user_login")
 def user_login():
     next_url = request.args.get('next')
@@ -502,7 +508,7 @@ def admin_dashboard():
 def create_batch():
     if current_user.role != "admin":
         return redirect(url_for("routes.admin_login"))
-    batch_id = generate_and_store_qr_batch()
+    batch_id = generate_and_store_qr_batch()  # Defaults to admin or None if not specified
     return redirect(url_for("routes.admin_dashboard"))
 
 @routes.route("/admin/download-batch/<int:batch_id>")
