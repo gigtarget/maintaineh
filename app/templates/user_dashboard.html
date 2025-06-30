@@ -95,10 +95,17 @@
          class="bg-white border border-blue-400 text-blue-700 px-4 py-3 rounded-xl font-semibold hover:bg-blue-100 shadow transition">
          I have a QR code from admin
       </a>
-      <form method="POST" action="{{ url_for('routes.user_create_batch') }}">
-        <button type="submit"
-                class="bg-blue-600 text-white px-4 py-3 rounded-xl font-semibold hover:bg-blue-700 shadow transition">
-          Generate My QR Batch
+      <form method="POST" action="{{ url_for('routes.user_create_batch') }}" onsubmit="showGeneratingState(event)">
+        <button id="generateBtn"
+                type="submit"
+                class="bg-blue-600 text-white px-4 py-3 rounded-xl font-semibold hover:bg-blue-700 shadow transition flex items-center justify-center gap-2">
+          <span id="generateText">Generate My QR Batch</span>
+          <svg id="spinner" class="hidden animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none"
+               viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor"
+                  d="M4 12a8 8 0 018-8v8H4z"></path>
+          </svg>
         </button>
       </form>
     </div>
@@ -291,6 +298,22 @@
 <div class="max-w-4xl mx-auto text-center mt-12 mb-6 text-xs text-slate-500">
   Built with ❤️ by JD.
 </div>
+<script>
+  function showGeneratingState(event) {
+    const btn = document.getElementById('generateBtn');
+    const text = document.getElementById('generateText');
+    const spinner = document.getElementById('spinner');
 
+    event.preventDefault(); // prevent default form submission
+    btn.disabled = true;
+    text.textContent = "Generating QR codes... Please wait";
+    spinner.classList.remove('hidden');
+
+    // Submit the form manually after UI update
+    setTimeout(() => {
+      event.target.submit();
+    }, 500); // slight delay for visual feedback
+  }
+</script>
 </body>
 </html>
