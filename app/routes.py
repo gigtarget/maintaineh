@@ -953,6 +953,35 @@ def raise_service_request():
 
     return redirect(url_for("routes.subuser_dashboard"))
 
+@routes.route("/user/raise-service/<int:machine_id>", methods=["POST"])
+@login_required
+def user_raise_service_request(machine_id):
+    user = current_user
+    heads = request.form.get("heads")
+    issue = request.form.get("issue")
+
+    if not heads or not issue:
+        flash("Please fill in all required fields.", "danger")
+        return redirect(url_for("routes.user_dashboard"))
+
+    try:
+        new_request = ServiceRequest(
+            machine_id=machine_id,
+            subuser_id=None,  # user raising directly
+            message=f"[{heads} heads] {issue}",
+            timestamp=datetime.utcnow(),
+            resolved=False
+        )
+        db.session.add(new_request)
+        db.session.commit()
+        flash("✅ Service request submitted successfully.", "success")
+    except Exception as e:
+        print("Error creating request:", e)
+        flash("Something went wrong. Please try again.", "danger")
+
+    return redirect(url_for("routes.user_dashboard"))
+
+
 @routes.route("/resolve_service/<int:request_id>", methods=["POST"])
 @login_required
 def resolve_service_request(request_id):
