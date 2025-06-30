@@ -88,17 +88,16 @@
 
 <!-- === NEW: "No Batch" Choice UI === -->
 {% if batch_count == 0 %}
-  <div class="max-w-lg mx-auto my-10 bg-blue-50 border border-blue-200 rounded-2xl p-6 shadow text-center">
-    <h2 class="text-xl font-bold mb-4">Welcome! Let's get started.</h2>
-    <div class="flex flex-col gap-4">
-      <a href="{{ url_for('routes.scan_qr_page') }}"
-         class="bg-white border border-blue-400 text-blue-700 px-4 py-3 rounded-xl font-semibold hover:bg-blue-100 shadow transition">
-         I have a QR code from admin
-      </a>
-      <form method="POST" action="{{ url_for('routes.user_create_batch') }}" onsubmit="showGeneratingState(event)">
+  <div class="flex justify-center items-center my-10">
+    <div class="w-full max-w-md bg-blue-50 border border-blue-200 rounded-2xl p-6 shadow text-center">
+      <h2 class="text-xl font-bold mb-4">Welcome! Let's get started.</h2>
+      <div class="text-blue-700 font-semibold px-4 py-3 border border-blue-400 rounded-xl bg-white shadow-sm">
+        If you have a QR code, just scan it directly from your phone camera.
+      </div>
+      <form method="POST" action="{{ url_for('routes.user_create_batch') }}" onsubmit="showGeneratingState(event)" class="mt-4">
         <button id="generateBtn"
                 type="submit"
-                class="bg-blue-600 text-white px-4 py-3 rounded-xl font-semibold hover:bg-blue-700 shadow transition flex items-center justify-center gap-2">
+                class="bg-blue-600 text-white px-4 py-3 rounded-xl font-semibold hover:bg-blue-700 shadow transition flex items-center justify-center gap-2 w-full">
           <span id="generateText">Generate My QR Batch</span>
           <svg id="spinner" class="hidden animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none"
                viewBox="0 0 24 24">
@@ -108,10 +107,11 @@
           </svg>
         </button>
       </form>
+      <p class="mt-4 text-slate-500 text-xs">Choose how you want to activate your machine management system.</p>
     </div>
-    <p class="mt-4 text-slate-500 text-xs">Choose how you want to activate your machine management system.</p>
   </div>
 {% endif %}
+
 
 <!-- Add Machine Form for unregistered batches -->
 {% for batch in batches %}
