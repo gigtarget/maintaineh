@@ -261,7 +261,7 @@
           </form>
 
           <!-- Raise Service -->
-          <form method="POST" action="{{ url_for('routes.raise_service_request', machine_id=machine.id) }}">
+          <form method="POST" action="{{ url_for('routes.user_raise_service_request', machine_id=machine.id) }}">
             <button class="w-full text-left rounded-xl px-3 py-2 text-sm font-medium border shadow-sm bg-yellow-100 text-yellow-800 border-yellow-300 hover:bg-yellow-200">
               Raise Service<br>
               <span class="text-xs font-normal">Manual Alert</span>
