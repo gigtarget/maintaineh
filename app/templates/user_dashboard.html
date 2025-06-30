@@ -229,53 +229,79 @@
   {% endfor %}
 </div>
 
-<!-- 🟦 Quick Machine Overview Section -->
-<div class="max-w-6xl mx-auto mt-6 space-y-4">
-  <h2 class="text-xl font-bold text-slate-800 mb-2">🔍 Quick Machine Overview</h2>
-  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+<!-- Quick Machine Overview -->
+<div class="max-w-4xl mx-auto mt-14 px-4">
+  <h2 class="text-xl font-bold text-slate-800 mb-4 text-center">🔍 Quick Machine Overview</h2>
+  <div class="flex flex-col sm:flex-row flex-wrap gap-4 justify-center max-w-4xl mx-auto items-start">
     {% for machine in quick_overview %}
-      <div class="bg-white border border-slate-200 shadow-sm rounded-xl p-4">
-        <div class="flex justify-between items-center">
-          <h3 class="font-bold text-lg text-slate-800">{{ machine['name'] }}</h3>
-          {% if machine['assigned_subuser'] %}
-            <p class="text-sm text-slate-500">Assigned to: {{ machine['assigned_subuser'] }}</p>
-          {% endif %}
+      {% set status_ok = (machine.pending_count == 0) %}
+      <div class="rounded-xl border shadow bg-white p-4 relative flex flex-col self-start w-full sm:w-[48%] min-h-[200px]">
+        <span class="absolute top-3 right-3 w-3 h-3 rounded-full {{ 'bg-green-500' if status_ok else 'bg-red-500' }}"></span>
+        <h3 class="text-lg font-semibold text-gray-800 mb-1">{{ machine.name }}</h3>
+
+        {% if machine.assigned_subuser %}
+          <p class="text-sm text-slate-500 mb-2">Assigned to: {{ machine.assigned_subuser }}</p>
+        {% endif %}
+
+        <div class="text-sm space-y-1">
+          <p class="flex justify-between">
+            <span class="flex items-center gap-2">
+              📘 Oiled Today?
+              <span class="{{ 'text-green-600 font-semibold' if machine.oiled_today else 'text-red-500 font-semibold' }}">
+                {{ 'Yes' if machine.oiled_today else 'No' }}
+              </span>
+            </span>
+            {% if not machine.oiled_today %}
+              <a href="{{ url_for('routes.mark_action_done', machine_id=machine.id, action='oil') }}"
+                 class="text-blue-600 hover:underline text-sm">Mark as Done</a>
+            {% endif %}
+          </p>
+
+          <p class="flex justify-between">
+            <span class="flex items-center gap-2">
+              🧴 Lube Done This Week?
+              <span class="{{ 'text-green-600 font-semibold' if machine.weekly_lube_done else 'text-red-500 font-semibold' }}">
+                {{ 'Yes' if machine.weekly_lube_done else 'No' }}
+              </span>
+            </span>
+            {% if not machine.weekly_lube_done %}
+              <a href="{{ url_for('routes.mark_action_done', machine_id=machine.id, action='lube') }}"
+                 class="text-blue-600 hover:underline text-sm">Mark as Done</a>
+            {% endif %}
+          </p>
+
+          <p class="flex justify-between">
+            <span class="flex items-center gap-2">
+              🛠️ Service Requested?
+              <span class="{{ 'text-green-600 font-semibold' if machine.pending_count == 0 else 'text-red-600 font-semibold' }}">
+                {{ 'No' if machine.pending_count == 0 else machine.pending_count ~ ' pending' }}
+              </span>
+            </span>
+            {% if machine.pending_count > 0 %}
+              <span class="text-blue-600 hover:underline cursor-pointer text-sm" onclick="toggleRequests({{ loop.index0 }})">
+                View
+              </span>
+            {% endif %}
+          </p>
         </div>
 
-        <div class="mt-3 space-y-2">
-          <!-- Oiling -->
-          <div class="flex justify-between items-center">
-            <span class="text-sm">🛢️ Oiled Today?</span>
-            {% if machine['oiled_today'] %}
-              <span class="text-green-600 font-semibold">Yes</span>
-            {% else %}
-              <form method="POST" action="{{ url_for('routes.user_action_log', type='oil', machine_id=machine['id']) }}">
-                <button type="submit" class="text-sm text-blue-600 hover:underline">Mark as Done</button>
+        <!-- Expandable Request List -->
+        <div id="requests-{{ loop.index0 }}" class="hidden mt-3 space-y-2 bg-gray-50 p-3 rounded">
+          {% for req in machine.pending_requests %}
+            <div class="border border-gray-200 p-2 rounded-lg">
+              <p class="text-sm"><strong>From:</strong> {{ req.subuser_name or 'Unknown' }}</p>
+              <p class="text-sm"><strong>Heads:</strong> {{ req.heads or 'N/A' }}</p>
+              <p class="text-sm">
+                <strong>Issue:</strong> {{ req.message or req.issue or 'Not specified' }}
+              </p>
+              <p class="text-xs text-gray-500">{{ req.timestamp.strftime('%Y-%m-%d %I:%M %p') }}</p>
+              <form method="POST" action="{{ url_for('routes.resolve_service_request', request_id=req.id) }}" class="mt-1">
+                <button type="submit" class="text-white bg-blue-600 px-3 py-1 rounded hover:bg-blue-700 text-xs transition">Mark Resolved</button>
               </form>
-            {% endif %}
-          </div>
-
-          <!-- Weekly Lube -->
-          <div class="flex justify-between items-center">
-            <span class="text-sm">🧴 Lube Done This Week?</span>
-            {% if machine['weekly_lube_done'] %}
-              <span class="text-green-600 font-semibold">Yes</span>
-            {% else %}
-              <form method="POST" action="{{ url_for('routes.user_action_log', type='lube', machine_id=machine['id']) }}">
-                <button type="submit" class="text-sm text-blue-600 hover:underline">Mark as Done</button>
-              </form>
-            {% endif %}
-          </div>
-
-          <!-- Pending Service Requests -->
-          <div class="flex justify-between items-center">
-            <span class="text-sm">🛠️ Service Requested?</span>
-            {% if machine['pending_requests'] %}
-              <span class="text-red-600 font-semibold">Yes ({{ machine['pending_requests']|length }})</span>
-            {% else %}
-              <span class="text-green-600 font-semibold">No</span>
-            {% endif %}
-          </div>
+            </div>
+          {% else %}
+            <p class="italic text-gray-500 text-sm">No pending requests.</p>
+          {% endfor %}
         </div>
       </div>
     {% endfor %}
@@ -290,6 +316,7 @@
     }
   }
 </script>
+
 
 <!-- Footer -->
 <div class="max-w-4xl mx-auto text-center mt-12 mb-6 text-xs text-slate-500">
