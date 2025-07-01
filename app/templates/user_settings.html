@@ -109,8 +109,14 @@
       <!-- Machines Section -->
       <div id="section-machines" data-section class="hidden">
         <div class="mb-6 text-center">
-          <form method="POST" action="{{ url_for('routes.user_create_batch', next=url_for('routes.user_settings')) }}">
-            <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-xl font-semibold hover:bg-blue-700 shadow">Generate New QR Batch</button>
+          <form id="generateBatchForm" method="POST" action="{{ url_for('routes.user_create_batch', next=url_for('routes.user_settings', tab='machines')) }}" onsubmit="showGeneratingState(event)">
+            <button id="generateBtn" type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-xl font-semibold hover:bg-blue-700 shadow flex items-center justify-center gap-2">
+              <span id="generateText">Generate New QR Batch</span>
+              <svg id="spinner" class="hidden animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+              </svg>
+            </button>
           </form>
         </div>
 
@@ -159,7 +165,7 @@
   <script>
     // Set default tab on page load
     document.addEventListener('DOMContentLoaded', () => {
-      showTab('profile');
+      showTab('{{ default_tab }}');
 
       // Eye icon show/hide logic
       const passwordInput = document.getElementById('passwordInput');
@@ -196,6 +202,21 @@
         open.classList.remove('hidden');
         closed.classList.add('hidden');
       }
+    }
+
+    function showGeneratingState(event) {
+      const btn = document.getElementById('generateBtn');
+      const text = document.getElementById('generateText');
+      const spinner = document.getElementById('spinner');
+
+      event.preventDefault();
+      btn.disabled = true;
+      text.textContent = "Generating QR codes... Please wait";
+      spinner.classList.remove('hidden');
+
+      setTimeout(() => {
+        event.target.submit();
+      }, 500);
     }
   </script>
 </body>

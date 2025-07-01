@@ -394,7 +394,17 @@ def user_settings():
         # Attach machine reference for template convenience
         batch.machine = m
 
-    return render_template("user_settings.html", machines=machines, batches=user_batches)
+    # Determine which tab should be active when the page loads
+    default_tab = request.args.get("tab")
+    if not default_tab:
+        default_tab = "machines" if any(not b.machine for b in user_batches) else "profile"
+
+    return render_template(
+        "user_settings.html",
+        machines=machines,
+        batches=user_batches,
+        default_tab=default_tab,
+    )
 
 @routes.route("/signup", methods=["GET", "POST"], endpoint="user_signup")
 def user_signup():
