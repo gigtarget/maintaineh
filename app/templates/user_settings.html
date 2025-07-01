@@ -108,6 +108,26 @@
 
       <!-- Machines Section -->
       <div id="section-machines" data-section class="hidden">
+        <div class="mb-6 text-center">
+          <form method="POST" action="{{ url_for('routes.user_create_batch', next=url_for('routes.user_settings')) }}">
+            <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-xl font-semibold hover:bg-blue-700 shadow">Generate New QR Batch</button>
+          </form>
+        </div>
+
+        {% for batch in batches %}
+          {% if not batch.machine %}
+          <div class="bg-blue-50 border border-blue-200 p-4 rounded-xl mb-4 text-center">
+            <h2 class="text-lg font-bold mb-2 text-blue-800">Machine details to register</h2>
+            <form method="POST" action="{{ url_for('routes.user_settings') }}" class="flex flex-col gap-2 items-center">
+              <input type="hidden" name="batch_id" value="{{ batch.id }}">
+              <input type="text" name="name" placeholder="Enter machine name" class="px-4 py-2 rounded border" required>
+              <input type="text" name="type" placeholder="Machine type (e.g. Model/Location)" class="px-4 py-2 rounded border" required>
+              <button type="submit" class="px-4 py-2 rounded bg-blue-600 text-white font-semibold hover:bg-blue-700 transition">Add Machine</button>
+            </form>
+          </div>
+          {% endif %}
+        {% endfor %}
+
         {% for machine in machines %}
         <div class="bg-white/30 backdrop-blur-md border border-white/20 p-5 rounded-xl space-y-4 shadow mb-4">
           <h2 class="text-lg font-semibold">🛠️ Machine</h2>
