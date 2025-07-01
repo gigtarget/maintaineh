@@ -165,7 +165,8 @@
   <script>
     // Set default tab on page load
     document.addEventListener('DOMContentLoaded', () => {
-      showTab('{{ default_tab }}');
+      const urlTab = new URLSearchParams(window.location.search).get('tab');
+      showTab(urlTab || '{{ default_tab }}');
 
       // Eye icon show/hide logic
       const passwordInput = document.getElementById('passwordInput');
