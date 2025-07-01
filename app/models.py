@@ -120,11 +120,12 @@ class ServiceRequest(db.Model):
 
 
 # -------------------------
-# ✅ ACTIONS LOGGED BY SUB USERS
+# ✅ ACTIONS LOGGED BY SUB USERS OR MAIN USER
 # -------------------------
 class SubUserAction(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    subuser_id = db.Column(db.Integer, db.ForeignKey('sub_user.id'), nullable=True)
+    subuser_id = db.Column(db.Integer, db.ForeignKey('sub_user.id'), nullable=True)  # can be NULL if logged by main user
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)         # NEW: main user id, can be NULL if subuser logs
     machine_id = db.Column(db.Integer, db.ForeignKey('machine.id'), nullable=False)
     action_type = db.Column(db.String(20))     # "oiling", "lube", "service"
     status = db.Column(db.String(20))          # "done", "pending", "completed"
