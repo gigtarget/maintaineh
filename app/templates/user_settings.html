@@ -50,8 +50,8 @@
       </button>
     </div>
 
-    <!-- Settings Form -->
-    <form method="POST" action="{{ url_for('routes.user_settings') }}" class="space-y-6">
+    <!-- Profile Settings -->
+    <form method="POST" action="{{ url_for('routes.user_settings', tab='profile') }}" class="space-y-6">
 
       <!-- Profile Section -->
       <div id="section-profile" data-section class="">
@@ -105,41 +105,64 @@
           </div>
         </div>
       </div>
+    </form>
 
-      <!-- Machines Section -->
-      <div id="section-machines" data-section class="hidden">
-        {% for machine in machines %}
-        <div class="bg-white/30 backdrop-blur-md border border-white/20 p-5 rounded-xl space-y-4 shadow mb-4">
-          <h2 class="text-lg font-semibold">🛠️ Machine</h2>
-          <input type="hidden" name="machine_ids" value="{{ machine.id }}">
-
-          <div>
-            <label class="block text-sm mb-1">Machine Name</label>
-            <input type="text" name="machine_name_{{ machine.id }}" value="{{ machine.name }}"
-                   class="w-full px-4 py-2 rounded-xl bg-white/60 border border-white/30 shadow-inner">
-          </div>
-
-          <div>
-            <label class="block text-sm mb-1">Machine Type</label>
-            <input type="text" name="machine_type_{{ machine.id }}" value="{{ machine.type }}"
-                   class="w-full px-4 py-2 rounded-xl bg-white/60 border border-white/30 shadow-inner">
-          </div>
-        </div>
-        {% endfor %}
+    <!-- Machines Section -->
+    <div id="section-machines" data-section class="hidden">
+      <div class="mb-6 text-center">
+        <form method="POST" action="{{ url_for('routes.user_create_batch', next=url_for('routes.user_settings', tab='machines')) }}">
+          <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-xl font-semibold hover:bg-blue-700 shadow">Generate New QR Batch</button>
+        </form>
       </div>
 
-      <!-- Save Button -->
-      <button type="submit"
-              class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl py-2 shadow">
-        Save All Settings
-      </button>
-    </form>
+        {% for batch in batches %}
+          {% if not batch.machine %}
+          <div class="bg-blue-50 border border-blue-200 p-4 rounded-xl mb-4 text-center">
+            <h2 class="text-lg font-bold mb-2 text-blue-800">Machine details to register</h2>
+            <form method="POST" action="{{ url_for('routes.user_settings', tab='machines') }}" class="flex flex-col gap-2 items-center">
+              <input type="hidden" name="batch_id" value="{{ batch.id }}">
+              <input type="text" name="name" placeholder="Enter machine name" class="px-4 py-2 rounded border" required>
+              <input type="text" name="type" placeholder="Machine type (e.g. Model/Location)" class="px-4 py-2 rounded border" required>
+              <button type="submit" class="px-4 py-2 rounded bg-blue-600 text-white font-semibold hover:bg-blue-700 transition">Add Machine</button>
+            </form>
+          </div>
+          {% endif %}
+        {% endfor %}
+
+        <form method="POST" action="{{ url_for('routes.user_settings', tab='machines') }}" class="space-y-4">
+          {% for machine in machines %}
+          <div class="bg-white/30 backdrop-blur-md border border-white/20 p-5 rounded-xl space-y-4 shadow mb-4">
+            <h2 class="text-lg font-semibold">🛠️ Machine</h2>
+            <input type="hidden" name="machine_ids" value="{{ machine.id }}">
+
+            <div>
+              <label class="block text-sm mb-1">Machine Name</label>
+              <input type="text" name="machine_name_{{ machine.id }}" value="{{ machine.name }}"
+                     class="w-full px-4 py-2 rounded-xl bg-white/60 border border-white/30 shadow-inner">
+            </div>
+
+            <div>
+              <label class="block text-sm mb-1">Machine Type</label>
+              <input type="text" name="machine_type_{{ machine.id }}" value="{{ machine.type }}"
+                     class="w-full px-4 py-2 rounded-xl bg-white/60 border border-white/30 shadow-inner">
+            </div>
+          </div>
+          {% endfor %}
+
+          <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl py-2 shadow">Save Machine Settings</button>
+        </form>
+      </div>
   </div>
 
   <script>
     // Set default tab on page load
     document.addEventListener('DOMContentLoaded', () => {
-      showTab('profile');
+      const urlParams = new URLSearchParams(window.location.search);
+      if (location.hash === '#machines' || urlParams.get('tab') === 'machines') {
+        showTab('machines');
+      } else {
+        showTab('profile');
+      }
 
       // Eye icon show/hide logic
       const passwordInput = document.getElementById('passwordInput');

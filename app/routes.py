@@ -72,12 +72,13 @@ def scan_qr_page():
 @routes.route("/user/create-batch", methods=["POST"])
 @login_required
 def user_create_batch():
-    # Prevent duplicate batch for user
-    if QRBatch.query.filter_by(owner_id=current_user.id).count() > 0:
-        flash("You already have a batch.", "info")
-        return redirect(url_for("routes.user_dashboard"))
+    """Allow users to generate additional QR batches."""
     batch_id = generate_and_store_qr_batch(user_id=current_user.id)
     flash("QR batch generated! You can now set up your machine.", "success")
+
+    next_url = request.args.get("next")
+    if next_url:
+        return redirect(next_url)
     return redirect(url_for("routes.user_dashboard"))
 
 @routes.route("/machine/<int:machine_id>/mark/<action>")
@@ -319,6 +320,25 @@ def claim_batch(batch_id):
 @login_required
 def user_settings():
     if request.method == "POST":
+        # --- Adding a machine for an unregistered batch ---
+        if request.form.get("batch_id") and request.form.get("name"):
+            batch_id = request.form.get("batch_id")
+            name = request.form.get("name") or current_user.default_machine_name or "Unnamed Machine"
+            mtype = request.form.get("type") or current_user.default_machine_location or "General"
+
+            existing = Machine.query.filter_by(batch_id=batch_id).first()
+            if existing:
+                existing.name = name
+                existing.type = mtype
+                flash("Machine updated with your preferences.", "success")
+            else:
+                machine = Machine(batch_id=batch_id, name=name, type=mtype)
+                db.session.add(machine)
+                flash("Machine added successfully.", "success")
+            db.session.commit()
+            tab = request.args.get("tab") or request.form.get("tab") or "machines"
+            return redirect(url_for("routes.user_settings", tab=tab))
+
         # --- User Account Fields ---
         name = request.form.get("name")
         company_name = request.form.get("company_name")
@@ -351,7 +371,8 @@ def user_settings():
             machine_names.append(name)
 
         if duplicate_found:
-            return redirect(url_for("routes.user_settings"))
+            tab = request.args.get("tab") or request.form.get("tab") or "machines"
+            return redirect(url_for("routes.user_settings", tab=tab))
 
         for mid in machine_ids:
             name = request.form.get(f"machine_name_{mid}")
@@ -363,17 +384,20 @@ def user_settings():
 
         db.session.commit()
         flash("All settings updated successfully.", "success")
-        return redirect(url_for("routes.user_settings"))
+        tab = request.args.get("tab") or request.form.get("tab") or "profile"
+        return redirect(url_for("routes.user_settings", tab=tab))
 
-    # --- GET: Load machines ---
+    # --- GET: Load machines and batches ---
     user_batches = QRBatch.query.filter_by(owner_id=current_user.id).all()
     machines = []
     for batch in user_batches:
         m = Machine.query.filter_by(batch_id=batch.id).first()
         if m:
             machines.append(m)
+        # Attach machine reference for template convenience
+        batch.machine = m
 
-    return render_template("user_settings.html", machines=machines)
+    return render_template("user_settings.html", machines=machines, batches=user_batches)
 
 @routes.route("/signup", methods=["GET", "POST"], endpoint="user_signup")
 def user_signup():
