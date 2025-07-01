@@ -92,35 +92,37 @@ def mark_action_done(machine_id, action):
     # Determine assigned sub-user (first one if multiple)
     sub = SubUser.query.filter_by(assigned_machine_id=machine.id).first()
 
-    # Mark oiling or lube action
-    if action == "oil":
-        new_action = SubUserAction(
-            subuser_id=sub.id if sub else None,
-            machine_id=machine.id,
-            action_type="oil",
-            status="done",
-            timestamp=datetime.utcnow()
-        )
+    # Set up logging for oil or lube
+    if action in ["oil", "lube"]:
+        # If sub-user assigned, log under subuser_id
+        if sub:
+            new_action = SubUserAction(
+                subuser_id=sub.id,
+                user_id=None,
+                machine_id=machine.id,
+                action_type=action,
+                status="done",
+                timestamp=datetime.utcnow()
+            )
+        else:
+            # Otherwise, log under user_id (main user)
+            new_action = SubUserAction(
+                subuser_id=None,
+                user_id=current_user.id,
+                machine_id=machine.id,
+                action_type=action,
+                status="done",
+                timestamp=datetime.utcnow()
+            )
         db.session.add(new_action)
         db.session.commit()
-        flash("✅ Oiling marked as done.", "success")
-
-    elif action == "lube":
-        new_action = SubUserAction(
-            subuser_id=sub.id if sub else None,
-            machine_id=machine.id,
-            action_type="lube",
-            status="done",
-            timestamp=datetime.utcnow()
-        )
-        db.session.add(new_action)
-        db.session.commit()
-        flash("✅ Lubrication marked as done.", "success")
-
+        msg = "✅ Oiling marked as done." if action == "oil" else "✅ Lubrication marked as done."
+        flash(msg, "success")
     else:
         flash("Invalid action.", "danger")
 
     return redirect(url_for("routes.user_dashboard"))
+
 
 @routes.route("/sub/<int:sub_tag_id>/needle-change", methods=["GET", "POST"])
 def sub_tag_view(sub_tag_id):
