@@ -59,8 +59,12 @@
     <!-- Modal for Raise Service Request -->
     <div id="serviceModal" class="fixed top-1/2 left-1/2 z-50 transform -translate-x-1/2 -translate-y-1/2 bg-white rounded-xl shadow-lg p-6 w-full max-w-md hidden">
       <h2 class="text-lg font-semibold mb-4 text-slate-800">Raise a Service Request</h2>
-      <form method="POST" action="{{ url_for('routes.subuser_action', type='service') }}">
-        <input type="hidden" name="machine_id" value="{{ machine.id }}">
+        {% if current_user.is_authenticated and current_user.role == 'user' %}
+        <form method="POST" action="{{ url_for('routes.user_raise_service_request', machine_id=machine.id) }}">
+        {% else %}
+        <form method="POST" action="{{ url_for('routes.subuser_action', type='service') }}">
+          <input type="hidden" name="machine_id" value="{{ machine.id }}">
+        {% endif %}
         <div class="mb-4">
           <label for="heads" class="block text-sm font-medium text-slate-700 mb-1">Number of Heads</label>
           <input type="number" id="heads" name="heads" min="1" max="15" required class="w-full border border-slate-300 rounded-lg px-3 py-2" />
