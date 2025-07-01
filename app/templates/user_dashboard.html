@@ -48,6 +48,14 @@
   </div>
 {% endif %}
 
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% for category, message in messages %}
+    <div class="text-sm text-center px-4 py-2 rounded-xl {{ 'bg-green-100 text-green-800' if category == 'success' else 'bg-red-100 text-red-800' }}">
+      {{ message }}
+    </div>
+  {% endfor %}
+{% endwith %}
+
 <!-- Logo + Welcome -->
 <div class="max-w-2xl mx-auto mb-2">
   <div class="flex justify-start items-center">

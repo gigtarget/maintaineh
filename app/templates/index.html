@@ -34,6 +34,14 @@
 </head>
 <body class="bg-gradient-to-br from-blue-100 to-white min-h-screen pt-4 px-4 flex flex-col justify-between overflow-x-hidden">
 
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% for category, message in messages %}
+      <div class="text-sm text-center px-4 py-2 rounded-xl {{ 'bg-green-100 text-green-800' if category == 'success' else 'bg-red-100 text-red-800' }}">
+        {{ message }}
+      </div>
+    {% endfor %}
+  {% endwith %}
+
   <!-- Main Box -->
   <div class="bg-white/30 backdrop-blur-xl border border-white/20 rounded-2xl shadow-xl 
               w-full max-w-xl mx-auto text-center px-6 sm:px-10 pt-8 pb-28 mt-2 relative overflow-hidden">

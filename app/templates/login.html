@@ -62,6 +62,8 @@
             }
           });
         </script>
+      {% else %}
+        <div class="text-sm text-red-600 mb-4 text-center">{{ message }}</div>
       {% endif %}
     {% endfor %}
   {% endwith %}
@@ -79,14 +81,7 @@
       Know your machine’s full service history, upcoming maintenance needs, and past component changes — all in one place with just one tap or scan.
     </p>
 
-    <!-- Danger Message for invalid credentials -->
-    {% with messages = get_flashed_messages(with_categories=true) %}
-      {% for category, message in messages %}
-        {% if category == 'danger' %}
-          <div class="text-sm text-red-600 mb-4 text-center">{{ message }}</div>
-        {% endif %}
-      {% endfor %}
-    {% endwith %}
+
 
     <!-- Login Form -->
     <form method="POST" class="space-y-4 text-left px-4">
