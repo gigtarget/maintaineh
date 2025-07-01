@@ -91,14 +91,11 @@ def mark_action_done(machine_id, action):
 
     # Determine assigned sub-user (first one if multiple)
     sub = SubUser.query.filter_by(assigned_machine_id=machine.id).first()
-    if not sub:
-        flash("Please assign a sub-user to this machine to log actions.", "danger")
-        return redirect(url_for("routes.user_dashboard"))
 
     # Mark oiling or lube action
     if action == "oil":
         new_action = SubUserAction(
-            subuser_id=sub.id,
+            subuser_id=sub.id if sub else None,
             machine_id=machine.id,
             action_type="oil",
             status="done",
@@ -110,7 +107,7 @@ def mark_action_done(machine_id, action):
 
     elif action == "lube":
         new_action = SubUserAction(
-            subuser_id=sub.id,
+            subuser_id=sub.id if sub else None,
             machine_id=machine.id,
             action_type="lube",
             status="done",
@@ -185,13 +182,10 @@ def user_action_log(type, machine_id):
         return redirect(url_for("routes.user_dashboard"))
 
     sub = SubUser.query.filter_by(assigned_machine_id=machine_id).first()
-    if not sub:
-        flash("Please assign a sub-user to this machine to log actions.", "danger")
-        return redirect(url_for("routes.user_dashboard"))
 
     try:
         action = SubUserAction(
-            subuser_id=sub.id,
+            subuser_id=sub.id if sub else None,
             machine_id=machine_id,
             action_type=type,
             status="done",
