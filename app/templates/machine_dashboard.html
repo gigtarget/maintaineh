@@ -9,6 +9,14 @@
   <a href="{{ url_for('routes.user_dashboard') }}" class="inline-block mb-6 text-blue-600 hover:underline">&larr; Back to Dashboard</a>
   <h1 class="text-3xl font-bold mb-8">🖥️ Machine Dashboard</h1>
 
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% for category, message in messages %}
+      <div class="text-sm text-center px-4 py-2 rounded-xl {{ 'bg-green-100 text-green-800' if category == 'success' else 'bg-red-100 text-red-800' }}">
+        {{ message }}
+      </div>
+    {% endfor %}
+  {% endwith %}
+
   {% for data in machines_data %}
   <div id="machine-{{ data.machine.id }}" class="mb-14 bg-white rounded-xl shadow-xl p-6 border border-gray-200">
 

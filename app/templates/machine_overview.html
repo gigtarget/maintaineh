@@ -15,6 +15,14 @@
     <p class="text-slate-600">Detailed performance and maintenance logs</p>
   </div>
 
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% for category, message in messages %}
+      <div class="text-sm text-center px-4 py-2 rounded-xl {{ 'bg-green-100 text-green-800' if category == 'success' else 'bg-red-100 text-red-800' }}">
+        {{ message }}
+      </div>
+    {% endfor %}
+  {% endwith %}
+
   <!-- Machine Info -->
   <div class="max-w-3xl mx-auto bg-white/80 backdrop-blur-md shadow rounded-xl p-6 border border-slate-200 mb-6">
     <h2 class="text-xl font-semibold text-slate-800 mb-4">Machine Details</h2>
