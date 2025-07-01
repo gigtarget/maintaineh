@@ -1,6 +1,7 @@
 from flask import Flask
 from flask_login import LoginManager
 from dotenv import load_dotenv
+from sqlalchemy import text
 import os
 
 from app.models import db, User  # ✅ Import shared db instance
@@ -21,6 +22,14 @@ def create_app():
     db.init_app(app)
     login_manager.init_app(app)
     login_manager.login_view = "routes.admin_login"
+
+    # Ensure subuser_id column allows NULL values
+    with app.app_context():
+        try:
+            db.session.execute(text('ALTER TABLE sub_user_action ALTER COLUMN subuser_id DROP NOT NULL;'))
+            db.session.commit()
+        except Exception:
+            db.session.rollback()
 
     @login_manager.user_loader
     def load_user(user_id):
