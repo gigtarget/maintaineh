@@ -518,19 +518,29 @@ def user_dashboard():
     for machine in machines:
         sub = SubUser.query.filter_by(assigned_machine_id=machine.id).first()
 
-        oiled_today = SubUserAction.query.filter_by(
-            subuser_id=sub.id if sub else None,
-            machine_id=machine.id,
-            action_type="oil",
-            status="done"
-        ).filter(func.date(SubUserAction.timestamp) == today).first() is not None
+        # --- UPDATED: Oil done today (either subuser or main user) ---
+        oiled_today = SubUserAction.query.filter(
+            SubUserAction.machine_id == machine.id,
+            SubUserAction.action_type == "oil",
+            SubUserAction.status == "done",
+            or_(
+                SubUserAction.subuser_id == (sub.id if sub else None),
+                SubUserAction.user_id == current_user.id
+            ),
+            func.date(SubUserAction.timestamp) == today
+        ).first() is not None
 
-        weekly_lube_done = SubUserAction.query.filter_by(
-            subuser_id=sub.id if sub else None,
-            machine_id=machine.id,
-            action_type="lube",
-            status="done"
-        ).filter(SubUserAction.timestamp >= start_of_week).first() is not None
+        # --- UPDATED: Lube done this week (either subuser or main user) ---
+        weekly_lube_done = SubUserAction.query.filter(
+            SubUserAction.machine_id == machine.id,
+            SubUserAction.action_type == "lube",
+            SubUserAction.status == "done",
+            or_(
+                SubUserAction.subuser_id == (sub.id if sub else None),
+                SubUserAction.user_id == current_user.id
+            ),
+            SubUserAction.timestamp >= start_of_week
+        ).first() is not None
 
         pending_reqs = ServiceRequest.query.filter_by(machine_id=machine.id, resolved=False).all()
         pending_requests = []
@@ -552,7 +562,7 @@ def user_dashboard():
             status_ok = days_left >= 30
 
         quick_overview.append({
-            "id": machine.id,  # ✅ This line added for HTML usage
+            "id": machine.id,
             "name": machine.name,
             "assigned_subuser": sub.name if sub else None,
             "oiled_today": oiled_today,
@@ -571,7 +581,6 @@ def user_dashboard():
         timedelta=timedelta,
         show_toast=show_toast
     )
-
 @routes.route("/admin/login", methods=["GET", "POST"], endpoint="admin_login")
 def admin_login():
     if request.method == "POST":
