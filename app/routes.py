@@ -1068,7 +1068,7 @@ def raise_service_request():
     sub = SubUser.query.get_or_404(sub_id)
     machine_id = request.form.get("machine_id")
     heads = request.form.get("heads")
-    issue = request.form.get("issue")
+    issue = request.form.get("message")
 
     if not machine_id or not heads or not issue:
         flash("Please fill in all required fields.", "danger")
@@ -1078,7 +1078,8 @@ def raise_service_request():
         new_request = ServiceRequest(
             machine_id=machine_id,
             subuser_id=sub.id,
-            message=f"[{heads} heads] {issue}",
+            heads=int(heads),
+            issue=issue,
             timestamp=datetime.utcnow(),
             resolved=False
         )
@@ -1096,7 +1097,7 @@ def raise_service_request():
 def user_raise_service_request(machine_id):
     user = current_user
     heads = request.form.get("heads")
-    issue = request.form.get("issue")
+    issue = request.form.get("message")
 
     if not heads or not issue:
         flash("Please fill in all required fields.", "danger")
@@ -1106,7 +1107,8 @@ def user_raise_service_request(machine_id):
         new_request = ServiceRequest(
             machine_id=machine_id,
             subuser_id=None,  # user raising directly
-            message=f"[{heads} heads] {issue}",
+            heads=int(heads),
+            issue=issue,
             timestamp=datetime.utcnow(),
             resolved=False
         )
