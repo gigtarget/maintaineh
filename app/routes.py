@@ -336,7 +336,8 @@ def user_settings():
                 db.session.add(machine)
                 flash("Machine added successfully.", "success")
             db.session.commit()
-            return redirect(url_for("routes.user_settings"))
+            tab = request.args.get("tab") or request.form.get("tab") or "machines"
+            return redirect(url_for("routes.user_settings", tab=tab))
 
         # --- User Account Fields ---
         name = request.form.get("name")
@@ -370,7 +371,8 @@ def user_settings():
             machine_names.append(name)
 
         if duplicate_found:
-            return redirect(url_for("routes.user_settings"))
+            tab = request.args.get("tab") or request.form.get("tab") or "machines"
+            return redirect(url_for("routes.user_settings", tab=tab))
 
         for mid in machine_ids:
             name = request.form.get(f"machine_name_{mid}")
@@ -382,7 +384,8 @@ def user_settings():
 
         db.session.commit()
         flash("All settings updated successfully.", "success")
-        return redirect(url_for("routes.user_settings"))
+        tab = request.args.get("tab") or request.form.get("tab") or "profile"
+        return redirect(url_for("routes.user_settings", tab=tab))
 
     # --- GET: Load machines and batches ---
     user_batches = QRBatch.query.filter_by(owner_id=current_user.id).all()
