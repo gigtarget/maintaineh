@@ -72,14 +72,15 @@ def scan_qr_page():
 @routes.route("/user/create-batch", methods=["POST"])
 @login_required
 def user_create_batch():
-    """Allow users to generate additional QR batches."""
     batch_id = generate_and_store_qr_batch(user_id=current_user.id)
     flash("QR batch generated! You can now set up your machine.", "success")
 
     next_url = request.args.get("next")
     if next_url:
         return redirect(next_url)
-    return redirect(url_for("routes.user_dashboard"))
+    # Always fallback to machines tab!
+    return redirect(url_for("routes.user_settings", tab="machines"))
+
 
 @routes.route("/machine/<int:machine_id>/mark/<action>")
 def mark_action_done(machine_id, action):
