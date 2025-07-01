@@ -643,6 +643,34 @@ def download_batch(batch_id):
     )
 
 
+@routes.route("/download-qr/<int:qr_id>")
+@login_required
+def download_qr(qr_id):
+    """Serve a single QR code image as a downloadable file."""
+    qr = QRCode.query.get_or_404(qr_id)
+
+    # Permission check: ensure owner or subuser
+    if current_user.is_authenticated and getattr(current_user, "role", None) == "user":
+        if qr.batch.owner_id != current_user.id:
+            abort(403)
+    elif "subuser_id" in session:
+        sub = SubUser.query.get(session["subuser_id"])
+        if not sub or qr.batch.owner_id != sub.parent_id:
+            abort(403)
+    else:
+        abort(403)
+
+    response = requests.get(qr.image_url)
+    buffer = io.BytesIO(response.content)
+    buffer.seek(0)
+    return send_file(
+        buffer,
+        mimetype="image/png",
+        as_attachment=True,
+        download_name=f"{qr.qr_type}.png"
+    )
+
+
 # ---- Sub-User Creation (by main user) ----
 # ---- Sub-User Creation (by main user) ----
 @routes.route("/create-subuser", methods=["GET", "POST"])

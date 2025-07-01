@@ -166,7 +166,7 @@
           <div class="bg-white border rounded-xl p-3 text-center shadow">
             <img src="{{ qr.image_url }}" class="h-24 mx-auto mb-2" alt="QR">
             <p class="capitalize font-medium text-sm">{{ qr.qr_type }}</p>
-            <a href="{{ qr.image_url }}" download class="mt-2 inline-block text-xs bg-blue-600 text-white px-3 py-1 rounded-md hover:bg-blue-700 transition">Download</a>
+            <a href="{{ url_for('routes.download_qr', qr_id=qr.id) }}" download class="mt-2 inline-block text-xs bg-blue-600 text-white px-3 py-1 rounded-md hover:bg-blue-700 transition">Download</a>
           </div>
           {% endfor %}
         </div>
