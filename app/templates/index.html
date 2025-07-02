@@ -11,57 +11,24 @@
       50% { transform: translateY(-6px) translateX(6px);}
     }
     .mascot-float { animation: float 4s ease-in-out infinite;}
-    .glass { background: rgba(255,255,255,0.82); backdrop-filter: blur(12px);}
-    .shadow-glow { box-shadow: 0 8px 32px 0 rgba(0,49,140,0.14);}
   </style>
 </head>
 <body class="bg-gradient-to-br from-blue-100 via-white to-blue-200 min-h-screen">
 
-  <!-- HERO LOGIN CARD w/ Mascot left, Buttons right -->
-  <section class="relative max-w-lg xs:max-w-xl sm:max-w-2xl mx-auto mt-3 px-1">
-    <div class="glass shadow-glow border border-blue-100 rounded-2xl flex items-center relative overflow-visible py-3 sm:py-5 px-2 sm:px-4">
-      <!-- Mascot, left side, 3/4 visible -->
-      <div class="flex-shrink-0 mr-[-40px] xs:mr-[-60px] md:mr-[-80px] z-20" style="width:80px;">
-        <img src="{{ url_for('static', filename='logo/octatoka.png') }}"
-             alt="Tokatap Mascot"
-             class="w-24 xs:w-28 sm:w-32 mascot-float pointer-events-none select-none"
-             style="object-fit: contain; object-position:left; margin-left:-22%;">
-      </div>
-      <!-- Login/Signup Buttons right -->
-      <div class="flex-1 ml-2 xs:ml-4 sm:ml-6 flex flex-col gap-2.5 xs:gap-3 justify-center py-2">
-        {% with messages = get_flashed_messages(with_categories=true) %}
-          {% for category, message in messages %}
-            <div class="text-sm text-center px-3 py-2 mb-1 rounded-xl {{ 'bg-green-100 text-green-800' if category == 'success' else 'bg-red-100 text-red-800' }}">
-              {{ message }}
-            </div>
-          {% endfor %}
-        {% endwith %}
-        <a href="{{ url_for('routes.user_login') }}"
-           class="w-full py-2.5 bg-blue-700 hover:bg-blue-900 text-white font-bold rounded-xl shadow transition duration-300 text-lg">User Login</a>
-        <a href="{{ url_for('routes.user_signup') }}"
-           class="w-full py-2.5 bg-white/80 border border-blue-200 text-blue-700 hover:bg-blue-800 hover:text-white font-bold rounded-xl shadow transition-all duration-300 text-lg">Sign Up</a>
-        <a href="{{ url_for('routes.subuser_login') }}"
-           class="w-full py-2.5 bg-blue-100 border border-blue-200 text-blue-700 hover:bg-blue-200 font-semibold rounded-xl shadow-sm transition-all duration-200 text-base">Sub-User Login (using code)</a>
-        <div class="w-full text-center mt-1">
-          <a href="{{ url_for('routes.admin_login') }}"
-             class="text-xs text-slate-500 hover:text-slate-700 underline transition duration-200">Admin Login</a>
-        </div>
-      </div>
-    </div>
-  </section>
+  <!-- HERO HEADER -->
+  <section class="w-full max-w-4xl mx-auto pt-7 pb-6 px-4 flex flex-col items-center text-center">
+    <img src="{{ url_for('static', filename='logo/logo.svg') }}" alt="Tokatap Logo" class="w-32 sm:w-40 mx-auto mb-2 logo-fade">
 
-  <!-- HERO HEADLINE + CTA -->
-  <section class="max-w-xl mx-auto text-center my-4 px-2">
-    <img src="{{ url_for('static', filename='logo/logo.svg') }}" alt="Tokatap Logo" class="w-24 mx-auto mb-1 logo-fade">
-    <h1 class="text-2xl xs:text-3xl sm:text-4xl font-extrabold mb-2 leading-tight text-blue-800">
-      Machine Maintenance <br>
-      <span class="bg-gradient-to-r from-blue-500 to-blue-700 bg-clip-text text-transparent">Made Effortless</span>
+    <h1 class="text-3xl sm:text-5xl font-extrabold mb-3 leading-tight text-blue-900" style="letter-spacing:-2px">
+      Machine Maintenance<br>
+      <span class="bg-gradient-to-r from-blue-500 to-blue-700 bg-clip-text text-transparent block">Made Effortless</span>
     </h1>
-    <p class="text-base xs:text-lg text-slate-700 mb-2 xs:mb-3">
+    <p class="text-base sm:text-lg text-slate-700 mb-4 max-w-lg mx-auto">
       Track services, assign sub-users, and log every part change or repair.<br>
       All with a tap. No paperwork. No confusion.
     </p>
-    <div class="flex flex-wrap justify-center gap-2 mb-3">
+    <!-- Feature Badges -->
+    <div class="flex flex-wrap justify-center gap-2 mb-4">
       <span class="bg-white border border-blue-100 px-3 py-1 rounded-xl text-sm shadow flex items-center gap-1">
         <span class="text-lg">📱</span> QR Onboarding
       </span>
@@ -75,38 +42,56 @@
         <span class="text-lg">⚡</span> Audit-Ready
       </span>
     </div>
-    <a href="{{ url_for('routes.user_signup') }}"
-       class="w-full sm:w-auto block px-7 py-3 bg-blue-700 text-white rounded-2xl font-bold text-lg shadow hover:bg-blue-900 transition mx-auto">
-      Try Tokatap Free
-    </a>
+    <!-- Action Buttons -->
+    <div class="flex flex-col xs:flex-row gap-3 w-full max-w-xs mx-auto mb-1">
+      <a href="{{ url_for('routes.user_signup') }}"
+         class="flex-1 py-3 bg-blue-700 text-white rounded-2xl font-bold text-lg shadow hover:bg-blue-900 transition text-center">
+        Try Tokatap Free
+      </a>
+      <a href="{{ url_for('routes.user_login') }}"
+         class="flex-1 py-3 bg-white border border-blue-700 text-blue-800 font-bold text-lg rounded-2xl shadow hover:bg-blue-50 transition text-center">
+        User Login
+      </a>
+    </div>
+    <div class="flex gap-2 justify-center mt-2 mb-0">
+      <a href="{{ url_for('routes.subuser_login') }}"
+         class="text-sm text-blue-700 hover:underline px-2">
+        Sub-User Login (using code)
+      </a>
+      <span class="text-slate-400">|</span>
+      <a href="{{ url_for('routes.admin_login') }}"
+         class="text-sm text-slate-500 hover:underline px-2">
+        Admin Login
+      </a>
+    </div>
   </section>
 
   <!-- How it works section -->
-  <section class="max-w-4xl mx-auto py-8 px-2">
-    <h2 class="text-2xl xs:text-3xl sm:text-4xl font-bold text-center mb-7 text-blue-800">How Tokatap Works</h2>
-    <div class="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-3 gap-4 sm:gap-8 text-center">
-      <div class="bg-white/85 rounded-xl shadow-lg p-5 border border-blue-50">
-        <img src="{{ url_for('static', filename='emb assets/scanqrcode.png') }}" alt="Scan QR" class="mx-auto w-12 mb-3">
+  <section class="max-w-4xl mx-auto py-10 px-2">
+    <h2 class="text-2xl sm:text-4xl font-bold text-center mb-8 text-blue-800">How Tokatap Works</h2>
+    <div class="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-3 gap-5 text-center">
+      <div class="bg-white/90 rounded-xl shadow-lg p-6 border border-blue-50">
+        <img src="{{ url_for('static', filename='emb assets/scanqrcode.png') }}" alt="Scan QR" class="mx-auto w-14 mb-3">
         <h3 class="font-bold text-lg mb-1 text-blue-700">1. Scan QR Code</h3>
-        <p class="text-slate-600 text-sm xs:text-base">Stick a Tokatap QR on any machine. Just scan to start—no app needed!</p>
+        <p class="text-slate-600 text-sm sm:text-base">Stick a Tokatap QR on any machine. Just scan to start—no app needed!</p>
       </div>
-      <div class="bg-white/85 rounded-xl shadow-lg p-5 border border-blue-50">
-        <img src="{{ url_for('static', filename='emb assets/sewing-machine.png') }}" alt="Add Machine" class="mx-auto w-12 mb-3">
+      <div class="bg-white/90 rounded-xl shadow-lg p-6 border border-blue-50">
+        <img src="{{ url_for('static', filename='emb assets/sewing-machine.png') }}" alt="Add Machine" class="mx-auto w-14 mb-3">
         <h3 class="font-bold text-lg mb-1 text-blue-700">2. Add Machine</h3>
-        <p class="text-slate-600 text-sm xs:text-base">Name your machine and assign sub-users for accountability—setup takes seconds.</p>
+        <p class="text-slate-600 text-sm sm:text-base">Name your machine and assign sub-users for accountability—setup takes seconds.</p>
       </div>
-      <div class="bg-white/85 rounded-xl shadow-lg p-5 border border-blue-50">
-        <img src="{{ url_for('static', filename='emb assets/track.png') }}" alt="Log & Track" class="mx-auto w-12 mb-3">
+      <div class="bg-white/90 rounded-xl shadow-lg p-6 border border-blue-50">
+        <img src="{{ url_for('static', filename='emb assets/track.png') }}" alt="Log & Track" class="mx-auto w-14 mb-3">
         <h3 class="font-bold text-lg mb-1 text-blue-700">3. Log & Track</h3>
-        <p class="text-slate-600 text-sm xs:text-base">Log every repair, needle change, and service instantly—view all history anytime.</p>
+        <p class="text-slate-600 text-sm sm:text-base">Log every repair, needle change, and service instantly—view all history anytime.</p>
       </div>
     </div>
   </section>
 
   <!-- Features Section -->
-  <section class="max-w-3xl mx-auto pb-10 px-2">
-    <h2 class="text-xl xs:text-2xl sm:text-3xl font-bold text-center mb-7 text-blue-900">Why Tokatap?</h2>
-    <ul class="flex flex-wrap justify-center items-center gap-3 text-base xs:text-lg text-blue-900 font-medium">
+  <section class="max-w-3xl mx-auto pb-12 px-2">
+    <h2 class="text-xl sm:text-2xl font-bold text-center mb-7 text-blue-900">Why Tokatap?</h2>
+    <ul class="flex flex-wrap justify-center items-center gap-3 text-base sm:text-lg text-blue-900 font-medium">
       <li class="bg-blue-50 px-4 py-2 rounded-xl shadow-sm">✅ Digital logbooks—no lost paperwork</li>
       <li class="bg-blue-50 px-4 py-2 rounded-xl shadow-sm">✅ Audit & service reminders</li>
       <li class="bg-blue-50 px-4 py-2 rounded-xl shadow-sm">✅ Team accountability</li>
