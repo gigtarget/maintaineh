@@ -2,99 +2,126 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Tokatap - Login</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tokatap – Smart Machine Logbooks</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     @keyframes float {
-      0%, 100% {
-        transform: translateY(0px) translateX(0px);
-      }
-      50% {
-        transform: translateY(-6px) translateX(6px);
-      }
+      0%, 100% { transform: translateY(0px) translateX(0px);}
+      50% { transform: translateY(-6px) translateX(6px);}
     }
-    @keyframes fadeUp {
-      0% {
-        transform: translateY(20px);
-        opacity: 0;
-      }
-      100% {
-        transform: translateY(0);
-        opacity: 1;
-      }
-    }
-    .logo-fade {
-      animation: fadeUp 1.8s ease-out forwards;
-    }
-    .mascot-float {
-      animation: float 4s ease-in-out infinite;
-    }
+    .mascot-float { animation: float 4s ease-in-out infinite;}
+    .glass { background: rgba(255,255,255,0.8); backdrop-filter: blur(14px);}
+    .shadow-glow { box-shadow: 0 8px 32px 0 rgba(0,49,140,0.12);}
   </style>
 </head>
-<body class="bg-gradient-to-br from-blue-100 to-white min-h-screen pt-4 px-4 flex flex-col justify-between overflow-x-hidden">
+<body class="bg-gradient-to-br from-blue-100 via-white to-blue-200 min-h-screen">
 
-  {% with messages = get_flashed_messages(with_categories=true) %}
-    {% for category, message in messages %}
-      <div class="text-sm text-center px-4 py-2 rounded-xl {{ 'bg-green-100 text-green-800' if category == 'success' else 'bg-red-100 text-red-800' }}">
-        {{ message }}
-      </div>
-    {% endfor %}
-  {% endwith %}
-
-  <!-- Main Box -->
-  <div class="bg-white/30 backdrop-blur-xl border border-white/20 rounded-2xl shadow-xl 
-              w-full max-w-xl mx-auto text-center px-6 sm:px-10 pt-8 pb-28 mt-2 relative overflow-hidden">
-
-    <!-- Animated Logo -->
-    <img src="{{ url_for('static', filename='logo/logo.svg') }}"
-         alt="Tokatap Logo"
-         class="w-56 sm:w-64 h-auto mx-auto mb-2 object-contain logo-fade z-10 relative">
-
-    <!-- Tagline -->
-    <p class="text-sm text-slate-600 mb-6 z-10 relative">
-      Your smart solution for tracking machine services, maintenance, and components — all in one place.
-    </p>
-
-    <!-- Buttons -->
-    <div class="flex flex-col gap-4 w-full z-10 relative">
-
-      <!-- User Login -->
-      <a href="{{ url_for('routes.user_login') }}"
-         class="w-full py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-xl shadow-md transform transition-all duration-300 hover:scale-105 hover:shadow-lg">
-        User Login
-      </a>
-
-      <!-- Sign Up -->
+  <!-- HERO with Login Card (Mobile-first) -->
+  <section class="relative flex flex-col-reverse md:flex-row items-center justify-center max-w-6xl mx-auto py-6 px-2 md:px-6">
+    <!-- Hero Left (text & CTA) -->
+    <div class="flex-1 flex flex-col items-center md:items-start justify-center md:pr-8 w-full md:w-auto mt-6 md:mt-0">
+      <img src="{{ url_for('static', filename='logo/logo.svg') }}" alt="Tokatap Logo" class="w-24 md:w-32 mb-1 md:mb-2 logo-fade">
+      <h1 class="text-3xl xs:text-4xl md:text-5xl font-extrabold mb-3 md:mb-4 leading-tight text-center md:text-left">
+        <span class="text-blue-800 block">Machine Maintenance</span>
+        <span class="bg-gradient-to-r from-blue-500 to-blue-700 bg-clip-text text-transparent block">Made Effortless</span>
+      </h1>
+      <p class="text-base xs:text-lg text-slate-700 mb-2 md:mb-4 text-center md:text-left max-w-md md:max-w-lg">
+        Track services, assign sub-users, and log every part change or repair. <br class="hidden md:inline">
+        All with a tap. No paperwork. No confusion.
+      </p>
+      <ul class="flex flex-wrap gap-3 mb-3 mt-2 md:mb-6 text-blue-900 font-medium justify-center md:justify-start">
+        <li class="bg-blue-50 px-3 py-1 rounded-xl text-sm shadow">📱 QR Onboarding</li>
+        <li class="bg-blue-50 px-3 py-1 rounded-xl text-sm shadow">👥 Sub-User Codes</li>
+        <li class="bg-blue-50 px-3 py-1 rounded-xl text-sm shadow">🛠️ Service Logs</li>
+        <li class="bg-blue-50 px-3 py-1 rounded-xl text-sm shadow">⚡ Audit-Ready</li>
+      </ul>
       <a href="{{ url_for('routes.user_signup') }}"
-         class="w-full py-2 bg-white/30 backdrop-blur-md border border-white/20 text-blue-600 hover:text-blue-800 font-medium rounded-xl shadow-md transition-all duration-300 transform hover:scale-105 hover:border-blue-400 hover:shadow-md">
-        Sign Up
+         class="w-full md:w-auto px-7 py-3 bg-blue-700 text-white rounded-2xl font-bold text-lg shadow hover:bg-blue-900 transition text-center">
+        Try Tokatap Free
       </a>
-
-      <!-- Sub-User Login (Modern Button, No Arrow) -->
-      <div class="flex justify-end mt-2">
-        <a href="{{ url_for('routes.subuser_login') }}"
-           class="px-4 py-1.5 bg-blue-50 border border-blue-300 text-blue-700 hover:bg-blue-100 hover:border-blue-500 font-medium rounded-full shadow-sm transition-all duration-200 text-xs">
-          Sub-User Login (using code)
-        </a>
-      </div>
     </div>
 
-    <!-- Mascot Half Inside and Clipped -->
-    <div class="absolute bottom-0 left-[-60px] w-48 sm:w-56 overflow-hidden">
+    <!-- Mascot -->
+    <div class="hidden md:flex flex-col items-center justify-center flex-0 mx-8">
       <img src="{{ url_for('static', filename='logo/octatoka.png') }}"
            alt="Tokatap Mascot"
-           class="mascot-float pointer-events-none select-none">
+           class="w-36 md:w-44 mascot-float pointer-events-none select-none">
     </div>
-  </div>
 
-  <!-- Admin Login at Bottom of Page -->
-  <div class="w-full text-center mt-6 mb-4">
-    <a href="{{ url_for('routes.admin_login') }}"
-       class="text-xs text-slate-500 hover:text-slate-700 underline transition duration-200">
-      Admin Login
-    </a>
-  </div>
+    <!-- Login Card -->
+    <div class="w-full xs:max-w-md md:w-[340px] flex-shrink-0 z-20 mb-6 md:mb-0 md:ml-6">
+      <div class="glass shadow-glow border border-blue-100 rounded-2xl p-6 xs:p-7 pt-7 relative">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% for category, message in messages %}
+            <div class="text-sm text-center px-4 py-2 mb-3 rounded-xl {{ 'bg-green-100 text-green-800' if category == 'success' else 'bg-red-100 text-red-800' }}">
+              {{ message }}
+            </div>
+          {% endfor %}
+        {% endwith %}
+        <div class="flex flex-col gap-3 w-full">
+          <a href="{{ url_for('routes.user_login') }}"
+             class="w-full py-2.5 bg-blue-700 hover:bg-blue-900 text-white font-bold rounded-xl shadow transition duration-300 text-lg">User Login</a>
+          <a href="{{ url_for('routes.user_signup') }}"
+             class="w-full py-2.5 bg-white/80 border border-blue-200 text-blue-700 hover:bg-blue-800 hover:text-white font-bold rounded-xl shadow transition-all duration-300 text-lg">Sign Up</a>
+          <a href="{{ url_for('routes.subuser_login') }}"
+             class="w-full py-2.5 bg-blue-100 border border-blue-200 text-blue-700 hover:bg-blue-200 font-semibold rounded-xl shadow-sm transition-all duration-200 text-base">Sub-User Login (using code)</a>
+        </div>
+        <div class="w-full text-center mt-5">
+          <a href="{{ url_for('routes.admin_login') }}"
+             class="text-xs text-slate-500 hover:text-slate-700 underline transition duration-200">Admin Login</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- How it works section (less gap, mobile friendly) -->
+  <section class="max-w-5xl mx-auto py-10 md:py-14 px-3" style="margin-top:-20px;">
+    <h2 class="text-2xl xs:text-3xl md:text-4xl font-bold text-center mb-8 text-blue-800">How Tokatap Works</h2>
+    <div class="grid grid-cols-1 xs:grid-cols-2 md:grid-cols-3 gap-5 md:gap-8 text-center">
+      <div class="bg-white/80 rounded-xl shadow-lg p-6 border border-blue-50">
+        <img src="{{ url_for('static', filename='your_qr_image.png') }}" alt="Scan QR" class="mx-auto w-12 mb-3">
+        <h3 class="font-bold text-lg mb-1 text-blue-700">1. Scan QR Code</h3>
+        <p class="text-slate-600 text-sm xs:text-base">Stick a Tokatap QR on any machine. Just scan to start—no app needed!</p>
+      </div>
+      <div class="bg-white/80 rounded-xl shadow-lg p-6 border border-blue-50">
+        <img src="{{ url_for('static', filename='your_add_machine.png') }}" alt="Add Machine" class="mx-auto w-12 mb-3">
+        <h3 class="font-bold text-lg mb-1 text-blue-700">2. Add Machine</h3>
+        <p class="text-slate-600 text-sm xs:text-base">Name your machine and assign sub-users for accountability—setup takes seconds.</p>
+      </div>
+      <div class="bg-white/80 rounded-xl shadow-lg p-6 border border-blue-50">
+        <img src="{{ url_for('static', filename='your_log_service.png') }}" alt="Log & Track" class="mx-auto w-12 mb-3">
+        <h3 class="font-bold text-lg mb-1 text-blue-700">3. Log & Track</h3>
+        <p class="text-slate-600 text-sm xs:text-base">Log every repair, needle change, and service instantly—view all history anytime.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features Section -->
+  <section class="max-w-4xl mx-auto pb-14 md:pb-16 px-3">
+    <h2 class="text-xl xs:text-2xl md:text-3xl font-bold text-center mb-7 text-blue-900">Why Tokatap?</h2>
+    <ul class="flex flex-wrap justify-center items-center gap-4 text-base xs:text-lg text-blue-900 font-medium">
+      <li class="bg-blue-50 px-4 py-2 rounded-xl shadow-sm">✅ Digital logbooks—no lost paperwork</li>
+      <li class="bg-blue-50 px-4 py-2 rounded-xl shadow-sm">✅ Audit & service reminders</li>
+      <li class="bg-blue-50 px-4 py-2 rounded-xl shadow-sm">✅ Team accountability</li>
+      <li class="bg-blue-50 px-4 py-2 rounded-xl shadow-sm">✅ DIY setup—no IT needed</li>
+    </ul>
+  </section>
+
+  <!-- Footer -->
+  <footer class="bg-blue-950 text-blue-100 py-8">
+    <div class="max-w-5xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4 px-4">
+      <div>
+        <span class="font-bold">Tokatap</span> &copy; 2025. All rights reserved.
+      </div>
+      <div class="flex gap-6 text-blue-200 text-lg">
+        <a href="#" class="hover:text-white">Contact</a>
+        <a href="#" class="hover:text-white">Instagram</a>
+        <a href="#" class="hover:text-white">Reddit</a>
+        <a href="#" class="hover:text-white">LinkedIn</a>
+      </div>
+    </div>
+  </footer>
 
 </body>
 </html>
