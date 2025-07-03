@@ -250,72 +250,72 @@
         {% endif %}
       </div>
       <div class="overflow-x-auto">
-        <table class="min-w-full text-sm">
+        <table class="min-w-full text-sm table-auto">
           <thead class="bg-gray-50">
-            <tr>
-              <th class="py-2 px-3 text-left">Task</th>
-              <th class="py-2 px-3 text-left">Status</th>
-              <th class="py-2 px-3 text-left">Last Done</th>
-              <th class="py-2 px-3 text-left">Next Due</th>
-              <th class="py-2 px-3 text-left">Action</th>
+            <tr class="text-gray-700">
+              <th class="py-2 px-3 text-left font-semibold">Task</th>
+              <th class="py-2 px-3 text-left font-semibold">Status</th>
+              <th class="py-2 px-3 text-left font-semibold">Last Done</th>
+              <th class="py-2 px-3 text-left font-semibold">Next Due</th>
+              <th class="py-2 px-3 text-left font-semibold">Action</th>
             </tr>
           </thead>
-          <tbody class="divide-y">
+          <tbody class="divide-y divide-gray-200">
             <tr>
-              <td class="py-2 px-3">📘 Oiling</td>
-              <td>
+              <td class="py-2 px-3 align-top">📘 Daily Oil Check</td>
+              <td class="py-2 px-3 align-top">
                 <span class="{{ 'text-green-600 font-semibold' if machine.oiled_today else 'text-red-500 font-semibold' }}">
                   {{ 'Done' if machine.oiled_today else 'Pending' }}
                 </span>
               </td>
-              <td><span data-utc="{{ machine.last_oil_time.isoformat() if machine.last_oil_time else '' }}"></span></td>
-              <td><span data-utc="{{ machine.next_oil_due.isoformat() if machine.next_oil_due else '' }}"></span></td>
-              <td>
+              <td class="py-2 px-3 align-top"><span data-utc="{{ machine.last_oil_time.isoformat() if machine.last_oil_time else '' }}"></span></td>
+              <td class="py-2 px-3 align-top"><span data-utc="{{ machine.next_oil_due.isoformat() if machine.next_oil_due else '' }}"></span></td>
+              <td class="py-2 px-3 align-top">
                 {% if not machine.oiled_today %}
                   <a href="{{ url_for('routes.mark_action_done', machine_id=machine.id, action='oil') }}" class="text-blue-600 hover:underline">Mark as Done</a>
                 {% else %}Done{% endif %}
               </td>
             </tr>
             <tr>
-              <td class="py-2 px-3">🧴 Lube</td>
-              <td>
+              <td class="py-2 px-3 align-top">🧴 Weekly Lubrication</td>
+              <td class="py-2 px-3 align-top">
                 <span class="{{ 'text-green-600 font-semibold' if machine.weekly_lube_done else 'text-red-500 font-semibold' }}">
                   {{ 'Done' if machine.weekly_lube_done else 'Pending' }}
                 </span>
               </td>
-              <td><span data-utc="{{ machine.last_lube_time.isoformat() if machine.last_lube_time else '' }}"></span></td>
-              <td><span data-utc="{{ machine.next_lube_due.isoformat() if machine.next_lube_due else '' }}"></span></td>
-              <td>
+              <td class="py-2 px-3 align-top"><span data-utc="{{ machine.last_lube_time.isoformat() if machine.last_lube_time else '' }}"></span></td>
+              <td class="py-2 px-3 align-top"><span data-utc="{{ machine.next_lube_due.isoformat() if machine.next_lube_due else '' }}"></span></td>
+              <td class="py-2 px-3 align-top">
                 {% if not machine.weekly_lube_done %}
                   <a href="{{ url_for('routes.mark_action_done', machine_id=machine.id, action='lube') }}" class="text-blue-600 hover:underline">Mark as Done</a>
                 {% else %}Done{% endif %}
               </td>
             </tr>
             <tr>
-              <td class="py-2 px-3">🛢️ Greasing</td>
-              <td>
+              <td class="py-2 px-3 align-top">🛢️ Quarterly Greasing</td>
+              <td class="py-2 px-3 align-top">
                 <span class="{{ 'text-green-600 font-semibold' if machine.quarterly_grease_done else 'text-red-500 font-semibold' }}">
                   {{ 'Done' if machine.quarterly_grease_done else 'Pending' }}
                 </span>
               </td>
-              <td><span data-utc="{{ machine.last_grease_time.isoformat() if machine.last_grease_time else '' }}"></span></td>
-              <td><span data-utc="{{ machine.next_grease_due.isoformat() if machine.next_grease_due else '' }}"></span></td>
-              <td>
+              <td class="py-2 px-3 align-top"><span data-utc="{{ machine.last_grease_time.isoformat() if machine.last_grease_time else '' }}"></span></td>
+              <td class="py-2 px-3 align-top"><span data-utc="{{ machine.next_grease_due.isoformat() if machine.next_grease_due else '' }}"></span></td>
+              <td class="py-2 px-3 align-top">
                 {% if not machine.quarterly_grease_done %}
                   <a href="{{ url_for('routes.mark_action_done', machine_id=machine.id, action='grease') }}" class="text-blue-600 hover:underline">Mark as Done</a>
                 {% else %}Done{% endif %}
               </td>
             </tr>
             <tr>
-              <td class="py-2 px-3">🛠️ Service</td>
-              <td>
+              <td class="py-2 px-3 align-top">🛠️ Service Requests</td>
+              <td class="py-2 px-3 align-top">
                 <span class="{{ 'text-green-600 font-semibold' if machine.pending_count == 0 else 'text-red-600 font-semibold' }}">
                   {{ 'No pending' if machine.pending_count == 0 else machine.pending_count ~ ' pending' }}
                 </span>
               </td>
-              <td><span data-utc="{{ machine.last_service_time.isoformat() if machine.last_service_time else '' }}"></span></td>
-              <td><span data-utc="{{ machine.next_service_due.isoformat() if machine.next_service_due else '' }}"></span></td>
-              <td>
+              <td class="py-2 px-3 align-top"><span data-utc="{{ machine.last_service_time.isoformat() if machine.last_service_time else '' }}"></span></td>
+              <td class="py-2 px-3 align-top"><span data-utc="{{ machine.next_service_due.isoformat() if machine.next_service_due else '' }}"></span></td>
+              <td class="py-2 px-3 align-top">
                 {% if machine.pending_count > 0 %}
                   <span class="text-blue-600 hover:underline cursor-pointer" onclick="toggleRequests({{ idx }})">View</span>
                 {% else %}Done{% endif %}
@@ -386,7 +386,7 @@
       const hours = String(date.getHours()).padStart(2, '0');
       const minutes = String(date.getMinutes()).padStart(2, '0');
 
-      el.innerHTML = `${day} ${monthShort} ${year}<br>${hours}:${minutes}`;
+      el.innerHTML = `<span class="leading-tight font-semibold">${day} ${monthShort} ${year}</span><br><span class="text-xs text-gray-500">${hours}:${minutes}</span>`;
     } else {
       el.textContent = '—';
     }
