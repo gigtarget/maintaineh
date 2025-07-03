@@ -83,6 +83,7 @@ def user_create_batch():
 
 
 @routes.route("/machine/<int:machine_id>/mark/<action>")
+@login_required
 def mark_action_done(machine_id, action):
     # Fetch machine and validate existence
     machine = Machine.query.get_or_404(machine_id)
