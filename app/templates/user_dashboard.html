@@ -262,7 +262,7 @@
           </thead>
           <tbody class="divide-y divide-gray-200">
             <tr>
-              <td class="py-2 px-3 align-top">📘 Daily Oil Check</td>
+              <td class="py-2 px-3 align-top">Daily Oil Check</td>
               <td class="py-2 px-3 align-top">
                 <span class="{{ 'text-green-600 font-semibold' if machine.oiled_today else 'text-red-500 font-semibold' }}">
                   {{ 'Done' if machine.oiled_today else 'Pending' }}
@@ -277,7 +277,7 @@
               </td>
             </tr>
             <tr>
-              <td class="py-2 px-3 align-top">🧴 Weekly Lubrication</td>
+              <td class="py-2 px-3 align-top">Weekly Lubrication</td>
               <td class="py-2 px-3 align-top">
                 <span class="{{ 'text-green-600 font-semibold' if machine.weekly_lube_done else 'text-red-500 font-semibold' }}">
                   {{ 'Done' if machine.weekly_lube_done else 'Pending' }}
@@ -292,7 +292,7 @@
               </td>
             </tr>
             <tr>
-              <td class="py-2 px-3 align-top">🛢️ Quarterly Greasing</td>
+              <td class="py-2 px-3 align-top">Quarterly Greasing</td>
               <td class="py-2 px-3 align-top">
                 <span class="{{ 'text-green-600 font-semibold' if machine.quarterly_grease_done else 'text-red-500 font-semibold' }}">
                   {{ 'Done' if machine.quarterly_grease_done else 'Pending' }}
@@ -307,7 +307,7 @@
               </td>
             </tr>
             <tr>
-              <td class="py-2 px-3 align-top">🛠️ Service Requests</td>
+              <td class="py-2 px-3 align-top">Service Requests</td>
               <td class="py-2 px-3 align-top">
                 <span class="{{ 'text-green-600 font-semibold' if machine.pending_count == 0 else 'text-red-600 font-semibold' }}">
                   {{ 'No pending' if machine.pending_count == 0 else machine.pending_count ~ ' pending' }}
