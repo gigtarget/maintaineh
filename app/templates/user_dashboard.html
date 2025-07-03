@@ -373,6 +373,18 @@
       event.target.submit();
     }, 500); // slight delay for visual feedback
   }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('[data-utc]').forEach(el => {
+      const utc = el.getAttribute('data-utc');
+      if (utc) {
+        const date = new Date(utc + 'Z');
+        el.textContent = date.toLocaleString();
+      } else {
+        el.textContent = '—';
+      }
+    });
+  });
 </script>
 </body>
 </html>
