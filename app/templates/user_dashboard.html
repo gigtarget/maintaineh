@@ -280,6 +280,19 @@
 
           <p class="flex justify-between">
             <span class="flex items-center gap-2">
+              🛢️ Machine Quately Greasing?
+              <span class="{{ 'text-green-600 font-semibold' if machine.quarterly_grease_done else 'text-red-500 font-semibold' }}">
+                {{ 'Yes' if machine.quarterly_grease_done else 'No' }}
+              </span>
+            </span>
+            {% if not machine.quarterly_grease_done %}
+              <a href="{{ url_for('routes.mark_action_done', machine_id=machine.id, action='grease') }}"
+                 class="text-blue-600 hover:underline text-sm">Mark as Done</a>
+            {% endif %}
+          </p>
+
+          <p class="flex justify-between">
+            <span class="flex items-center gap-2">
               🛠️ Service Requested?
               <span class="{{ 'text-green-600 font-semibold' if machine.pending_count == 0 else 'text-red-600 font-semibold' }}">
                 {{ 'No' if machine.pending_count == 0 else machine.pending_count ~ ' pending' }}

@@ -95,8 +95,8 @@ def mark_action_done(machine_id, action):
     # Determine assigned sub-user (first one if multiple)
     sub = SubUser.query.filter_by(assigned_machine_id=machine.id).first()
 
-    # Set up logging for oil or lube
-    if action in ["oil", "lube"]:
+    # Set up logging for oil, lube or grease
+    if action in ["oil", "lube", "grease"]:
         # If sub-user assigned, log under subuser_id
         if sub:
             new_action = SubUserAction(
@@ -119,7 +119,12 @@ def mark_action_done(machine_id, action):
             )
         db.session.add(new_action)
         db.session.commit()
-        msg = "✅ Oiling marked as done." if action == "oil" else "✅ Lubrication marked as done."
+        if action == "oil":
+            msg = "✅ Oiling marked as done."
+        elif action == "lube":
+            msg = "✅ Lubrication marked as done."
+        else:
+            msg = "✅ Quarterly greasing marked as done."
         flash(msg, "success")
     else:
         flash("Invalid action.", "danger")
@@ -547,6 +552,9 @@ def user_dashboard():
     quick_overview = []
     today = date.today()
     start_of_week = today - timedelta(days=today.weekday())
+    # Determine first day of current quarter
+    start_month = 3 * ((today.month - 1) // 3) + 1
+    start_of_quarter = date(today.year, start_month, 1)
 
     for machine in machines:
         sub = SubUser.query.filter_by(assigned_machine_id=machine.id).first()
@@ -575,6 +583,15 @@ def user_dashboard():
             SubUserAction.timestamp >= start_of_week
         ).first() is not None
 
+        # Grease done this quarter (only main user)
+        quarterly_grease_done = SubUserAction.query.filter(
+            SubUserAction.machine_id == machine.id,
+            SubUserAction.action_type == "grease",
+            SubUserAction.status == "done",
+            SubUserAction.user_id == current_user.id,
+            SubUserAction.timestamp >= start_of_quarter
+        ).first() is not None
+
         pending_reqs = ServiceRequest.query.filter_by(machine_id=machine.id, resolved=False).all()
         pending_requests = []
         for req in pending_reqs:
@@ -600,6 +617,7 @@ def user_dashboard():
             "assigned_subuser": sub.name if sub else None,
             "oiled_today": oiled_today,
             "weekly_lube_done": weekly_lube_done,
+            "quarterly_grease_done": quarterly_grease_done,
             "status_ok": status_ok,
             "pending_count": pending_count,
             "pending_requests": pending_requests
