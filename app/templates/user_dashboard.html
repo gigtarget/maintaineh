@@ -315,7 +315,7 @@
               <p class="text-sm">
                 <strong>Issue:</strong> {{ req.message or req.issue or 'Not specified' }}
               </p>
-              <p class="text-xs text-gray-500">{{ req.timestamp.strftime('%Y-%m-%d %I:%M %p') }}</p>
+              <p class="text-xs text-gray-500" data-utc="{{ req.timestamp.isoformat() }}"></p>
               <form method="POST" action="{{ url_for('routes.resolve_service_request', request_id=req.id) }}" class="mt-1">
                 <button type="submit" class="text-white bg-blue-600 px-3 py-1 rounded hover:bg-blue-700 text-xs transition">Mark Resolved</button>
               </form>
@@ -360,5 +360,6 @@
     }, 500); // slight delay for visual feedback
   }
 </script>
+<script src="{{ url_for('static', filename='js/localtime.js') }}"></script>
 </body>
 </html>
