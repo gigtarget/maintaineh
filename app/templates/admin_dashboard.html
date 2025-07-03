@@ -117,7 +117,13 @@
                     {{ qr.qr_type.upper() }}
                   {% endif %}
                 </p>
-                <a href="{{ qr.qr_url }}" target="_blank" class="text-xs text-blue-500 break-all underline mt-1">🔗 {{ qr.qr_url }}</a>
+                <!-- Link without 🔗 and with copy button -->
+                <div class="flex items-center gap-2 mt-1">
+                  <a href="{{ qr.qr_url }}" target="_blank" class="text-xs text-blue-500 break-all underline">{{ qr.qr_url }}</a>
+                  <button onclick="copyQRLink('{{ qr.qr_url }}')" class="text-xs text-gray-500 hover:text-gray-700 px-1 py-0.5 border border-gray-300 rounded">
+                    📋
+                  </button>
+                </div>
               </div>
             {% endfor %}
           {% endfor %}
@@ -128,11 +134,11 @@
     {% endfor %}
   </div>
 
-  <!-- JS for Rotated Download + Download All -->
+  <!-- JS for QR tools -->
   <script>
     function downloadRotatedQR(imgUrl, qrType, qrId) {
       const img = new Image();
-      img.crossOrigin = "anonymous"; // Ensure proper loading from cloud/CDN
+      img.crossOrigin = "anonymous";
       img.onload = function() {
         const canvas = document.createElement('canvas');
         canvas.width = img.height;
@@ -150,14 +156,12 @@
     }
 
     function downloadAllQRs(batchId) {
-      // Find all QR images in this batch's card
       const batchCard = document.querySelector(`[data-batch-id='${batchId}']`);
       if (!batchCard) return;
       const qrImgs = batchCard.querySelectorAll('.qr-img-download');
       qrImgs.forEach(img => {
         const url = img.getAttribute('data-qr-url');
         const name = img.getAttribute('data-qr-name');
-        // Trigger download
         const link = document.createElement('a');
         link.href = url;
         link.download = name || 'qr-code.png';
@@ -165,6 +169,13 @@
         link.click();
         document.body.removeChild(link);
       });
+    }
+
+    function copyQRLink(link) {
+      const cleanLink = link.replace(/^https?:\/\//, '');
+      navigator.clipboard.writeText(cleanLink)
+        .then(() => alert("Copied: " + cleanLink))
+        .catch(err => alert("Failed to copy: " + err));
     }
   </script>
 
