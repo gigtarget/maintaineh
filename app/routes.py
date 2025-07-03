@@ -603,7 +603,41 @@ def user_dashboard():
             })
         pending_count = len(pending_requests)
 
+        # Latest actions for this machine
+        last_oil_action = SubUserAction.query.filter(
+            SubUserAction.machine_id == machine.id,
+            SubUserAction.action_type == "oil",
+            SubUserAction.status == "done",
+            or_(
+                SubUserAction.subuser_id == (sub.id if sub else None),
+                SubUserAction.user_id == current_user.id
+            )
+        ).order_by(SubUserAction.timestamp.desc()).first()
+
+        last_lube_action = SubUserAction.query.filter(
+            SubUserAction.machine_id == machine.id,
+            SubUserAction.action_type == "lube",
+            SubUserAction.status == "done",
+            or_(
+                SubUserAction.subuser_id == (sub.id if sub else None),
+                SubUserAction.user_id == current_user.id
+            )
+        ).order_by(SubUserAction.timestamp.desc()).first()
+
+        last_grease_action = SubUserAction.query.filter(
+            SubUserAction.machine_id == machine.id,
+            SubUserAction.action_type == "grease",
+            SubUserAction.status == "done",
+            SubUserAction.user_id == current_user.id
+        ).order_by(SubUserAction.timestamp.desc()).first()
+
         last_service_log = ServiceLog.query.filter_by(batch_id=machine.batch_id).order_by(ServiceLog.timestamp.desc()).first()
+
+        # Compute next due dates
+        next_oil_due = last_oil_action.timestamp + timedelta(days=1) if last_oil_action else None
+        next_lube_due = last_lube_action.timestamp + timedelta(days=7) if last_lube_action else None
+        next_grease_due = last_grease_action.timestamp + timedelta(days=90) if last_grease_action else None
+
         status_ok = True
         if last_service_log and last_service_log.warranty_till:
             days_left = (last_service_log.warranty_till - today).days
@@ -618,7 +652,15 @@ def user_dashboard():
             "quarterly_grease_done": quarterly_grease_done,
             "status_ok": status_ok,
             "pending_count": pending_count,
-            "pending_requests": pending_requests
+            "pending_requests": pending_requests,
+            "last_oil": last_oil_action.timestamp if last_oil_action else None,
+            "last_lube": last_lube_action.timestamp if last_lube_action else None,
+            "last_grease": last_grease_action.timestamp if last_grease_action else None,
+            "last_service": last_service_log.timestamp if last_service_log else None,
+            "next_oil_due": next_oil_due,
+            "next_lube_due": next_lube_due,
+            "next_grease_due": next_grease_due,
+            "next_service_due": None
         })
 
     return render_template(
