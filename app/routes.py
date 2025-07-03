@@ -92,30 +92,28 @@ def mark_action_done(machine_id, action):
     if owner_id and machine.batch.owner_id != owner_id:
         abort(403)
 
-    # Determine assigned sub-user (first one if multiple)
-    sub = SubUser.query.filter_by(assigned_machine_id=machine.id).first()
+    # Determine if a sub-user is currently logged in
+    sub_id = session.get("subuser_id")
 
     # Set up logging for oil, lube or grease
     if action in ["oil", "lube", "grease"]:
-        # If sub-user assigned, log under subuser_id
-        if sub:
+        if sub_id:
             new_action = SubUserAction(
-                subuser_id=sub.id,
+                subuser_id=sub_id,
                 user_id=None,
                 machine_id=machine.id,
                 action_type=action,
                 status="done",
-                timestamp=datetime.utcnow()
+                timestamp=datetime.utcnow(),
             )
         else:
-            # Otherwise, log under user_id (main user)
             new_action = SubUserAction(
                 subuser_id=None,
                 user_id=current_user.id,
                 machine_id=machine.id,
                 action_type=action,
                 status="done",
-                timestamp=datetime.utcnow()
+                timestamp=datetime.utcnow(),
             )
         db.session.add(new_action)
         db.session.commit()
