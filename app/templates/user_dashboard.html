@@ -375,16 +375,23 @@
   }
 
   document.addEventListener('DOMContentLoaded', () => {
-    document.querySelectorAll('[data-utc]').forEach(el => {
-      const utc = el.getAttribute('data-utc');
-      if (utc) {
-        const date = new Date(utc + 'Z');
-        el.textContent = date.toLocaleString();
-      } else {
-        el.textContent = '—';
-      }
-    });
+  document.querySelectorAll('[data-utc]').forEach(el => {
+    const utc = el.getAttribute('data-utc');
+    if (utc) {
+      const date = new Date(utc + 'Z');
+      
+      const day = String(date.getDate()).padStart(2, '0');
+      const monthShort = date.toLocaleString('en-US', { month: 'short' });
+      const year = String(date.getFullYear()).slice(2);
+      const hours = String(date.getHours()).padStart(2, '0');
+      const minutes = String(date.getMinutes()).padStart(2, '0');
+
+      el.innerHTML = `${day} ${monthShort} ${year}<br>${hours}:${minutes}`;
+    } else {
+      el.textContent = '—';
+    }
   });
+});
 </script>
 </body>
 </html>
