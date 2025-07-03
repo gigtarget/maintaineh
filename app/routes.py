@@ -590,6 +590,40 @@ def user_dashboard():
             SubUserAction.timestamp >= start_of_quarter
         ).first() is not None
 
+        # Last action timestamps
+        last_oil_log = SubUserAction.query.filter(
+            SubUserAction.machine_id == machine.id,
+            SubUserAction.action_type == "oil",
+            SubUserAction.status == "done",
+            or_(
+                SubUserAction.subuser_id == (sub.id if sub else None),
+                SubUserAction.user_id == current_user.id
+            )
+        ).order_by(SubUserAction.timestamp.desc()).first()
+        last_oil_time = last_oil_log.timestamp if last_oil_log else None
+        next_oil_due = (last_oil_time + timedelta(days=1)) if last_oil_time else None
+
+        last_lube_log = SubUserAction.query.filter(
+            SubUserAction.machine_id == machine.id,
+            SubUserAction.action_type == "lube",
+            SubUserAction.status == "done",
+            or_(
+                SubUserAction.subuser_id == (sub.id if sub else None),
+                SubUserAction.user_id == current_user.id
+            )
+        ).order_by(SubUserAction.timestamp.desc()).first()
+        last_lube_time = last_lube_log.timestamp if last_lube_log else None
+        next_lube_due = (last_lube_time + timedelta(days=7)) if last_lube_time else None
+
+        last_grease_log = SubUserAction.query.filter(
+            SubUserAction.machine_id == machine.id,
+            SubUserAction.action_type == "grease",
+            SubUserAction.status == "done",
+            SubUserAction.user_id == current_user.id
+        ).order_by(SubUserAction.timestamp.desc()).first()
+        last_grease_time = last_grease_log.timestamp if last_grease_log else None
+        next_grease_due = (last_grease_time + timedelta(days=90)) if last_grease_time else None
+
         pending_reqs = ServiceRequest.query.filter_by(machine_id=machine.id, resolved=False).all()
         pending_requests = []
         for req in pending_reqs:
@@ -608,6 +642,8 @@ def user_dashboard():
         if last_service_log and last_service_log.warranty_till:
             days_left = (last_service_log.warranty_till - today).days
             status_ok = days_left >= 30
+        last_service_time = last_service_log.timestamp if last_service_log else None
+        next_service_due = last_service_log.warranty_till if last_service_log and last_service_log.warranty_till else None
 
         quick_overview.append({
             "id": machine.id,
@@ -618,7 +654,15 @@ def user_dashboard():
             "quarterly_grease_done": quarterly_grease_done,
             "status_ok": status_ok,
             "pending_count": pending_count,
-            "pending_requests": pending_requests
+            "pending_requests": pending_requests,
+            "last_oil_time": last_oil_time,
+            "next_oil_due": next_oil_due,
+            "last_lube_time": last_lube_time,
+            "next_lube_due": next_lube_due,
+            "last_grease_time": last_grease_time,
+            "next_grease_due": next_grease_due,
+            "last_service_time": last_service_time,
+            "next_service_due": next_service_due
         })
 
     return render_template(
