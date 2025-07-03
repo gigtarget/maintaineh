@@ -255,7 +255,6 @@
             <tr class="text-gray-700">
               <th class="py-2 px-3 text-left font-semibold">Task</th>
               <th class="py-2 px-3 text-left font-semibold">Status</th>
-              <th class="py-2 px-3 text-left font-semibold">Last Done</th>
               <th class="py-2 px-3 text-left font-semibold">Next Due</th>
               <th class="py-2 px-3 text-left font-semibold">Action</th>
             </tr>
@@ -268,7 +267,6 @@
                   {{ 'Done' if machine.oiled_today else 'Pending' }}
                 </span>
               </td>
-              <td class="py-2 px-3 align-top"><span data-utc="{{ machine.last_oil_time.isoformat() if machine.last_oil_time else '' }}"></span></td>
               <td class="py-2 px-3 align-top"><span data-utc="{{ machine.next_oil_due.isoformat() if machine.next_oil_due else '' }}"></span></td>
               <td class="py-2 px-3 align-top">
                 {% if not machine.oiled_today %}
@@ -283,7 +281,6 @@
                   {{ 'Done' if machine.weekly_lube_done else 'Pending' }}
                 </span>
               </td>
-              <td class="py-2 px-3 align-top"><span data-utc="{{ machine.last_lube_time.isoformat() if machine.last_lube_time else '' }}"></span></td>
               <td class="py-2 px-3 align-top"><span data-utc="{{ machine.next_lube_due.isoformat() if machine.next_lube_due else '' }}"></span></td>
               <td class="py-2 px-3 align-top">
                 {% if not machine.weekly_lube_done %}
@@ -298,7 +295,6 @@
                   {{ 'Done' if machine.quarterly_grease_done else 'Pending' }}
                 </span>
               </td>
-              <td class="py-2 px-3 align-top"><span data-utc="{{ machine.last_grease_time.isoformat() if machine.last_grease_time else '' }}"></span></td>
               <td class="py-2 px-3 align-top"><span data-utc="{{ machine.next_grease_due.isoformat() if machine.next_grease_due else '' }}"></span></td>
               <td class="py-2 px-3 align-top">
                 {% if not machine.quarterly_grease_done %}
@@ -313,7 +309,6 @@
                   {{ 'No pending' if machine.pending_count == 0 else machine.pending_count ~ ' pending' }}
                 </span>
               </td>
-              <td class="py-2 px-3 align-top"><span data-utc="{{ machine.last_service_time.isoformat() if machine.last_service_time else '' }}"></span></td>
               <td class="py-2 px-3 align-top"><span data-utc="{{ machine.next_service_due.isoformat() if machine.next_service_due else '' }}"></span></td>
               <td class="py-2 px-3 align-top">
                 {% if machine.pending_count > 0 %}
@@ -324,6 +319,7 @@
           </tbody>
         </table>
       </div>
+      <!-- Service Request Box remains unchanged -->
       <div id="requests-{{ idx }}" class="hidden mt-3 space-y-2 bg-gray-50 p-3 rounded-b-xl">
         {% for req in machine.pending_requests %}
           <div class="border border-gray-200 p-2 rounded-lg">
@@ -342,6 +338,7 @@
     </div>
   {% endfor %}
 </div>
+
 
 <script>
   function toggleRequests(index) {
