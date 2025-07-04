@@ -55,8 +55,9 @@
       </button>
     </div>
 
-    <!-- Settings Form -->
+    <!-- Profile Form -->
     <form method="POST" action="{{ url_for('routes.user_settings') }}" class="space-y-6">
+      <input type="hidden" name="update_profile" value="1">
 
       <!-- Profile Section -->
       <div id="section-profile" data-section class="">
@@ -83,7 +84,7 @@
 
           <div>
             <label class="block text-sm mb-1">Change Email</label>
-            <input type="email" name="email" value="{{ current_user.email }}"
+          <input type="email" name="email" value="{{ current_user.email }}"
                    class="w-full px-4 py-2 rounded-xl bg-white/60 border border-white/30 shadow-inner">
           </div>
 
@@ -109,14 +110,19 @@
             </div>
           </div>
         </div>
+        <div class="text-right mt-4">
+          <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl py-2 px-4 shadow">Save Profile</button>
+        </div>
       </div>
+    </form>
 
-      <!-- Machines Section -->
-      <div id="section-machines" data-section class="hidden">
-        {% for machine in machines %}
-        <div class="bg-white/30 backdrop-blur-md border border-white/20 p-5 rounded-xl space-y-4 shadow mb-4">
-          <h2 class="text-lg font-semibold">🛠️ Machine</h2>
-          <input type="hidden" name="machine_ids" value="{{ machine.id }}">
+    <!-- Machines Section -->
+    <div id="section-machines" data-section class="hidden">
+      {% for machine in machines %}
+      <form method="POST" action="{{ url_for('routes.user_settings', tab='machines') }}" class="bg-white/30 backdrop-blur-md border border-white/20 p-5 rounded-xl space-y-4 shadow mb-4">
+        <input type="hidden" name="update_machine_id" value="{{ machine.id }}">
+        <h2 class="text-lg font-semibold">🛠️ Machine</h2>
+        <input type="hidden" name="machine_ids" value="{{ machine.id }}">
 
           <div>
             <label class="block text-sm mb-1">Machine Name</label>
@@ -140,17 +146,15 @@
             </div>
             <div>
               <label class="block text-sm mb-1">Months between Grease</label>
-              <input type="number" min="1" name="grease_interval_{{ machine.id }}" value="{{ machine.grease_interval_months }}" class="w-full px-3 py-2 rounded-xl bg-white/60 border border-white/30 shadow-inner">
+          <input type="number" min="1" name="grease_interval_{{ machine.id }}" value="{{ machine.grease_interval_months }}" class="w-full px-3 py-2 rounded-xl bg-white/60 border border-white/30 shadow-inner">
             </div>
           </div>
+        <div class="text-right mt-2">
+          <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl py-2 px-4 shadow text-sm">Save</button>
         </div>
-        {% endfor %}
-      </div>
-      <button type="submit"
-              class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl py-2 shadow">
-        Save All Settings
-      </button>
-    </form>
+      </form>
+      {% endfor %}
+    </div>
 
     <!-- Machines Actions outside main form -->
     <div id="extra-machines" data-extra-section class="hidden">

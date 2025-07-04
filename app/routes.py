@@ -357,43 +357,34 @@ def user_settings():
                 db.session.add(machine)
                 flash("Machine added successfully.", "success")
             db.session.commit()
-            return redirect(url_for("routes.user_settings"))
+            return redirect(url_for("routes.user_settings", tab="machines"))
 
-        # --- User Account Fields ---
-        name = request.form.get("name")
-        company_name = request.form.get("company_name")
-        mobile = request.form.get("mobile")
-        email = request.form.get("email")
-        password = request.form.get("password")
+        # --- Update Profile ---
+        if request.form.get("update_profile"):
+            name = request.form.get("name")
+            company_name = request.form.get("company_name")
+            mobile = request.form.get("mobile")
+            email = request.form.get("email")
+            password = request.form.get("password")
 
-        if name:
-            current_user.name = name
-        if company_name:
-            current_user.company_name = company_name
-        if mobile:
-            current_user.mobile = mobile
-        if email and email != current_user.email:
-            current_user.email = email
-        if password:
-            current_user.password = password  # ⚠️ Hash this in production
+            if name:
+                current_user.name = name
+            if company_name:
+                current_user.company_name = company_name
+            if mobile:
+                current_user.mobile = mobile
+            if email and email != current_user.email:
+                current_user.email = email
+            if password:
+                current_user.password = password  # ⚠️ Hash this in production
 
-        # --- Machine Section ---
-        machine_ids = request.form.getlist("machine_ids")
-        machine_names = []
-        duplicate_found = False
+            db.session.commit()
+            flash("Profile updated successfully.", "success")
+            return redirect(url_for("routes.user_settings", tab="profile"))
 
-        for mid in machine_ids:
-            name = request.form.get(f"machine_name_{mid}", "").strip()
-            if name.lower() in [n.lower() for n in machine_names]:
-                flash(f"Machine name '{name}' is duplicated. Please use unique names.", "danger")
-                duplicate_found = True
-                break
-            machine_names.append(name)
-
-        if duplicate_found:
-            return redirect(url_for("routes.user_settings"))
-
-        for mid in machine_ids:
+        # --- Update Single Machine ---
+        if request.form.get("update_machine_id"):
+            mid = request.form.get("update_machine_id")
             name = request.form.get(f"machine_name_{mid}")
             mtype = request.form.get(f"machine_type_{mid}")
             oil_int = request.form.get(f"oil_interval_{mid}")
@@ -409,10 +400,9 @@ def user_settings():
                     machine.lube_interval_days = int(lube_int)
                 if grease_int:
                     machine.grease_interval_months = int(grease_int)
-
-        db.session.commit()
-        flash("All settings updated successfully.", "success")
-        return redirect(url_for("routes.user_settings"))
+                db.session.commit()
+                flash("Machine settings updated successfully.", "success")
+            return redirect(url_for("routes.user_settings", tab="machines"))
 
     # --- GET: Load machines and batches ---
     user_batches = QRBatch.query.filter_by(owner_id=current_user.id).all()
