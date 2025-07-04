@@ -226,6 +226,15 @@
     }
 
     function showGeneratingState(event) {
+      const warning = "Are you sure you want to generate a new QR batch?\n" +
+        "Only proceed if you're planning to add a new machine to the system. " +
+        "Generating unnecessary batches may lead to confusion or duplicate entries.";
+
+      if (!confirm(warning)) {
+        event.preventDefault();
+        return false;
+      }
+
       const btn = document.getElementById('generateBtn');
       const text = document.getElementById('generateText');
       const spinner = document.getElementById('spinner');
