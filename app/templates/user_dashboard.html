@@ -266,7 +266,7 @@
                   <span class="{{ 'text-green-600 font-medium text-xs' if machine.oiled_today else 'text-red-500 font-medium text-xs' }}">Status: {{ 'Done' if machine.oiled_today else 'Pending' }}</span>
                 </div>
               </td>
-              <td class="py-2 px-3 align-top"><span data-utc="{{ machine.next_oil_due.isoformat() if machine.next_oil_due else '' }}"></span></td>
+              <td class="py-2 px-3 align-top">{{ machine.next_oil_due_str or '—' }}</td>
               <td class="py-2 px-3 align-top">
                 {% if not machine.oiled_today %}
                   <a href="{{ url_for('routes.mark_action_done', machine_id=machine.id, action='oil') }}" class="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700 text-xs transition">Mark as Done</a>
@@ -280,7 +280,7 @@
                   <span class="{{ 'text-green-600 font-medium text-xs' if machine.weekly_lube_done else 'text-red-500 font-medium text-xs' }}">Status: {{ 'Done' if machine.weekly_lube_done else 'Pending' }}</span>
                 </div>
               </td>
-              <td class="py-2 px-3 align-top"><span data-utc="{{ machine.next_lube_due.isoformat() if machine.next_lube_due else '' }}"></span></td>
+              <td class="py-2 px-3 align-top">{{ machine.next_lube_due_str or '—' }}</td>
               <td class="py-2 px-3 align-top">
                 {% if not machine.weekly_lube_done %}
                   <a href="{{ url_for('routes.mark_action_done', machine_id=machine.id, action='lube') }}" class="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700 text-xs transition">Mark as Done</a>
@@ -294,7 +294,7 @@
                   <span class="{{ 'text-green-600 font-medium text-xs' if machine.quarterly_grease_done else 'text-red-500 font-medium text-xs' }}">Status: {{ 'Done' if machine.quarterly_grease_done else 'Pending' }}</span>
                 </div>
               </td>
-              <td class="py-2 px-3 align-top"><span data-utc="{{ machine.next_grease_due.isoformat() if machine.next_grease_due else '' }}"></span></td>
+              <td class="py-2 px-3 align-top">{{ machine.next_grease_due_str or '—' }}</td>
               <td class="py-2 px-3 align-top">
                 {% if not machine.quarterly_grease_done %}
                   <a href="{{ url_for('routes.mark_action_done', machine_id=machine.id, action='grease') }}" class="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700 text-xs transition">Mark as Done</a>

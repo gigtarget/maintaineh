@@ -60,6 +60,10 @@ class Machine(db.Model):
     name = db.Column(db.String(100))
     type = db.Column(db.String(100))
     under_maintenance = db.Column(db.Boolean, default=False)
+    # New: user configurable maintenance intervals
+    oil_interval_hours = db.Column(db.Integer, default=24)
+    lube_interval_days = db.Column(db.Integer, default=7)
+    grease_interval_months = db.Column(db.Integer, default=3)
 
     maintenance_logs = db.relationship("DailyMaintenance", backref="machine", lazy=True)
     service_requests = db.relationship("ServiceRequest", backref="machine", lazy=True)

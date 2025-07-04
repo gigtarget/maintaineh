@@ -9,6 +9,22 @@ import requests
 import random
 import string
 
+def time_until(dt):
+    """Return human friendly time until dt (UTC)."""
+    if not dt:
+        return None
+    delta = dt - datetime.utcnow()
+    if delta.total_seconds() <= 0:
+        return "Overdue"
+    days = delta.days
+    hours, rem = divmod(delta.seconds, 3600)
+    minutes = rem // 60
+    if days > 0:
+        return f"in {days}d {hours}h" if hours else f"in {days}d"
+    if hours > 0:
+        return f"in {hours}h" if minutes == 0 else f"in {hours}h {minutes}m"
+    return f"in {minutes}m"
+
 from app import db
 from app.utils import generate_and_store_qr_batch
 from app.decorators import subuser_required, user_or_subuser_required   # <-- CHANGED
@@ -380,10 +396,19 @@ def user_settings():
         for mid in machine_ids:
             name = request.form.get(f"machine_name_{mid}")
             mtype = request.form.get(f"machine_type_{mid}")
+            oil_int = request.form.get(f"oil_interval_{mid}")
+            lube_int = request.form.get(f"lube_interval_{mid}")
+            grease_int = request.form.get(f"grease_interval_{mid}")
             machine = Machine.query.filter_by(id=mid).first()
             if machine and machine.batch.owner_id == current_user.id:
                 machine.name = name
                 machine.type = mtype
+                if oil_int:
+                    machine.oil_interval_hours = int(oil_int)
+                if lube_int:
+                    machine.lube_interval_days = int(lube_int)
+                if grease_int:
+                    machine.grease_interval_months = int(grease_int)
 
         db.session.commit()
         flash("All settings updated successfully.", "success")
@@ -602,7 +627,9 @@ def user_dashboard():
             )
         ).order_by(SubUserAction.timestamp.desc()).first()
         last_oil_time = last_oil_log.timestamp if last_oil_log else None
-        next_oil_due = (last_oil_time + timedelta(days=1)) if last_oil_time else None
+        next_oil_due = (
+            last_oil_time + timedelta(hours=machine.oil_interval_hours)
+        ) if last_oil_time else None
 
         last_lube_log = SubUserAction.query.filter(
             SubUserAction.machine_id == machine.id,
@@ -614,7 +641,9 @@ def user_dashboard():
             )
         ).order_by(SubUserAction.timestamp.desc()).first()
         last_lube_time = last_lube_log.timestamp if last_lube_log else None
-        next_lube_due = (last_lube_time + timedelta(days=7)) if last_lube_time else None
+        next_lube_due = (
+            last_lube_time + timedelta(days=machine.lube_interval_days)
+        ) if last_lube_time else None
 
         last_grease_log = SubUserAction.query.filter(
             SubUserAction.machine_id == machine.id,
@@ -623,7 +652,9 @@ def user_dashboard():
             SubUserAction.user_id == current_user.id
         ).order_by(SubUserAction.timestamp.desc()).first()
         last_grease_time = last_grease_log.timestamp if last_grease_log else None
-        next_grease_due = (last_grease_time + timedelta(days=90)) if last_grease_time else None
+        next_grease_due = (
+            last_grease_time + timedelta(days=30 * machine.grease_interval_months)
+        ) if last_grease_time else None
 
         pending_reqs = ServiceRequest.query.filter_by(machine_id=machine.id, resolved=False).all()
         pending_requests = []
@@ -658,10 +689,13 @@ def user_dashboard():
             "pending_requests": pending_requests,
             "last_oil_time": last_oil_time,
             "next_oil_due": next_oil_due,
+            "next_oil_due_str": time_until(next_oil_due),
             "last_lube_time": last_lube_time,
             "next_lube_due": next_lube_due,
+            "next_lube_due_str": time_until(next_lube_due),
             "last_grease_time": last_grease_time,
             "next_grease_due": next_grease_due,
+            "next_grease_due_str": time_until(next_grease_due),
             "last_service_time": last_service_time,
             "next_service_due": next_service_due
         })
