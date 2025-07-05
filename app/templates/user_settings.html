@@ -109,6 +109,17 @@
               </button>
             </div>
           </div>
+
+          <div>
+            <label class="block text-sm mb-1">Security Question</label>
+            <input type="text" name="security_question" value="{{ current_user.security_question or '' }}"
+                   class="w-full px-4 py-2 rounded-xl bg-white/60 border border-white/30 shadow-inner">
+          </div>
+          <div>
+            <label class="block text-sm mb-1">Security Answer</label>
+            <input type="text" name="security_answer" value="{{ current_user.security_answer or '' }}"
+                   class="w-full px-4 py-2 rounded-xl bg-white/60 border border-white/30 shadow-inner">
+          </div>
         </div>
         <div class="text-right mt-4">
           <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl py-2 px-4 shadow">Save Profile</button>
