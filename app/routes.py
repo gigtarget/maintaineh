@@ -3,6 +3,7 @@ from flask_login import login_user, logout_user, login_required, current_user
 from datetime import datetime, date, timedelta
 from sqlalchemy import func
 from sqlalchemy import or_
+from sqlalchemy.exc import IntegrityError
 import io
 import zipfile
 import requests
@@ -502,13 +503,19 @@ def forgot_password():
             answer = request.form.get('answer')
             user = User.query.get(int(user_id)) if user_id else None
             if user and user.security_answer and user.security_answer.strip() == answer.strip():
-                token = ''.join(random.choices(string.ascii_letters + string.digits, k=32))
                 expires_at = datetime.utcnow() + timedelta(minutes=10)
-                prt = PasswordResetToken(user_id=user.id, token=token, expires_at=expires_at)
-                db.session.add(prt)
-                db.session.commit()
-                reset_link = url_for('routes.reset_password', token=token, _external=True)
-                return render_template('show_reset_link.html', reset_link=reset_link)
+                for _ in range(5):
+                    token = ''.join(random.choices(string.ascii_letters + string.digits, k=32))
+                    prt = PasswordResetToken(user_id=user.id, token=token, expires_at=expires_at)
+                    db.session.add(prt)
+                    try:
+                        db.session.commit()
+                        reset_link = url_for('routes.reset_password', token=token, _external=True)
+                        return render_template('show_reset_link.html', reset_link=reset_link)
+                    except IntegrityError:
+                        db.session.rollback()
+                flash('Unable to generate reset token. Please try again later.', 'danger')
+                return render_template('forgot_password_email.html')
             else:
                 flash('Incorrect answer.', 'danger')
                 if user:
