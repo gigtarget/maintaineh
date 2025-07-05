@@ -31,7 +31,8 @@ from app.decorators import subuser_required, user_or_subuser_required   # <-- CH
 from app.models import (
     User, QRBatch, QRCode, Machine, QRTag,
     NeedleChange, ServiceLog, SubUser,
-    SubUserAction, DailyMaintenance, ServiceRequest
+    SubUserAction, DailyMaintenance, ServiceRequest,
+    PasswordResetToken
 )
 
 routes = Blueprint("routes", __name__)
@@ -366,6 +367,8 @@ def user_settings():
             mobile = request.form.get("mobile")
             email = request.form.get("email")
             password = request.form.get("password")
+            security_question = request.form.get("security_question")
+            security_answer = request.form.get("security_answer")
 
             if name:
                 current_user.name = name
@@ -377,6 +380,10 @@ def user_settings():
                 current_user.email = email
             if password:
                 current_user.password = password  # ⚠️ Hash this in production
+            if security_question:
+                current_user.security_question = security_question
+            if security_answer:
+                current_user.security_answer = security_answer
 
             db.session.commit()
             flash("Profile updated successfully.", "success")
@@ -433,6 +440,8 @@ def user_signup():
         password = request.form["password"]
         name = request.form["name"]
         company_name = request.form.get("company_name")
+        security_question = request.form.get("security_question")
+        security_answer = request.form.get("security_answer")
 
         existing_user = User.query.filter_by(email=email).first()
         if existing_user:
@@ -444,6 +453,8 @@ def user_signup():
             password=password,  # Hash in production!
             name=name,
             company_name=company_name,
+            security_question=security_question,
+            security_answer=security_answer,
             role="user"
         )
         db.session.add(new_user)
@@ -473,6 +484,56 @@ def user_login():
         else:
             flash("Invalid credentials", "danger")
     return render_template("login.html", next=next_url)
+
+
+@routes.route("/forgot-password", methods=["GET", "POST"], endpoint="forgot_password")
+def forgot_password():
+    if request.method == "POST":
+        step = request.form.get('step')
+        if step == 'email':
+            email = request.form.get('email')
+            user = User.query.filter_by(email=email).first()
+            if not user or not user.security_question:
+                flash('No account found with that email.', 'danger')
+                return render_template('forgot_password_email.html')
+            return render_template('forgot_password_question.html', user_id=user.id, question=user.security_question)
+        elif step == 'question':
+            user_id = request.form.get('user_id')
+            answer = request.form.get('answer')
+            user = User.query.get(int(user_id)) if user_id else None
+            if user and user.security_answer and user.security_answer.strip() == answer.strip():
+                token = ''.join(random.choices(string.ascii_letters + string.digits, k=32))
+                expires_at = datetime.utcnow() + timedelta(minutes=10)
+                prt = PasswordResetToken(user_id=user.id, token=token, expires_at=expires_at)
+                db.session.add(prt)
+                db.session.commit()
+                reset_link = url_for('routes.reset_password', token=token, _external=True)
+                return render_template('show_reset_link.html', reset_link=reset_link)
+            else:
+                flash('Incorrect answer.', 'danger')
+                if user:
+                    return render_template('forgot_password_question.html', user_id=user.id, question=user.security_question)
+                flash('Invalid request.', 'danger')
+                return render_template('forgot_password_email.html')
+    return render_template('forgot_password_email.html')
+
+
+@routes.route("/reset-password/<token>", methods=["GET", "POST"], endpoint="reset_password")
+def reset_password(token):
+    token_obj = PasswordResetToken.query.filter_by(token=token, used=False).first()
+    if not token_obj or token_obj.expires_at < datetime.utcnow():
+        flash('Invalid or expired token.', 'danger')
+        return redirect(url_for('routes.user_login'))
+    if request.method == 'POST':
+        new_password = request.form.get('password')
+        if new_password:
+            user = User.query.get(token_obj.user_id)
+            user.password = new_password  # hash in production
+            token_obj.used = True
+            db.session.commit()
+            flash('Password reset successful. Please log in.', 'success')
+            return redirect(url_for('routes.user_login'))
+    return render_template('reset_password.html', token=token)
 
 
 

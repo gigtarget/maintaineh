@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Reset Link</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gradient-to-br from-blue-100 to-white min-h-screen p-4 flex items-center justify-center">
+  <div class="bg-white/30 backdrop-blur-xl border border-white/20 rounded-2xl shadow-xl w-full max-w-md p-6 space-y-4 text-center">
+    <h2 class="text-xl font-semibold">Password Reset Link</h2>
+    <p class="text-sm">Copy or open the link below within 10 minutes.</p>
+    <input id="resetLink" type="text" readonly value="{{ reset_link }}" class="w-full px-4 py-2 rounded-xl bg-white/50 border border-white/20 shadow-inner">
+    <button onclick="copyLink()" class="mt-2 px-4 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700">Copy Link</button>
+    <p class="mt-4"><a href="{{ reset_link }}" target="_blank" class="text-blue-600 hover:underline">Open Reset Page</a></p>
+  </div>
+  <script>
+    function copyLink() {
+      const input = document.getElementById('resetLink');
+      input.select();
+      document.execCommand('copy');
+    }
+  </script>
+</body>
+</html>

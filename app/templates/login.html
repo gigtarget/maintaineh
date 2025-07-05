@@ -95,6 +95,9 @@
         <label class="block text-sm font-medium text-slate-600 mb-1">Password</label>
         <input type="password" name="password" required placeholder="••••••••"
                class="w-full px-4 py-2 rounded-xl bg-white/50 border border-white/20 shadow-inner text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-400">
+        <div class="text-right mt-1">
+          <a href="{{ url_for('routes.forgot_password') }}" class="text-xs text-blue-600 hover:underline">Forgot Password?</a>
+        </div>
       </div>
 
       <button type="submit"

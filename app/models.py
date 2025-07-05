@@ -16,6 +16,9 @@ class User(UserMixin, db.Model):
     company_name = db.Column(db.String(100))
     mobile = db.Column(db.String(20))
 
+    security_question = db.Column(db.String(255))
+    security_answer = db.Column(db.String(255))
+
     default_machine_name = db.Column(db.String(100))
     default_machine_location = db.Column(db.String(100))
 
@@ -134,3 +137,15 @@ class SubUserAction(db.Model):
     action_type = db.Column(db.String(20))     # "oiling", "lube", "service"
     status = db.Column(db.String(20))          # "done", "pending", "completed"
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)
+
+
+# -------------------------
+# 🔑 PASSWORD RESET TOKENS
+# -------------------------
+class PasswordResetToken(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    token = db.Column(db.String(64), unique=True, nullable=False)
+    expires_at = db.Column(db.DateTime, nullable=False)
+    used = db.Column(db.Boolean, default=False)
+
