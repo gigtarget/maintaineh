@@ -528,7 +528,7 @@ def forgot_password():
 @routes.route("/reset-password/<token>", methods=["GET", "POST"], endpoint="reset_password")
 def reset_password(token):
     token_obj = PasswordResetToken.query.filter_by(token=token, used=False).first()
-    if not token_obj or token_obj.expires_at < datetime.utcnow():
+    if not token_obj or token_obj.expires_at < datetime.utcnow().date():
         flash('Invalid or expired token.', 'danger')
         return redirect(url_for('routes.user_login'))
     if request.method == 'POST':
