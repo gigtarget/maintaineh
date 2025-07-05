@@ -3,6 +3,7 @@ from flask_login import login_user, logout_user, login_required, current_user
 from datetime import datetime, date, timedelta
 from sqlalchemy import func
 from sqlalchemy import or_
+from app.reset_utils import generate_reset_token, verify_reset_token, send_reset_email
 import io
 import zipfile
 import requests
@@ -473,6 +474,38 @@ def user_login():
         else:
             flash("Invalid credentials", "danger")
     return render_template("login.html", next=next_url)
+
+
+@routes.route("/forgot-password", methods=["GET", "POST"], endpoint="forgot_password")
+def forgot_password():
+    if request.method == "POST":
+        email = request.form.get("email")
+        user = User.query.filter_by(email=email, role="user").first()
+        if user:
+            token = generate_reset_token(user.email)
+            reset_url = url_for("routes.reset_password", token=token, _external=True)
+            send_reset_email(user.email, reset_url)
+            flash("Password reset email sent.", "success")
+        else:
+            flash("If the email exists, a reset link has been sent.", "info")
+        return redirect(url_for("routes.user_login"))
+    return render_template("forgot_password.html")
+
+
+@routes.route("/reset-password/<token>", methods=["GET", "POST"], endpoint="reset_password")
+def reset_password(token):
+    email = verify_reset_token(token)
+    if not email:
+        flash("The reset link is invalid or has expired.", "danger")
+        return redirect(url_for("routes.forgot_password"))
+    if request.method == "POST":
+        password = request.form.get("password")
+        user = User.query.filter_by(email=email, role="user").first_or_404()
+        user.password = password  # Hash in production
+        db.session.commit()
+        flash("Password updated successfully.", "success")
+        return redirect(url_for("routes.user_login"))
+    return render_template("reset_password.html")
 
 
 
