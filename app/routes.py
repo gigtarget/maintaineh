@@ -485,9 +485,7 @@ def forgot_password():
             token = generate_reset_token(user.email)
             reset_url = url_for("routes.reset_password", token=token, _external=True)
             send_reset_email(user.email, reset_url)
-            flash("Password reset email sent.", "success")
-        else:
-            flash("If the email exists, a reset link has been sent.", "info")
+        flash("If the email exists, a reset link has been sent.", "info")
         return redirect(url_for("routes.user_login"))
     return render_template("forgot_password.html")
 
