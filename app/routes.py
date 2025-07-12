@@ -858,65 +858,6 @@ def download_qr(qr_id):
         download_name=f"{qr.qr_type}.png"
     )
 
-@routes.route("/download-all-qrs")
-@login_required
-def download_all_qrs():
-    """Generate a PDF with all QR codes belonging to the current user."""
-    batches = QRBatch.query.filter_by(owner_id=current_user.id).all()
-    image_urls = []
-    for batch in batches:
-        codes = QRCode.query.filter_by(batch_id=batch.id).order_by(QRCode.qr_type).all()
-        image_urls.extend([c.image_url for c in codes])
-
-    if not image_urls:
-        flash("No QR codes found for your machines.", "danger")
-        return redirect(url_for("routes.user_settings", tab="download"))
-
-    images = []
-    for url in image_urls:
-        try:
-            resp = requests.get(url)
-            img = Image.open(io.BytesIO(resp.content)).convert("RGB")
-            images.append(img)
-        except Exception:
-            continue
-
-    if not images:
-        flash("Failed to retrieve QR images.", "danger")
-        return redirect(url_for("routes.user_settings", tab="download"))
-
-    A4_WIDTH, A4_HEIGHT = 2480, 3508
-    QR_W, QR_H = 800, 1200
-    COLS, ROWS = 2, 3
-    x_space = (A4_WIDTH - (QR_W * COLS)) // (COLS + 1)
-    y_space = (A4_HEIGHT - (QR_H * ROWS)) // (ROWS + 1)
-
-    pages = []
-    canvas = Image.new("RGB", (A4_WIDTH, A4_HEIGHT), "white")
-    idx = 0
-    for img in images:
-        resized = img.resize((QR_W, QR_H))
-        x = x_space + (idx % COLS) * (QR_W + x_space)
-        y = y_space + (idx // COLS) * (QR_H + y_space)
-        canvas.paste(resized, (x, y))
-        idx += 1
-        if idx == COLS * ROWS:
-            pages.append(canvas)
-            canvas = Image.new("RGB", (A4_WIDTH, A4_HEIGHT), "white")
-            idx = 0
-    if idx > 0:
-        pages.append(canvas)
-
-    buffer = io.BytesIO()
-    pages[0].save(buffer, format="PDF", save_all=True, append_images=pages[1:])
-    buffer.seek(0)
-
-    return send_file(
-        buffer,
-        mimetype="application/pdf",
-        as_attachment=True,
-        download_name="qr_codes.pdf",
-    )
 
 
 def _build_qr_page(qr_codes, title=None):
