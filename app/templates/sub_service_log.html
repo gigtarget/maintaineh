@@ -68,6 +68,7 @@
         Log Repaired Part
       </button>
       <form id="logForm" method="POST" class="expand-form collapsed space-y-4 bg-white/80 border border-white/30 rounded-xl mx-1 sm:mx-2 mt-0 px-4 py-2">
+        <input type="hidden" name="back_url" value="{{ back_url }}">
         <div>
           <label class="block text-sm font-medium text-slate-700 mb-1">Part Belongs To</label>
           <select name="belongs_to" required

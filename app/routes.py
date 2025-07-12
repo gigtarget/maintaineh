@@ -248,6 +248,7 @@ def sub_tag_service_log(sub_tag_id):
     sub_tags = QRTag.query.filter(QRTag.batch_id == batch_id, QRTag.tag_type.startswith('sub')).all()
 
     if request.method == "POST":
+        back_url = request.form.get("back_url") or request.referrer
         selected_tag_id = int(request.form.get("belongs_to"))
         part_name = request.form.get("part_name")
         description = request.form.get("description")
@@ -275,7 +276,7 @@ def sub_tag_service_log(sub_tag_id):
         db.session.add(log)
         db.session.commit()
         flash(f"Logged replacement for '{part_name}' successfully!", "success")
-        return redirect(url_for("routes.sub_tag_service_log", sub_tag_id=sub_tag_id))
+        return redirect(url_for("routes.sub_tag_service_log", sub_tag_id=sub_tag_id, back=back_url))
 
     # Logs for all tags (machine and heads) for this batch
     all_tags = [service_tag] + list(sub_tags) if service_tag else list(sub_tags)
@@ -292,12 +293,14 @@ def sub_tag_service_log(sub_tag_id):
             log.sub_tag = QRTag.query.get(log.sub_tag_id)
 
     # Back URL logic
-    if current_user.is_authenticated and getattr(current_user, "role", None) == "user":
-        back_url = url_for('routes.user_dashboard')
-    elif 'subuser_id' in session:
-        back_url = url_for('routes.subuser_dashboard')
-    else:
-        back_url = url_for('routes.home')
+    back_url = request.args.get('back') or request.referrer
+    if not back_url or back_url == request.url:
+        if current_user.is_authenticated and getattr(current_user, "role", None) == "user":
+            back_url = url_for('routes.user_dashboard')
+        elif 'subuser_id' in session:
+            back_url = url_for('routes.subuser_dashboard')
+        else:
+            back_url = url_for('routes.home')
 
     return render_template(
         "sub_service_log.html",
