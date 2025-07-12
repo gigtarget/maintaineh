@@ -1290,6 +1290,8 @@ def resolve_service_request(request_id):
 @routes.route("/scan/service/<int:service_tag_id>")
 def scan_service(service_tag_id):
     service_tag = QRTag.query.get_or_404(service_tag_id)
+    machine = Machine.query.filter_by(batch_id=service_tag.batch_id).first()
+
     # Determine who is logged in for proper back URL
     if 'subuser_id' in session:
         back_url = url_for('routes.subuser_dashboard')
@@ -1297,11 +1299,107 @@ def scan_service(service_tag_id):
         back_url = url_for('routes.user_dashboard')
     else:
         back_url = url_for('routes.home')
+
+    # Last oil and lube timestamps for display
+    last_oil = SubUserAction.query.filter_by(
+        machine_id=machine.id,
+        action_type="oil",
+        status="done"
+    ).order_by(SubUserAction.timestamp.desc()).first()
+
+    last_lube = SubUserAction.query.filter_by(
+        machine_id=machine.id,
+        action_type="lube",
+        status="done"
+    ).order_by(SubUserAction.timestamp.desc()).first()
+
+    oil_alert = True
+    if last_oil and (datetime.utcnow() - last_oil.timestamp).total_seconds() < 86400:
+        oil_alert = False
+
+    lube_alert = True
+    if last_lube and (datetime.utcnow() - last_lube.timestamp).days < 6:
+        lube_alert = False
+
     return render_template(
         "service_options.html",
         service_tag=service_tag,
-        back_url=back_url
+        machine=machine,
+        back_url=back_url,
+        last_oil_time=last_oil.timestamp if last_oil else None,
+        last_lube_time=last_lube.timestamp if last_lube else None,
+        oil_alert=oil_alert,
+        lube_alert=lube_alert,
+        now=datetime.utcnow()
     )
+
+
+@routes.route("/service/<int:service_tag_id>/action/<string:action>", methods=["POST"])
+def service_action(service_tag_id, action):
+    """Allow logging oil/lube or raising a service request via the service QR."""
+    service_tag = QRTag.query.get_or_404(service_tag_id)
+    machine = Machine.query.filter_by(batch_id=service_tag.batch_id).first_or_404()
+
+    sub_id = session.get('subuser_id')
+    user_id = current_user.id if current_user.is_authenticated else None
+
+    if action == "oil":
+        today = date.today()
+        existing = SubUserAction.query.filter_by(
+            machine_id=machine.id,
+            action_type="oil",
+            status="done",
+        ).filter(func.date(SubUserAction.timestamp) == today).first()
+
+        if not existing:
+            log = SubUserAction(
+                subuser_id=sub_id,
+                user_id=user_id,
+                machine_id=machine.id,
+                action_type="oil",
+                status="done",
+                timestamp=datetime.utcnow(),
+            )
+            db.session.add(log)
+            db.session.commit()
+            flash("Marked as oiled for today!", "success")
+        else:
+            flash("Oiling already logged today.", "info")
+
+    elif action == "lube":
+        log = SubUserAction(
+            subuser_id=sub_id,
+            user_id=user_id,
+            machine_id=machine.id,
+            action_type="lube",
+            status="done",
+            timestamp=datetime.utcnow(),
+        )
+        db.session.add(log)
+        db.session.commit()
+        flash("Lube completed!", "success")
+
+    elif action == "service":
+        heads = request.form.get("heads")
+        issue = request.form.get("message")
+        if heads and issue:
+            sr = ServiceRequest(
+                machine_id=machine.id,
+                subuser_id=sub_id,
+                heads=int(heads),
+                issue=issue,
+                timestamp=datetime.utcnow(),
+                resolved=False,
+            )
+            db.session.add(sr)
+            db.session.commit()
+            flash("Service request sent!", "success")
+        else:
+            flash("Please fill in all required fields.", "danger")
+    else:
+        flash("Invalid action.", "danger")
+
+    return redirect(url_for("routes.scan_service", service_tag_id=service_tag.id))
 
 @routes.route("/service/<int:service_tag_id>/logs")
 def service_log_view(service_tag_id):
