@@ -7,6 +7,7 @@ from sqlalchemy.exc import IntegrityError
 import io
 import zipfile
 import requests
+from PIL import Image, ImageDraw, ImageFont
 import random
 import string
 
@@ -856,6 +857,112 @@ def download_qr(qr_id):
         mimetype="image/png",
         as_attachment=True,
         download_name=f"{qr.qr_type}.png"
+    )
+
+
+def _build_qr_page(qr_codes, title=None):
+    """Return a PIL Image with QR codes arranged on an A4 page."""
+    A4_WIDTH, A4_HEIGHT = 2480, 3508
+    QR_SIZE = 550
+    COLS, ROWS = 3, 4
+    top_margin = 180
+    x_space = (A4_WIDTH - (QR_SIZE * COLS)) // (COLS + 1)
+    y_space = (A4_HEIGHT - top_margin - (QR_SIZE * ROWS)) // (ROWS + 1)
+
+    page = Image.new("RGB", (A4_WIDTH, A4_HEIGHT), "white")
+    draw = ImageDraw.Draw(page)
+    try:
+        font_title = ImageFont.truetype("app/fonts/Agrandir.ttf", 80)
+        font_label = ImageFont.truetype("app/fonts/Agrandir.ttf", 50)
+    except Exception:
+        font_title = ImageFont.load_default()
+        font_label = ImageFont.load_default()
+
+    if title:
+        bbox = draw.textbbox((0, 0), title, font=font_title)
+        draw.text(((A4_WIDTH - bbox[2]) // 2, 60), title, font=font_title, fill="black")
+
+    for idx, qr in enumerate(qr_codes):
+        col = idx % COLS
+        row = idx // COLS
+        x = x_space + col * (QR_SIZE + x_space)
+        y = top_margin + y_space + row * (QR_SIZE + y_space + 70)
+        try:
+            resp = requests.get(qr.image_url)
+            img = Image.open(io.BytesIO(resp.content)).convert("RGB")
+            img = img.resize((QR_SIZE, QR_SIZE))
+            page.paste(img, (x, y))
+            label = qr.qr_type.upper()
+            lbbox = draw.textbbox((0, 0), label, font=font_label)
+            draw.text((x + (QR_SIZE - lbbox[2]) // 2, y + QR_SIZE + 10), label, font=font_label, fill="black")
+        except Exception:
+            continue
+    return page
+
+
+@routes.route("/download-machine-qrs/<int:machine_id>")
+@login_required
+def download_machine_qrs(machine_id):
+    """Generate a single-page PDF of all QR codes for one machine."""
+    machine = Machine.query.get_or_404(machine_id)
+
+    # permission check
+    if current_user.is_authenticated and getattr(current_user, "role", None) == "user":
+        if machine.batch.owner_id != current_user.id:
+            abort(403)
+    elif "subuser_id" in session:
+        sub = SubUser.query.get(session["subuser_id"])
+        if not sub or sub.parent_id != machine.batch.owner_id:
+            abort(403)
+    else:
+        abort(403)
+
+    qr_codes = QRCode.query.filter_by(batch_id=machine.batch_id).order_by(QRCode.qr_type).all()
+    if not qr_codes:
+        flash("No QR codes found for this machine.", "danger")
+        return redirect(url_for("routes.user_settings", tab="download"))
+
+    page = _build_qr_page(qr_codes, title=machine.name)
+
+    buffer = io.BytesIO()
+    page.save(buffer, format="PDF")
+    buffer.seek(0)
+
+    return send_file(
+        buffer,
+        mimetype="application/pdf",
+        as_attachment=True,
+        download_name=f"machine_{machine.id}_qrs.pdf",
+    )
+
+@routes.route("/download-all-qrs")
+@login_required
+def download_all_qrs():
+    """Generate a PDF with all QR codes belonging to the current user."""
+    machines = Machine.query.join(QRBatch).filter(QRBatch.owner_id == current_user.id).all()
+    if not machines:
+        flash("No QR codes found for your machines.", "danger")
+        return redirect(url_for("routes.user_settings", tab="download"))
+
+    pages = []
+    for machine in machines:
+        codes = QRCode.query.filter_by(batch_id=machine.batch_id).order_by(QRCode.qr_type).all()
+        if codes:
+            pages.append(_build_qr_page(codes, title=machine.name))
+
+    if not pages:
+        flash("Failed to retrieve QR images.", "danger")
+        return redirect(url_for("routes.user_settings", tab="download"))
+
+    buffer = io.BytesIO()
+    pages[0].save(buffer, format="PDF", save_all=True, append_images=pages[1:])
+    buffer.seek(0)
+
+    return send_file(
+        buffer,
+        mimetype="application/pdf",
+        as_attachment=True,
+        download_name="qr_codes.pdf",
     )
 
 
