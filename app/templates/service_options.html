@@ -39,7 +39,11 @@
       <!-- Log Service Part -->
       <a href="{{ url_for('routes.sub_tag_service_log', sub_tag_id=service_tag.id) }}" class="flex items-center bg-white/60 hover:bg-blue-100 rounded-xl shadow p-4 transition border border-blue-400 hover:border-blue-600 text-left">
         <img src="{{ url_for('static', filename='emb assets/setting.png') }}" alt="Service" class="h-8 sm:h-10 mr-4">
-        <span class="text-blue-700 font-semibold text-base">Log Service Part</span>
+        <span class="flex flex-col items-start">
+          <span class="text-blue-700 font-semibold text-base">Log Service Part</span>
+          <span class="text-xs text-slate-600">Update Replaced Part</span>
+          <span class="text-xs text-slate-500">Keep track of any part you've just changed.</span>
+        </span>
       </a>
 
       <!-- Oiling -->
@@ -66,6 +70,8 @@
                 Not done yet
               {% endif %}
             </span>
+            <span class="text-xs text-slate-600">Mark Oiling as Done</span>
+            <span class="text-xs text-slate-500">Confirm you've completed oiling just now.</span>
           </span>
         </button>
       </form>
@@ -93,6 +99,8 @@
                 Not done yet
               {% endif %}
             </span>
+            <span class="text-xs text-slate-600">Mark Lubrication as Done</span>
+            <span class="text-xs text-slate-500">Confirm today's lubrication is completed.</span>
           </span>
         </button>
       </form>
@@ -100,7 +108,11 @@
       <!-- Raise Service Request -->
       <button type="button" onclick="openModal()" class="flex items-center bg-white/60 hover:bg-blue-50 rounded-xl shadow p-4 transition border border-blue-400 hover:border-blue-600 text-left w-full">
         <img src="{{ url_for('static', filename='emb assets/help.png') }}" alt="Help" class="h-8 sm:h-10 mr-4">
-        <span class="text-blue-700 font-semibold text-base">Raise Service Request</span>
+        <span class="flex flex-col items-start">
+          <span class="text-blue-700 font-semibold text-base">Raise Service Request</span>
+          <span class="text-xs text-slate-600">Report a Problem</span>
+          <span class="text-xs text-slate-500">Something wrong? Let the main user know.</span>
+        </span>
       </button>
     </div>
 
