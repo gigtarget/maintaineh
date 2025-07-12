@@ -53,6 +53,10 @@
               class="py-2 px-4 border-b-2 font-medium text-sm text-gray-500 hover:text-blue-700">
         🛠️ Machines
       </button>
+      <button id="tab-download" data-tab onclick="showTab('download')"
+              class="py-2 px-4 border-b-2 font-medium text-sm text-gray-500 hover:text-blue-700">
+        📥 Download QRs
+      </button>
     </div>
 
     <!-- Profile Form -->
@@ -176,7 +180,19 @@
           <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl py-2 px-4 shadow text-sm">Save</button>
         </div>
       </form>
-      {% endfor %}
+  {% endfor %}
+    </div>
+    <!-- Download Section -->
+    <div id="section-download" data-section class="hidden">
+      <div class="bg-white/30 backdrop-blur-md border border-white/20 p-5 rounded-xl space-y-4 shadow">
+        <h2 class="text-lg font-semibold mb-2">📥 Download QR Codes</h2>
+        <ul class="list-disc list-inside">
+          {% for machine in machines %}
+          <li>{{ machine.name }}</li>
+          {% endfor %}
+        </ul>
+        <a href="{{ url_for('routes.download_all_qrs') }}" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl py-2 px-4 shadow inline-block">Download PDF</a>
+      </div>
     </div>
 
     <!-- Machines Actions outside main form -->
