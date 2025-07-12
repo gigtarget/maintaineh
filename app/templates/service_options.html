@@ -1,13 +1,140 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Service QR - Tokatap</title>
+  <title>Service Options</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    .icon-side {
+      width: 2.2rem;
+      height: 2.2rem;
+      min-width: 2.2rem;
+      min-height: 2.2rem;
+      margin-right: 1rem;
+      color: #64748b;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .btn-card {
+      min-height: 72px;
+      padding-top: 0.8rem;
+      padding-bottom: 0.8rem;
+    }
+  </style>
 </head>
 <body class="bg-gradient-to-br from-blue-100 to-white min-h-screen px-2 py-6">
+  <!-- Back Button -->
+  <div class="max-w-sm sm:max-w-md w-full mx-auto mt-2 mb-2 px-1">
+    <a href="{{ back_url }}" class="inline-flex items-center px-4 py-1.5 border border-blue-400 text-blue-600 hover:text-blue-800 rounded-xl text-sm font-medium hover:bg-blue-50 transition shadow-sm">← Back</a>
+  </div>
+
+  <!-- Main Card -->
+  <div class="bg-white/30 backdrop-blur-lg border border-white/20 shadow-lg rounded-2xl p-6 sm:p-10 w-full max-w-sm sm:max-w-md mx-auto mt-2 text-center">
+    <img src="{{ url_for('static', filename='logo/logo.svg') }}" class="mx-auto h-10 sm:h-14 mb-4 sm:mb-6" alt="Logo">
+    <h2 class="text-lg sm:text-xl font-semibold text-slate-800 mb-4 sm:mb-6">Service Options</h2>
+
+    <div class="space-y-3">
+      <!-- Log Service Part -->
+      <a href="{{ url_for('routes.sub_tag_service_log', sub_tag_id=service_tag.id) }}" class="flex items-center bg-white/60 hover:bg-blue-100 rounded-xl shadow p-4 transition border border-blue-400 hover:border-blue-600 text-left">
+        <img src="{{ url_for('static', filename='emb assets/setting.png') }}" alt="Service" class="h-8 sm:h-10 mr-4">
+        <span class="text-blue-700 font-semibold text-base">Log Service Part</span>
+      </a>
+
+      <!-- Oiling -->
+      <form method="POST" action="{{ url_for('routes.service_action', service_tag_id=service_tag.id, action='oil') }}" class="relative">
+        <button class="w-full px-4 btn-card rounded-xl shadow-sm flex flex-row items-center justify-start {% if oil_alert %}bg-red-100 text-red-700 border border-red-300 hover:bg-red-200{% else %}bg-green-100 text-green-700 border border-green-300 hover:bg-green-200{% endif %} transition duration-200">
+          <span class="icon-side">
+            <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-barrel" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+              <ellipse cx="12" cy="5" rx="9" ry="3"></ellipse>
+              <path d="M3 5v6c0 1.657 4.03 3 9 3s9-1.343 9-3V5"></path>
+              <path d="M3 11v6c0 1.657 4.03 3 9 3s9-1.343 9-3v-6"></path>
+            </svg>
+          </span>
+          <span class="flex flex-col items-start text-left">
+            <span class="font-semibold text-base {% if oil_alert %}text-red-700{% else %}text-green-700{% endif %}">Last Oiling</span>
+            <span class="text-xs mt-0.5 {% if oil_alert %}text-red-600{% else %}text-slate-600{% endif %}">
+              {% if last_oil_time %}
+                {% set diff = (now - last_oil_time).total_seconds() %}
+                {% if diff < 86400 %}
+                  Done {{ (diff // 3600)|int }} hours ago
+                {% else %}
+                  Done {{ (diff // 86400)|int }} days ago
+                {% endif %}
+              {% else %}
+                Not done yet
+              {% endif %}
+            </span>
+          </span>
+        </button>
+      </form>
+
+      <!-- Lube -->
+      <form method="POST" action="{{ url_for('routes.service_action', service_tag_id=service_tag.id, action='lube') }}" class="relative">
+        <button class="w-full px-4 btn-card rounded-xl shadow-sm flex flex-row items-center justify-start {% if lube_alert %}bg-red-100 text-red-700 border border-red-300 hover:bg-red-200{% else %}bg-green-100 text-green-700 border border-green-300 hover:bg-green-200{% endif %} transition duration-200">
+          <span class="icon-side">
+            <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-droplet" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 2C12 2 5 8.5 5 14.5C5 19.1944 8.58172 22 12 22C15.4183 22 19 19.1944 19 14.5C19 8.5 12 2 12 2Z"></path>
+              <path d="M12 17V17.01"></path>
+            </svg>
+          </span>
+          <span class="flex flex-col items-start text-left">
+            <span class="font-semibold text-base {% if lube_alert %}text-red-700{% else %}text-green-700{% endif %}">Last Lubrication</span>
+            <span class="text-xs mt-0.5 {% if lube_alert %}text-red-600{% else %}text-slate-600{% endif %}">
+              {% if last_lube_time %}
+                {% set diff = (now - last_lube_time).total_seconds() %}
+                {% if diff < 86400 %}
+                  Done {{ (diff // 3600)|int }} hours ago
+                {% else %}
+                  Done {{ (diff // 86400)|int }} days ago
+                {% endif %}
+              {% else %}
+                Not done yet
+              {% endif %}
+            </span>
+          </span>
+        </button>
+      </form>
+
+      <!-- Raise Service Request -->
+      <button type="button" onclick="openModal()" class="flex items-center bg-white/60 hover:bg-blue-50 rounded-xl shadow p-4 transition border border-blue-400 hover:border-blue-600 text-left w-full">
+        <img src="{{ url_for('static', filename='emb assets/help.png') }}" alt="Help" class="h-8 sm:h-10 mr-4">
+        <span class="text-blue-700 font-semibold text-base">Raise Service Request</span>
+      </button>
+    </div>
+
+    <!-- Modal Backdrop -->
+    <div id="serviceModalBackdrop" class="fixed inset-0 bg-black/50 hidden z-40" onclick="closeModal()"></div>
+    <!-- Modal -->
+    <div id="serviceModal" class="fixed top-1/2 left-1/2 z-50 transform -translate-x-1/2 -translate-y-1/2 bg-white rounded-xl shadow-lg p-6 w-full max-w-md hidden">
+      <h2 class="text-lg font-semibold mb-4 text-slate-800">Raise a Service Request</h2>
+      <form method="POST" action="{{ url_for('routes.service_action', service_tag_id=service_tag.id, action='service') }}">
+        <div class="mb-4">
+          <label for="heads" class="block text-sm font-medium text-slate-700 mb-1">Number of Heads</label>
+          <input type="number" id="heads" name="heads" min="1" max="15" required class="w-full border border-slate-300 rounded-lg px-3 py-2" />
+        </div>
+        <div class="mb-4">
+          <label for="issue" class="block text-sm font-medium text-slate-700 mb-1">Issue Description</label>
+          <textarea id="issue" name="message" rows="3" required class="w-full border border-slate-300 rounded-lg px-3 py-2"></textarea>
+        </div>
+        <div class="flex justify-between mt-6">
+          <button type="button" onclick="closeModal()" class="bg-white border border-blue-200 text-blue-700 px-4 py-2 rounded font-semibold hover:bg-blue-50 transition">Cancel</button>
+          <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded font-semibold shadow hover:bg-blue-700 transition">Submit</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <script>
-    window.location.href = "{{ url_for('routes.sub_tag_service_log', sub_tag_id=service_tag.id) }}";
+    function openModal() {
+      document.getElementById('serviceModal').classList.remove('hidden');
+      document.getElementById('serviceModalBackdrop').classList.remove('hidden');
+    }
+    function closeModal() {
+      document.getElementById('serviceModal').classList.add('hidden');
+      document.getElementById('serviceModalBackdrop').classList.add('hidden');
+    }
   </script>
 </body>
 </html>
