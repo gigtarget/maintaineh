@@ -183,17 +183,27 @@
   {% endfor %}
     </div>
     <!-- Download Section -->
-    <div id="section-download" data-section class="hidden">
-      <div class="bg-white/30 backdrop-blur-md border border-white/20 p-5 rounded-xl space-y-4 shadow">
-        <h2 class="text-lg font-semibold mb-2">📥 Download QR Codes</h2>
-        <ul class="list-disc list-inside">
-          {% for machine in machines %}
-          <li>{{ machine.name }}</li>
-          {% endfor %}
-        </ul>
-        <a href="{{ url_for('routes.download_all_qrs') }}" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl py-2 px-4 shadow inline-block">Download PDF</a>
-      </div>
-    </div>
+<div id="section-download" data-section class="hidden">
+  <div class="bg-white/30 backdrop-blur-md border border-white/20 p-5 rounded-xl space-y-4 shadow">
+    <h2 class="text-lg font-semibold mb-2">📥 Download QR Codes</h2>
+    <ul class="space-y-2">
+      {% for machine in machines %}
+      <li class="flex justify-between items-center bg-white/50 rounded-lg px-4 py-2">
+        <span class="font-medium">{{ machine.name }}</span>
+        <a href="{{ url_for('routes.download_machine_qrs', machine_id=machine.id) }}"
+           class="text-sm bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded-md shadow">
+          Download
+        </a>
+      </li>
+      {% endfor %}
+    </ul>
+    <a href="{{ url_for('routes.download_all_qrs') }}"
+       class="mt-3 inline-block bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl py-2 px-4 shadow">
+      Download All
+    </a>
+  </div>
+</div>
+
 
     <!-- Machines Actions outside main form -->
     <div id="extra-machines" data-extra-section class="hidden">
