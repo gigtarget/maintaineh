@@ -871,8 +871,11 @@ def download_qr(qr_id):
 def _build_qr_page(qr_codes, title=None, machine=None):
     """Return a PIL Image with QR codes arranged on an A4 page."""
     A4_WIDTH, A4_HEIGHT = 2480, 3508
-    # QR code dimensions ~30mm x 40mm at 300DPI
-    QR_W, QR_H = 354, 472
+
+    # QR code dimensions ~30mm x 45mm at 300DPI (354x472), keeping 2:3 aspect ratio
+    QR_W = int(30 / 25.4 * 300)
+    QR_H = int(QR_W * 1.5)
+
     COLS, ROWS = 3, 4
     top_margin = 250
     x_space = (A4_WIDTH - (QR_W * COLS)) // (COLS + 1)
@@ -898,7 +901,7 @@ def _build_qr_page(qr_codes, title=None, machine=None):
         bbox = draw.textbbox((0, 0), title, font=font_title)
         draw.text(((A4_WIDTH - bbox[2]) // 2, 60), title, font=font_title, fill="black")
         if subtitle:
-            sbbox = draw.textbbox((0,0), subtitle, font=font_label)
+            sbbox = draw.textbbox((0, 0), subtitle, font=font_label)
             draw.text(((A4_WIDTH - sbbox[2]) // 2, 60 + bbox[3] + 20), subtitle, font=font_label, fill="black")
 
     for idx, qr in enumerate(qr_codes):
@@ -910,15 +913,22 @@ def _build_qr_page(qr_codes, title=None, machine=None):
             resp = requests.get(qr.image_url)
             img = Image.open(io.BytesIO(resp.content)).convert("RGB")
             img = img.resize((QR_W, QR_H))
+
+            # Draw light gray border to mimic admin card style
+            border_rect = [x - 10, y - 10, x + QR_W + 10, y + QR_H + 10]
+            draw.rectangle(border_rect, outline="gray", width=2)
+
             page.paste(img, (x, y))
-            label = qr.qr_type.upper()
+
+            # Determine label
+            label = f"HEAD {qr.qr_type[3:]}" if qr.qr_type.startswith("sub") else qr.qr_type.upper()
+
             lbbox = draw.textbbox((0, 0), label, font=font_label)
             draw.text((x + (QR_W - lbbox[2]) // 2, y + QR_H + 10), label, font=font_label, fill="black")
         except Exception:
             continue
+
     return page
-
-
 @routes.route("/download-machine-qrs/<int:machine_id>")
 @login_required
 def download_machine_qrs(machine_id):
