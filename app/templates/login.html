@@ -122,11 +122,23 @@
     </div>
 
     <!-- Mascot Half Inside and Clipped (just like index) -->
-    <div class="absolute bottom-0 left-[-60px] w-48 sm:w-56 overflow-hidden">
-      <img src="{{ url_for('static', filename='logo/octatoka.png') }}"
-           alt="Tokatap Mascot"
-           class="mascot-float pointer-events-none select-none">
+  <div class="absolute bottom-0 left-[-60px] w-48 sm:w-56 overflow-hidden">
+    <img src="{{ url_for('static', filename='logo/octatoka.png') }}"
+         alt="Tokatap Mascot"
+         class="mascot-float pointer-events-none select-none">
+  </div>
+</div>
+
+<footer class="bg-blue-950 text-blue-100 py-6 mt-12">
+  <div class="max-w-4xl mx-auto flex flex-col items-center gap-1 text-xs">
+    <div><span class="font-bold">Tokatap</span> &copy; 2025. All rights reserved.</div>
+    <div>Built with ❤️ by JD.</div>
+    <div class="flex gap-4 mt-1 text-blue-200">
+      <a href="{{ url_for('routes.setup_guide_page') }}" class="hover:text-white">Setup Guide</a>
+      <span class="text-blue-300">|</span>
+      <a href="{{ url_for('routes.faq_page') }}" class="hover:text-white">FAQ</a>
     </div>
   </div>
+</footer>
 </body>
 </html>

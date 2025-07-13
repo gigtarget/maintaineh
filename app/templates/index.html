@@ -102,14 +102,13 @@
   <!-- Footer -->
   <footer class="bg-blue-950 text-blue-100 py-7">
     <div class="max-w-4xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4 px-4">
-      <div>
+      <div class="text-center sm:text-left">
         <span class="font-bold">Tokatap</span> &copy; 2025. All rights reserved.
+        <span class="block sm:inline">Built with ❤️ by JD.</span>
       </div>
-      <div class="flex gap-6 text-blue-200 text-lg">
-        <a href="#" class="hover:text-white"> </a>
-        <a href="#" class="hover:text-white"> </a>
-        <a href="#" class="hover:text-white"> </a>
-        <a href="#" class="hover:text-white"> </a>
+      <div class="flex gap-4 text-blue-200 text-sm">
+        <a href="{{ url_for('routes.setup_guide_page') }}" class="hover:text-white">Setup Guide</a>
+        <a href="{{ url_for('routes.faq_page') }}" class="hover:text-white">FAQ</a>
       </div>
     </div>
   </footer>
