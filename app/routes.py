@@ -868,14 +868,15 @@ def download_qr(qr_id):
 
 
 
-def _build_qr_page(qr_codes, title=None):
+def _build_qr_page(qr_codes, title=None, machine=None):
     """Return a PIL Image with QR codes arranged on an A4 page."""
     A4_WIDTH, A4_HEIGHT = 2480, 3508
-    QR_SIZE = 550
+    # QR code dimensions ~30mm x 40mm at 300DPI
+    QR_W, QR_H = 354, 472
     COLS, ROWS = 3, 4
-    top_margin = 180
-    x_space = (A4_WIDTH - (QR_SIZE * COLS)) // (COLS + 1)
-    y_space = (A4_HEIGHT - top_margin - (QR_SIZE * ROWS)) // (ROWS + 1)
+    top_margin = 250
+    x_space = (A4_WIDTH - (QR_W * COLS)) // (COLS + 1)
+    y_space = (A4_HEIGHT - top_margin - (QR_H * ROWS)) // (ROWS + 1)
 
     page = Image.new("RGB", (A4_WIDTH, A4_HEIGHT), "white")
     draw = ImageDraw.Draw(page)
@@ -886,23 +887,33 @@ def _build_qr_page(qr_codes, title=None):
         font_title = ImageFont.load_default()
         font_label = ImageFont.load_default()
 
+    if machine:
+        owner = machine.batch.owner
+        owner_name = owner.company_name or owner.name
+        subtitle = f"{machine.type} - {owner_name}" if machine.type else owner_name
+    else:
+        subtitle = None
+
     if title:
         bbox = draw.textbbox((0, 0), title, font=font_title)
         draw.text(((A4_WIDTH - bbox[2]) // 2, 60), title, font=font_title, fill="black")
+        if subtitle:
+            sbbox = draw.textbbox((0,0), subtitle, font=font_label)
+            draw.text(((A4_WIDTH - sbbox[2]) // 2, 60 + bbox[3] + 20), subtitle, font=font_label, fill="black")
 
     for idx, qr in enumerate(qr_codes):
         col = idx % COLS
         row = idx // COLS
-        x = x_space + col * (QR_SIZE + x_space)
-        y = top_margin + y_space + row * (QR_SIZE + y_space + 70)
+        x = x_space + col * (QR_W + x_space)
+        y = top_margin + y_space + row * (QR_H + y_space + 70)
         try:
             resp = requests.get(qr.image_url)
             img = Image.open(io.BytesIO(resp.content)).convert("RGB")
-            img = img.resize((QR_SIZE, QR_SIZE))
+            img = img.resize((QR_W, QR_H))
             page.paste(img, (x, y))
             label = qr.qr_type.upper()
             lbbox = draw.textbbox((0, 0), label, font=font_label)
-            draw.text((x + (QR_SIZE - lbbox[2]) // 2, y + QR_SIZE + 10), label, font=font_label, fill="black")
+            draw.text((x + (QR_W - lbbox[2]) // 2, y + QR_H + 10), label, font=font_label, fill="black")
         except Exception:
             continue
     return page
@@ -930,7 +941,7 @@ def download_machine_qrs(machine_id):
         flash("No QR codes found for this machine.", "danger")
         return redirect(url_for("routes.user_settings", tab="download"))
 
-    page = _build_qr_page(qr_codes, title=machine.name)
+    page = _build_qr_page(qr_codes, title=machine.name, machine=machine)
 
     buffer = io.BytesIO()
     page.save(buffer, format="PDF")
@@ -956,7 +967,7 @@ def download_all_qrs():
     for machine in machines:
         codes = QRCode.query.filter_by(batch_id=machine.batch_id).order_by(QRCode.qr_type).all()
         if codes:
-            pages.append(_build_qr_page(codes, title=machine.name))
+            pages.append(_build_qr_page(codes, title=machine.name, machine=machine))
 
     if not pages:
         flash("Failed to retrieve QR images.", "danger")
