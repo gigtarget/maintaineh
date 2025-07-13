@@ -41,6 +41,14 @@ routes = Blueprint("routes", __name__)
 @routes.route("/")
 def home():
     return render_template("index.html")
+
+@routes.route("/setup-guide")
+def setup_guide_page():
+    return render_template("setup_guide.html")
+
+@routes.route("/faq")
+def faq_page():
+    return render_template("faq.html")
 @routes.route("/scan/master/<int:batch_id>")
 def scan_master(batch_id):
     # If a sub-user is logged in, go to sub-user dashboard

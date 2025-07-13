@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Tokatap – FAQ</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gradient-to-br from-blue-100 via-white to-blue-200 min-h-screen flex flex-col">
+    <main class="flex-grow max-w-4xl mx-auto p-6">
+        <a href="javascript:history.back()" class="text-blue-600 hover:underline flex items-center gap-1 mb-4 text-sm">
+            <span aria-hidden="true">&larr;</span>
+            Back
+        </a>
+        <h1 class="text-3xl sm:text-4xl font-bold text-blue-900 mb-6 text-center">Tokatap FAQ</h1>
+        <dl class="space-y-6 text-slate-700">
+            <div>
+                <dt class="font-semibold">What is Tokatap?</dt>
+                <dd class="mt-1 text-sm">Tokatap is a digital logbook system for machine maintenance. Each machine is paired with QR codes so you can quickly log services, needle changes, and repairs.</dd>
+            </div>
+            <div>
+                <dt class="font-semibold">How do I get started?</dt>
+                <dd class="mt-1 text-sm">Sign up for a main user account, claim or generate a QR batch, attach the codes to your machines, and add machine details.</dd>
+            </div>
+            <div>
+                <dt class="font-semibold">What is a QR batch?</dt>
+                <dd class="mt-1 text-sm">A batch contains one MASTER tag, one SERVICE tag, and eight HEAD tags to track maintenance for each machine and head.</dd>
+            </div>
+            <div>
+                <dt class="font-semibold">Can I add more than one machine?</dt>
+                <dd class="mt-1 text-sm">Yes. Generate a new QR batch from Settings whenever you want to register another machine.</dd>
+            </div>
+            <div>
+                <dt class="font-semibold">How do sub‑users log their work?</dt>
+                <dd class="mt-1 text-sm">Sub-users log in with their unique code, scan the SERVICE or HEAD tags, and their actions are recorded in your machine history.</dd>
+            </div>
+            <div>
+                <dt class="font-semibold">What happens if I lose a QR code?</dt>
+                <dd class="mt-1 text-sm">Re-download the codes from Settings → Download QRs and reprint them at any time.</dd>
+            </div>
+            <div>
+                <dt class="font-semibold">How do service reminders work?</dt>
+                <dd class="mt-1 text-sm">Tokatap tracks the last time maintenance was logged and shows upcoming or overdue tasks on your dashboard.</dd>
+            </div>
+            <div>
+                <dt class="font-semibold">How do I log a repaired part or warranty?</dt>
+                <dd class="mt-1 text-sm">Scan the relevant tag and select Log Service Part to record the part name, description, and optional warranty date.</dd>
+            </div>
+            <div>
+                <dt class="font-semibold">What if a machine needs urgent repair?</dt>
+                <dd class="mt-1 text-sm">Raise a service request from the SERVICE or HEAD tag and it will appear on your dashboard until resolved.</dd>
+            </div>
+            <div>
+                <dt class="font-semibold">How secure is my account?</dt>
+                <dd class="mt-1 text-sm">Your password and security question protect your account. Use Forgot Password if you need to reset it.</dd>
+            </div>
+            <div>
+                <dt class="font-semibold">Is there a mobile app?</dt>
+                <dd class="mt-1 text-sm">Tokatap works directly in your web browser—scanning a QR code brings you to the right page without any installation.</dd>
+            </div>
+            <div>
+                <dt class="font-semibold">What does the admin login do?</dt>
+                <dd class="mt-1 text-sm">The admin area is used internally for managing QR batches. Regular customers don't need admin access.</dd>
+            </div>
+        </dl>
+    </main>
+    <footer class="bg-blue-950 text-blue-100 py-7 mt-12">
+        <div class="max-w-4xl mx-auto flex flex-col items-center gap-1 text-sm">
+            <div><span class="font-bold">Tokatap</span> &copy; 2025. All rights reserved.</div>
+            <div>Built with ❤️ by JD.</div>
+            <div class="flex gap-4 mt-1 text-blue-200">
+                <a href="{{ url_for('routes.setup_guide_page') }}" class="hover:text-white">Setup Guide</a>
+                <span class="text-blue-300">|</span>
+                <a href="{{ url_for('routes.faq_page') }}" class="hover:text-white">FAQ</a>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>
