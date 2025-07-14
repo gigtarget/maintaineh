@@ -322,7 +322,8 @@
     <form method="POST">
       <h3>Select Needle Number</h3>
       <div class="needle-grid">
-        {% for i in range(1, 16) %}
+        {% set needle_count = sub_tag.batch.machine.needles_per_head if sub_tag.batch.machine else 15 %}
+        {% for i in range(1, needle_count + 1) %}
           {% set log = last_change_dict.get(i) %}
           {% set is_stale = log and (now - log.timestamp).days > 10 %}
           <div class="needle-shape {% if is_stale %}needle-stale{% endif %}" data-id="{{ i }}">
@@ -356,7 +357,7 @@
         <span id="log-toggle" class="log-toggle collapsed">&#9660;</span>
       </div>
       <ul id="log-list" class="log-list collapsed">
-        {% for needle in range(1, 16) %}
+        {% for needle in range(1, needle_count + 1) %}
           {% if last_change_dict.get(needle) %}
             {% set log = last_change_dict.get(needle) %}
             <li>
