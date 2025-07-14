@@ -231,10 +231,27 @@
           <h2 class="text-lg font-bold mb-2 text-blue-800">Machine details to register</h2>
           <form method="POST" action="{{ url_for('routes.user_settings') }}" class="flex flex-col gap-2 items-center">
             <input type="hidden" name="batch_id" value="{{ batch.id }}">
-            <input type="text" name="name" placeholder="Enter machine name" class="px-4 py-2 rounded border" required>
-            <input type="text" name="type" placeholder="Machine type (e.g. Model/Location)" class="px-4 py-2 rounded border" required>
-            <input type="number" name="num_heads" min="1" value="8" placeholder="Number of heads" class="px-4 py-2 rounded border" required>
-            <input type="number" name="needles_per_head" min="1" value="15" placeholder="Needles per head" class="px-4 py-2 rounded border" required>
+
+            <div class="w-full">
+              <label class="block text-sm mb-1">Machine Name</label>
+              <input type="text" name="name" class="px-4 py-2 rounded border w-full" required>
+            </div>
+
+            <div class="w-full">
+              <label class="block text-sm mb-1">Machine Type (e.g., Model, Brand)</label>
+              <input type="text" name="type" class="px-4 py-2 rounded border w-full" required>
+            </div>
+
+            <div class="w-full">
+              <label class="block text-sm mb-1">Number of Heads</label>
+              <input type="number" name="num_heads" min="1" value="8" class="px-4 py-2 rounded border w-full" required>
+            </div>
+
+            <div class="w-full">
+              <label class="block text-sm mb-1">Needles per Head</label>
+              <input type="number" name="needles_per_head" min="1" value="15" class="px-4 py-2 rounded border w-full" required>
+            </div>
+
             <button type="submit" class="px-4 py-2 rounded bg-blue-600 text-white font-semibold hover:bg-blue-700 transition">Add Machine</button>
           </form>
         </div>
