@@ -95,34 +95,59 @@
 
         <!-- QR Cards: Always correct order! -->
         <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
-          {% set qr_type_order = ['master', 'service', 'sub1', 'sub2', 'sub3', 'sub4', 'sub5', 'sub6', 'sub7', 'sub8'] %}
-          {% for qr_type in qr_type_order %}
-            {% for qr in item.qrcodes if qr.qr_type == qr_type %}
-              <div class="bg-white rounded-xl border border-slate-200 p-4 shadow flex flex-col items-center">
-                <!-- Clean QR Image (no circle) -->
-                <img src="{{ qr.image_url }}" 
-                     alt="" 
+          {% set head_count = item.machine.num_heads if item.machine else 8 %}
+          {% for qr in item.qrcodes if qr.qr_type == 'master' %}
+            <div class="bg-white rounded-xl border border-slate-200 p-4 shadow flex flex-col items-center">
+              <!-- Clean QR Image (no circle) -->
+              <img src="{{ qr.image_url }}"
+                     alt=""
                      class="w-full h-auto max-h-[360px] object-contain rounded-xl qr-img-download"
                      data-qr-url="{{ qr.image_url }}"
                      data-qr-name="{% if qr.qr_type.startswith('sub') %}HEAD {{ qr.qr_type[3:] }}{% else %}{{ qr.qr_type.upper() }}{% endif %}.png">
-                <!-- Download buttons -->
-                <a href="{{ qr.image_url }}" download class="mt-2 px-2 py-1 text-xs rounded bg-slate-200 text-blue-800 hover:underline">⬇️ Download</a>
-                <button onclick="downloadRotatedQR('{{ qr.image_url }}', '{{ qr.qr_type }}', '{{ qr.id }}')" class="mt-2 px-2 py-1 text-xs rounded bg-blue-200 text-blue-800 hover:bg-blue-300 transition">
-                  ⤴️ Download Rotated 90°
+              <!-- Download buttons -->
+              <a href="{{ qr.image_url }}" download class="mt-2 px-2 py-1 text-xs rounded bg-slate-200 text-blue-800 hover:underline">⬇️ Download</a>
+              <button onclick="downloadRotatedQR('{{ qr.image_url }}', '{{ qr.qr_type }}', '{{ qr.id }}')" class="mt-2 px-2 py-1 text-xs rounded bg-blue-200 text-blue-800 hover:bg-blue-300 transition">
+                ⤴️ Download Rotated 90°
+              </button>
+              <p class="mt-1 text-sm font-semibold text-center uppercase">
+                {% if qr.qr_type.startswith('sub') %}
+                  HEAD {{ qr.qr_type[3:] }}
+                {% else %}
+                  {{ qr.qr_type.upper() }}
+                {% endif %}
+              </p>
+              <!-- Link without 🔗 and with copy button -->
+              <div class="flex items-center gap-2 mt-1">
+                <a href="{{ qr.qr_url }}" target="_blank" class="text-xs text-blue-500 break-all underline">{{ qr.qr_url }}</a>
+                <button onclick="copyQRLink('{{ qr.qr_url }}')" class="text-xs text-gray-500 hover:text-gray-700 px-1 py-0.5 border border-gray-300 rounded">
+                  📋
                 </button>
-                <p class="mt-1 text-sm font-semibold text-center uppercase">
-                  {% if qr.qr_type.startswith('sub') %}
-                    HEAD {{ qr.qr_type[3:] }}
-                  {% else %}
-                    {{ qr.qr_type.upper() }}
-                  {% endif %}
-                </p>
-                <!-- Link without 🔗 and with copy button -->
+              </div>
+            </div>
+          {% endfor %}
+          {% for qr in item.qrcodes if qr.qr_type == 'service' %}
+            <div class="bg-white rounded-xl border border-slate-200 p-4 shadow flex flex-col items-center">
+              <img src="{{ qr.image_url }}" alt="" class="w-full h-auto max-h-[360px] object-contain rounded-xl qr-img-download" data-qr-url="{{ qr.image_url }}" data-qr-name="{{ qr.qr_type.upper() }}.png">
+              <a href="{{ qr.image_url }}" download class="mt-2 px-2 py-1 text-xs rounded bg-slate-200 text-blue-800 hover:underline">⬇️ Download</a>
+              <button onclick="downloadRotatedQR('{{ qr.image_url }}', '{{ qr.qr_type }}', '{{ qr.id }}')" class="mt-2 px-2 py-1 text-xs rounded bg-blue-200 text-blue-800 hover:bg-blue-300 transition">⤴️ Download Rotated 90°</button>
+              <p class="mt-1 text-sm font-semibold text-center uppercase">{{ qr.qr_type.upper() }}</p>
+              <div class="flex items-center gap-2 mt-1">
+                <a href="{{ qr.qr_url }}" target="_blank" class="text-xs text-blue-500 break-all underline">{{ qr.qr_url }}</a>
+                <button onclick="copyQRLink('{{ qr.qr_url }}')" class="text-xs text-gray-500 hover:text-gray-700 px-1 py-0.5 border border-gray-300 rounded">📋</button>
+              </div>
+            </div>
+          {% endfor %}
+          {% for i in range(1, head_count + 1) %}
+            {% set qr_type = 'sub' ~ i %}
+            {% for qr in item.qrcodes if qr.qr_type == qr_type %}
+              <div class="bg-white rounded-xl border border-slate-200 p-4 shadow flex flex-col items-center">
+                <img src="{{ qr.image_url }}" alt="" class="w-full h-auto max-h-[360px] object-contain rounded-xl qr-img-download" data-qr-url="{{ qr.image_url }}" data-qr-name="HEAD {{ i }}.png">
+                <a href="{{ qr.image_url }}" download class="mt-2 px-2 py-1 text-xs rounded bg-slate-200 text-blue-800 hover:underline">⬇️ Download</a>
+                <button onclick="downloadRotatedQR('{{ qr.image_url }}', '{{ qr.qr_type }}', '{{ qr.id }}')" class="mt-2 px-2 py-1 text-xs rounded bg-blue-200 text-blue-800 hover:bg-blue-300 transition">⤴️ Download Rotated 90°</button>
+                <p class="mt-1 text-sm font-semibold text-center uppercase">HEAD {{ i }}</p>
                 <div class="flex items-center gap-2 mt-1">
                   <a href="{{ qr.qr_url }}" target="_blank" class="text-xs text-blue-500 break-all underline">{{ qr.qr_url }}</a>
-                  <button onclick="copyQRLink('{{ qr.qr_url }}')" class="text-xs text-gray-500 hover:text-gray-700 px-1 py-0.5 border border-gray-300 rounded">
-                    📋
-                  </button>
+                  <button onclick="copyQRLink('{{ qr.qr_url }}')" class="text-xs text-gray-500 hover:text-gray-700 px-1 py-0.5 border border-gray-300 rounded">📋</button>
                 </div>
               </div>
             {% endfor %}

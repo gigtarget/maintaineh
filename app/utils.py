@@ -52,7 +52,7 @@ def generate_custom_qr_image(data, tag_type, logo_path='app/static/logo/qr code 
         print(f"❌ Logo error: {e}")
     return base.convert("RGB")
 
-def generate_and_store_qr_batch(user_id=None):
+def generate_and_store_qr_batch(user_id=None, num_heads=8):
     """
     Create a QRBatch and all QRTags (Master, Service, 8 Subs) for the specified user.
     Returns the batch id.
@@ -62,7 +62,7 @@ def generate_and_store_qr_batch(user_id=None):
     db.session.add(batch)
     db.session.commit()
 
-    qr_types = ['master', 'service'] + [f"sub{i}" for i in range(1, 9)]
+    qr_types = ['master', 'service'] + [f"sub{i}" for i in range(1, num_heads + 1)]
 
     for qr_type in qr_types:
         qr_tag = QRTag(tag_type=qr_type, batch_id=batch.id)
@@ -111,3 +111,53 @@ def generate_and_store_qr_batch(user_id=None):
 
     db.session.commit()
     return batch.id
+
+
+def sync_qr_heads(batch_id, num_heads):
+    """Ensure the batch has QR codes for the specified number of heads."""
+    existing = [t for t in QRTag.query.filter_by(batch_id=batch_id).all() if t.tag_type.startswith('sub')]
+    current = len(existing)
+
+    if num_heads > current:
+        for i in range(current + 1, num_heads + 1):
+            qr_type = f"sub{i}"
+            qr_tag = QRTag(tag_type=qr_type, batch_id=batch_id)
+            db.session.add(qr_tag)
+            db.session.commit()
+
+            qr_url = f"{BASE_URL}/scan/sub/{qr_tag.id}"
+            qr_img = generate_custom_qr_image(qr_url, qr_type)
+            buf = BytesIO()
+            qr_img.save(buf, format="PNG")
+            buf.seek(0)
+            try:
+                result = cloudinary.uploader.upload(
+                    buf,
+                    folder=f"maintaineh/batch_{batch_id}",
+                    public_id=qr_type,
+                    overwrite=True,
+                    resource_type="image",
+                )
+                image_url = result.get("secure_url")
+                qr_tag.qr_url = qr_url
+                qr_tag.image_url = image_url
+                db.session.commit()
+
+                qr_code = QRCode(batch_id=batch_id, qr_type=qr_type, image_url=image_url, qr_url=qr_url)
+                db.session.add(qr_code)
+            except Exception as e:
+                print(f"❌ Upload failed: {e}")
+                raise e
+        db.session.commit()
+    elif num_heads < current:
+        for i in range(num_heads + 1, current + 1):
+            qr_type = f"sub{i}"
+            qr_tag = QRTag.query.filter_by(batch_id=batch_id, tag_type=qr_type).first()
+            if qr_tag:
+                NeedleChange.query.filter_by(sub_tag_id=qr_tag.id).delete()
+                ServiceLog.query.filter_by(sub_tag_id=qr_tag.id).delete()
+                qr_code = QRCode.query.filter_by(batch_id=batch_id, qr_type=qr_type).first()
+                if qr_code:
+                    db.session.delete(qr_code)
+                db.session.delete(qr_tag)
+        db.session.commit()
