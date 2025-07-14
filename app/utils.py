@@ -4,7 +4,7 @@ from io import BytesIO
 import cloudinary.uploader
 from PIL import Image, ImageDraw, ImageFont
 from app import db
-from app.models import QRBatch, QRCode, QRTag
+from app.models import QRBatch, QRCode, QRTag, NeedleChange, ServiceLog
 from datetime import datetime
 
 BASE_URL = "https://www.tokatap.com"
