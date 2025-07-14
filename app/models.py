@@ -67,6 +67,9 @@ class Machine(db.Model):
     oil_interval_hours = db.Column(db.Integer, default=24)
     lube_interval_days = db.Column(db.Integer, default=7)
     grease_interval_months = db.Column(db.Integer, default=3)
+    # configurable heads and needles
+    num_heads = db.Column(db.Integer, default=8)
+    needles_per_head = db.Column(db.Integer, default=15)
 
     maintenance_logs = db.relationship("DailyMaintenance", backref="machine", lazy=True)
     service_requests = db.relationship("ServiceRequest", backref="machine", lazy=True)

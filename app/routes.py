@@ -27,7 +27,7 @@ def time_until(dt):
     return f"in {minutes}m"
 
 from app import db
-from app.utils import generate_and_store_qr_batch
+from app.utils import generate_and_store_qr_batch, sync_qr_heads
 from app.decorators import subuser_required, user_or_subuser_required   # <-- CHANGED
 from app.models import (
     User, QRBatch, QRCode, Machine, QRTag,
@@ -359,15 +359,22 @@ def user_settings():
             batch_id = request.form.get("batch_id")
             name = request.form.get("name") or current_user.default_machine_name or "Unnamed Machine"
             mtype = request.form.get("type") or current_user.default_machine_location or "General"
+            num_heads = int(request.form.get("num_heads") or 8)
+            needles = int(request.form.get("needles_per_head") or 15)
 
             existing = Machine.query.filter_by(batch_id=batch_id).first()
             if existing:
                 existing.name = name
                 existing.type = mtype
+                existing.num_heads = num_heads
+                existing.needles_per_head = needles
                 flash("Machine updated with your preferences.", "success")
+                sync_qr_heads(existing.batch_id, num_heads)
             else:
-                machine = Machine(batch_id=batch_id, name=name, type=mtype)
+                machine = Machine(batch_id=batch_id, name=name, type=mtype, num_heads=num_heads, needles_per_head=needles)
                 db.session.add(machine)
+                db.session.commit()
+                sync_qr_heads(machine.batch_id, num_heads)
                 flash("Machine added successfully.", "success")
             db.session.commit()
             return redirect(url_for("routes.user_settings", tab="machines"))
@@ -406,6 +413,8 @@ def user_settings():
             mid = request.form.get("update_machine_id")
             name = request.form.get(f"machine_name_{mid}")
             mtype = request.form.get(f"machine_type_{mid}")
+            heads_val = request.form.get(f"num_heads_{mid}")
+            needles_val = request.form.get(f"needles_per_head_{mid}")
             oil_int = request.form.get(f"oil_interval_{mid}")
             lube_int = request.form.get(f"lube_interval_{mid}")
             grease_int = request.form.get(f"grease_interval_{mid}")
@@ -413,6 +422,11 @@ def user_settings():
             if machine and machine.batch.owner_id == current_user.id:
                 machine.name = name
                 machine.type = mtype
+                old_heads = machine.num_heads
+                if heads_val:
+                    machine.num_heads = int(heads_val)
+                if needles_val:
+                    machine.needles_per_head = int(needles_val)
                 if oil_int:
                     machine.oil_interval_hours = int(oil_int)
                 if lube_int:
@@ -420,6 +434,8 @@ def user_settings():
                 if grease_int:
                     machine.grease_interval_months = int(grease_int)
                 db.session.commit()
+                if heads_val and int(heads_val) != old_heads:
+                    sync_qr_heads(machine.batch_id, int(heads_val))
                 flash("Machine settings updated successfully.", "success")
             return redirect(url_for("routes.user_settings", tab="machines"))
 

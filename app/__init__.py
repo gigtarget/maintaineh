@@ -27,6 +27,8 @@ def create_app():
     with app.app_context():
         try:
             db.session.execute(text('ALTER TABLE sub_user_action ALTER COLUMN subuser_id DROP NOT NULL;'))
+            db.session.execute(text('ALTER TABLE machine ADD COLUMN IF NOT EXISTS num_heads INTEGER DEFAULT 8;'))
+            db.session.execute(text('ALTER TABLE machine ADD COLUMN IF NOT EXISTS needles_per_head INTEGER DEFAULT 15;'))
             db.session.commit()
         except Exception:
             db.session.rollback()
