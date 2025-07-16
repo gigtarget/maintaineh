@@ -44,6 +44,26 @@
     </div>
   </div>
 
+  <!-- usage insights -->
+  <div class="max-w-6xl mx-auto bg-white/30 backdrop-blur-lg border border-white/20 rounded-xl p-6 mb-8">
+    <h2 class="text-xl font-semibold mb-4">Usage Insights</h2>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div>
+        <canvas id="usageChart" class="w-full h-64"></canvas>
+      </div>
+      <div>
+        <table class="w-full text-sm">
+          <tr><td class="py-1">Total Machines</td><td class="py-1 text-right font-medium">{{ total_machines }}</td></tr>
+          <tr><td class="py-1">Total Sub-Users</td><td class="py-1 text-right font-medium">{{ total_subusers }}</td></tr>
+          <tr><td class="py-1">Service Requests</td><td class="py-1 text-right font-medium">{{ service_requests_count }}</td></tr>
+          {% for k, v in action_counts.items() %}
+          <tr><td class="py-1">{{ k.capitalize() }} Logs</td><td class="py-1 text-right font-medium">{{ v }}</td></tr>
+          {% endfor %}
+        </table>
+      </div>
+    </div>
+  </div>
+
   <!-- batches list -->
   <div class="max-w-6xl mx-auto space-y-8">
     {% for item in batches %}
@@ -202,7 +222,29 @@
         .then(() => alert("Copied: " + cleanLink))
         .catch(err => alert("Failed to copy: " + err));
     }
+
+    // Usage chart
+    document.addEventListener('DOMContentLoaded', () => {
+      const ctx = document.getElementById('usageChart');
+      if (ctx) {
+        const data = {
+          labels: ['Oil', 'Lube', 'Grease', 'Service Requests'],
+          datasets: [{
+            label: 'Count',
+            backgroundColor: ['#4ade80', '#60a5fa', '#fbbf24', '#f87171'],
+            data: [
+              {{ action_counts.get('oil', 0) }},
+              {{ action_counts.get('lube', 0) }},
+              {{ action_counts.get('grease', 0) }},
+              {{ service_requests_count }}
+            ]
+          }]
+        };
+        new Chart(ctx, { type: 'bar', data });
+      }
+    });
   </script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 </body>
 </html>
