@@ -817,12 +817,31 @@ def admin_dashboard():
     total_batches = len(batches)
     total_qrcodes = QRCode.query.count()
 
+    # --- Usage analytics ---
+    action_counts = dict(
+        db.session.query(SubUserAction.action_type, func.count(SubUserAction.id))
+        .group_by(SubUserAction.action_type)
+        .all()
+    )
+    service_requests_count = ServiceRequest.query.count()
+    total_machines = Machine.query.count()
+    total_subusers = SubUser.query.count()
+
     for batch in batches:
         batch.qrcodes = QRCode.query.filter_by(batch_id=batch.id).all()
         batch.user = User.query.filter_by(id=batch.owner_id).first()
         batch.machine = Machine.query.filter_by(batch_id=batch.id).first()
 
-    return render_template("admin_dashboard.html", batches=batches, total_batches=total_batches, total_qrcodes=total_qrcodes)
+    return render_template(
+        "admin_dashboard.html",
+        batches=batches,
+        total_batches=total_batches,
+        total_qrcodes=total_qrcodes,
+        action_counts=action_counts,
+        service_requests_count=service_requests_count,
+        total_machines=total_machines,
+        total_subusers=total_subusers,
+    )
 
 @routes.route("/admin/create-batch")
 @login_required
