@@ -193,7 +193,20 @@ def sub_tag_view(sub_tag_id):
         flash(f"Needle #{needle_number} updated successfully!", "success")
         return redirect(url_for("routes.sub_tag_view", sub_tag_id=sub_tag_id))
 
-    logs = NeedleChange.query.filter_by(sub_tag_id=sub_tag.id).order_by(NeedleChange.timestamp.desc()).all()
+    view_mode = request.args.get("view", "head")
+    selected_needle = request.args.get("needle_number", type=int)
+
+    if view_mode == "needle" and selected_needle:
+        logs = NeedleChange.query.filter_by(
+            batch_id=sub_tag.batch.id,
+            needle_number=selected_needle
+        ).order_by(NeedleChange.timestamp.desc()).all()
+    else:
+        logs = NeedleChange.query.filter_by(sub_tag_id=sub_tag.id).order_by(
+            NeedleChange.timestamp.desc()
+        ).all()
+        selected_needle = None
+
     last_change_dict = {}
     for log in logs:
         if log.needle_number not in last_change_dict:
@@ -212,7 +225,10 @@ def sub_tag_view(sub_tag_id):
         sub_tag=sub_tag,
         last_change_dict=last_change_dict,
         now=datetime.utcnow(),
-        back_url=back_url
+        back_url=back_url,
+        view_mode=view_mode,
+        selected_needle=selected_needle,
+        logs=logs,
     )
 
 @routes.route("/user/log/<type>/<int:machine_id>", methods=["POST"])
