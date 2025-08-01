@@ -152,3 +152,17 @@ class PasswordResetToken(db.Model):
     expires_at = db.Column(db.DateTime, nullable=False)
     used = db.Column(db.Boolean, default=False)
 
+
+# -------------------------
+# 📈 GENERAL ACTIVITY LOG
+# -------------------------
+class ActivityLog(db.Model):
+    """Central log for notable user actions."""
+    id = db.Column(db.Integer, primary_key=True)
+    event_type = db.Column(db.String(50))
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
+    subuser_id = db.Column(db.Integer, db.ForeignKey('sub_user.id'), nullable=True)
+    machine_id = db.Column(db.Integer, db.ForeignKey('machine.id'), nullable=True)
+    description = db.Column(db.String(255))
+    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
+

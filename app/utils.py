@@ -15,6 +15,21 @@ cloudinary.config(
     api_secret=os.getenv("CLOUDINARY_API_SECRET")
 )
 
+
+def log_activity(event_type, user_id=None, subuser_id=None, machine_id=None, description=None):
+    """Helper to create ActivityLog entries."""
+    from app.models import ActivityLog
+    log = ActivityLog(
+        event_type=event_type,
+        user_id=user_id,
+        subuser_id=subuser_id,
+        machine_id=machine_id,
+        description=description,
+        timestamp=datetime.utcnow(),
+    )
+    db.session.add(log)
+    db.session.commit()
+
 def generate_custom_qr_image(data, tag_type, logo_path='app/static/logo/qr code logo.jpg'):
     img_width, img_height = 800, 1200
     base = Image.new('RGBA', (img_width, img_height), (255, 255, 255, 0))
@@ -68,6 +83,7 @@ def generate_and_store_qr_batch(user_id=None, num_heads=8):
         qr_tag = QRTag(tag_type=qr_type, batch_id=batch.id)
         db.session.add(qr_tag)
         db.session.commit()
+
 
         if qr_type == "master":
             qr_url = f"{BASE_URL}/scan/master/{batch.id}"
