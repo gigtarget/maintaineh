@@ -432,8 +432,8 @@
         {% for head in head_tags %}
           {% set log = last_change_dict.get(head.id) %}
           {% set is_stale = log and (now - log.timestamp).days > 10 %}
-          <div class="needle-shape {% if is_stale %}needle-stale{% endif %}{% if head.id == sub_tag.id %} needle-selected{% endif %}" data-id="{{ head.id }}">
-            <div class="needle-number-top">{{ head.tag_type.replace('sub ', '') }}</div>
+          <div class="needle-shape {% if is_stale %}needle-stale{% endif %}" data-id="{{ head.id }}">
+            <div class="needle-number-top">Head<br>{{ head.tag_type.replace('sub', '') }}</div>
             {% if log %}
               <div class="date">{{ log.timestamp.strftime('%d') }}<br>{{ log.timestamp.strftime('%b') }}</div>
               <div class="needle-badge-inside">{{ log.needle_type }}</div>
@@ -442,7 +442,7 @@
         {% endfor %}
       </div>
 
-      <input type="hidden" name="target_sub_tag_id" id="target_sub_tag_id" value="{{ sub_tag.id }}">
+      <input type="hidden" name="target_sub_tag_id" id="target_sub_tag_id">
       <input type="hidden" name="needle_number" id="needle_number" value="{{ selected_needle }}" required>
       <input type="hidden" name="needle_type" id="needle_type" required>
 
@@ -467,24 +467,11 @@
           {% if last_change_dict.get(head.id) %}
             {% set log = last_change_dict.get(head.id) %}
             <li>
-              Head {{ head.tag_type.replace('sub ', '') }} (Type {{ log.needle_type }}) – {{ log.timestamp.strftime('%d %b %Y') }}
+              Head {{ head.tag_type.replace('sub', '') }} (Type {{ log.needle_type }}) – {{ log.timestamp.strftime('%d %b %Y') }}
             </li>
           {% else %}
-            <li>Head {{ head.tag_type.replace('sub ', '') }} – No data available</li>
+            <li>Head {{ head.tag_type.replace('sub', '') }} – No data available</li>
           {% endif %}
-        {% endfor %}
-      </ul>
-    </div>
-
-    <div class="log-box">
-      <div class="log-header">
-        <h3>Logs for Needle {{ selected_needle }}</h3>
-      </div>
-      <ul class="log-list expanded">
-        {% for log in logs_to_display %}
-          <li>Head {{ log.sub_tag.tag_type.replace('sub ', '') }} – Type {{ log.needle_type }} – {{ log.timestamp.strftime('%d %b %Y') }}</li>
-        {% else %}
-          <li>No logs for this needle.</li>
         {% endfor %}
       </ul>
     </div>
