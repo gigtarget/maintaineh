@@ -55,6 +55,45 @@
       margin-left: auto;
       display: block;
     }
+    .toggle-container {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-top: 10px;
+      gap: 8px;
+    }
+    .switch {
+      position: relative;
+      display: inline-block;
+      width: 42px;
+      height: 24px;
+    }
+    .switch input { display:none; }
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background-color: #ccc;
+      transition: .4s;
+      border-radius: 24px;
+    }
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 18px;
+      width: 18px;
+      left: 3px;
+      bottom: 3px;
+      background-color: white;
+      transition: .4s;
+      border-radius: 50%;
+    }
+    input:checked + .slider {
+      background-color: #0ea5e9;
+    }
+    input:checked + .slider:before {
+      transform: translateX(18px);
+    }
     .container {
       max-width: 480px;
       margin: 16px auto;
@@ -309,6 +348,15 @@
     <img src="{{ url_for('static', filename='logo/logo.svg') }}" alt="Logo" class="logo-right" />
   </div>
 
+  <div class="toggle-container">
+    <span>Head View</span>
+    <label class="switch">
+      <input type="checkbox" id="view-toggle" {% if view_mode == 'needle' %}checked{% endif %}>
+      <span class="slider"></span>
+    </label>
+    <span>Needle View</span>
+  </div>
+
   <div class="container">
     <!-- Header with just the number -->
     <h2>
@@ -319,6 +367,7 @@
         {{ sub_tag.tag_type }}
       {% endif %}
     </h2>
+    {% if view_mode == 'head' %}
     <form method="POST">
       <h3>Select Needle Number</h3>
       <div class="needle-grid">
@@ -369,6 +418,27 @@
         {% endfor %}
       </ul>
     </div>
+    {% else %}
+    <h3>Select Needle Number</h3>
+    <select id="needle-select" class="w-full px-3 py-2 rounded-xl bg-white/60 border border-white/30 shadow-inner mb-4">
+      {% set needle_count = sub_tag.batch.machine.needles_per_head if sub_tag.batch.machine else 15 %}
+      {% for i in range(1, needle_count + 1) %}
+        <option value="{{ i }}" {% if selected_needle == i %}selected{% endif %}>Needle {{ i }}</option>
+      {% endfor %}
+    </select>
+    <div class="log-box">
+      <div class="log-header">
+        <h3>Logs for Needle {{ selected_needle }}</h3>
+      </div>
+      <ul class="log-list expanded">
+        {% for log in logs_to_display %}
+          <li>Head {{ log.sub_tag.tag_type.replace('sub ', '') }} – Type {{ log.needle_type }} – {{ log.timestamp.strftime('%d %b %Y') }}</li>
+        {% else %}
+          <li>No logs for this needle.</li>
+        {% endfor %}
+      </ul>
+    </div>
+    {% endif %}
 
     <!-- Tips Legend Box -->
     <div class="legend-box">
@@ -406,6 +476,27 @@
       list.classList.toggle('collapsed');
       list.classList.toggle('expanded');
       toggle.classList.toggle('collapsed');
+    }
+
+    const headUrl = "{{ url_for('routes.sub_tag_view', sub_tag_id=sub_tag.id) }}";
+    const needleUrlBase = "{{ url_for('routes.sub_tag_view', sub_tag_id=sub_tag.id, view='needle') }}";
+
+    const viewToggle = document.getElementById('view-toggle');
+    if (viewToggle) {
+      viewToggle.addEventListener('change', () => {
+        const sel = document.getElementById('needle-select');
+        const num = sel ? sel.value : {{ selected_needle or 1 }};
+        window.location.href = viewToggle.checked
+          ? `${needleUrlBase}&needle_number=${num}`
+          : headUrl;
+      });
+    }
+
+    const needleSelect = document.getElementById('needle-select');
+    if (needleSelect) {
+      needleSelect.addEventListener('change', () => {
+        window.location.href = `${needleUrlBase}&needle_number=${needleSelect.value}`;
+      });
     }
   </script>
 </body>
