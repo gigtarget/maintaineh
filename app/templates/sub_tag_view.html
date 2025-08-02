@@ -432,6 +432,7 @@
       </div>
       <ul class="log-list expanded">
         {% for log in logs_to_display %}
+        {% for log in logs %}
           <li>Head {{ log.sub_tag.tag_type.replace('sub ', '') }} – Type {{ log.needle_type }} – {{ log.timestamp.strftime('%d %b %Y') }}</li>
         {% else %}
           <li>No logs for this needle.</li>
@@ -489,6 +490,16 @@
         window.location.href = viewToggle.checked
           ? `${needleUrlBase}&needle_number=${num}`
           : headUrl;
+    const viewToggle = document.getElementById('view-toggle');
+    if (viewToggle) {
+      viewToggle.addEventListener('change', () => {
+        if (viewToggle.checked) {
+          const sel = document.getElementById('needle-select');
+          const num = sel ? sel.value : 1;
+          window.location.href = '{{ url_for('routes.sub_tag_view', sub_tag_id=sub_tag.id) }}?view=needle&needle_number=' + num;
+        } else {
+          window.location.href = '{{ url_for('routes.sub_tag_view', sub_tag_id=sub_tag.id) }}';
+        }
       });
     }
 
@@ -496,6 +507,7 @@
     if (needleSelect) {
       needleSelect.addEventListener('change', () => {
         window.location.href = `${needleUrlBase}&needle_number=${needleSelect.value}`;
+        window.location.href = '{{ url_for('routes.sub_tag_view', sub_tag_id=sub_tag.id) }}?view=needle&needle_number=' + needleSelect.value;
       });
     }
   </script>

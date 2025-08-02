@@ -46,7 +46,7 @@
 
   <!-- usage insights -->
   <div class="max-w-6xl mx-auto bg-white/30 backdrop-blur-lg border border-white/20 rounded-xl p-6 mb-8">
-    <h2 class="text-xl font-semibold mb-4">Usage Insights</h2>
+    <h2 class="text-xl font-semibold mb-4">Daily Activity</h2>
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
       <div>
         <canvas id="usageChart" class="w-full h-64"></canvas>
@@ -62,6 +62,12 @@
         </table>
       </div>
     </div>
+  </div>
+
+  <!-- activity log -->
+  <div class="max-w-6xl mx-auto bg-white/30 backdrop-blur-lg border border-white/20 rounded-xl p-6 mb-8">
+    <h2 class="text-xl font-semibold mb-4">Recent Activity</h2>
+    <ul id="activityLog" class="text-sm space-y-1 max-h-60 overflow-y-auto"></ul>
   </div>
 
   <!-- batches list -->
@@ -105,8 +111,10 @@
           </div>
         </div>
 
-        <!-- Download All QRs (individual files) -->
-        <div class="flex justify-end mb-4">
+        <!-- actions -->
+        <div class="flex justify-end mb-4 gap-2">
+          <button onclick="toggleQR({{ item.id }})"
+            class="px-4 py-2 bg-slate-200 hover:bg-slate-300 rounded-xl text-sm">Show QR Codes</button>
           <button onclick="downloadAllQRs({{ item.id }})"
             class="px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-xl text-sm shadow transition">
             ⬇️ Download All QRs
@@ -114,7 +122,7 @@
         </div>
 
         <!-- QR Cards: Always correct order! -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
+        <div id="qr-section-{{ item.id }}" class="hidden grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
           {% set head_count = item.machine.num_heads if item.machine else 8 %}
           {% for qr in item.qrcodes if qr.qr_type == 'master' %}
             <div class="bg-white rounded-xl border border-slate-200 p-4 shadow flex flex-col items-center">
@@ -212,8 +220,13 @@
         link.download = name || 'qr-code.png';
         document.body.appendChild(link);
         link.click();
-        document.body.removeChild(link);
-      });
+      document.body.removeChild(link);
+    });
+  }
+
+    function toggleQR(batchId) {
+      const section = document.getElementById(`qr-section-${batchId}`);
+      if (section) section.classList.toggle('hidden');
     }
 
     function copyQRLink(link) {
@@ -223,25 +236,42 @@
         .catch(err => alert("Failed to copy: " + err));
     }
 
-    // Usage chart
+    // Daily activity chart
     document.addEventListener('DOMContentLoaded', () => {
       const ctx = document.getElementById('usageChart');
       if (ctx) {
         const data = {
-          labels: ['Oil', 'Lube', 'Grease', 'Service Requests'],
+          labels: {{ daily_labels|tojson }},
           datasets: [{
-            label: 'Count',
-            backgroundColor: ['#4ade80', '#60a5fa', '#fbbf24', '#f87171'],
-            data: [
-              {{ action_counts.get('oil', 0) }},
-              {{ action_counts.get('lube', 0) }},
-              {{ action_counts.get('grease', 0) }},
-              {{ service_requests_count }}
-            ]
+            label: 'Daily Activity',
+            backgroundColor: '#60a5fa',
+            borderColor: '#3b82f6',
+            fill: false,
+            tension: 0.3,
+            data: {{ daily_counts|tojson }}
           }]
         };
-        new Chart(ctx, { type: 'bar', data });
+        new Chart(ctx, { type: 'line', data });
       }
+    });
+
+    // Activity feed polling
+    function fetchActivity() {
+      fetch('{{ url_for('routes.admin_activity_feed') }}')
+        .then(r => r.json())
+        .then(d => {
+          const list = document.getElementById('activityLog');
+          list.innerHTML = '';
+          d.logs.forEach(log => {
+            const li = document.createElement('li');
+            li.textContent = `[${log.timestamp}] ${log.description}`;
+            list.appendChild(li);
+          });
+        });
+    }
+    document.addEventListener('DOMContentLoaded', () => {
+      fetchActivity();
+      setInterval(fetchActivity, 10000);
     });
   </script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>

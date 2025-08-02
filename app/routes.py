@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, redirect, url_for, flash, request, send_file, session, abort
+from flask import Blueprint, render_template, redirect, url_for, flash, request, send_file, session, abort, jsonify
 from flask_login import login_user, logout_user, login_required, current_user
 from datetime import datetime, date, timedelta
 from sqlalchemy import func, or_
@@ -27,13 +27,13 @@ def time_until(dt):
     return f"in {minutes}m"
 
 from app import db
-from app.utils import generate_and_store_qr_batch, sync_qr_heads
+from app.utils import generate_and_store_qr_batch, sync_qr_heads, log_activity
 from app.decorators import subuser_required, user_or_subuser_required   # <-- CHANGED
 from app.models import (
     User, QRBatch, QRCode, Machine, QRTag,
     NeedleChange, ServiceLog, SubUser,
     SubUserAction, DailyMaintenance, ServiceRequest,
-    PasswordResetToken
+    PasswordResetToken, ActivityLog
 )
 
 routes = Blueprint("routes", __name__)
@@ -144,6 +144,13 @@ def mark_action_done(machine_id, action):
             )
         db.session.add(new_action)
         db.session.commit()
+        log_activity(
+            f"{action}_log",
+            user_id=current_user.id if not sub_id else None,
+            subuser_id=sub_id,
+            machine_id=machine.id,
+            description=f"{action.capitalize()} logged for machine {machine.name}",
+        )
         if action == "oil":
             msg = "✅ Oiling marked as done."
         elif action == "lube":
@@ -198,6 +205,17 @@ def sub_tag_view(sub_tag_id):
         logs_to_display = NeedleChange.query.filter_by(
             sub_tag_id=sub_tag.id
         ).order_by(NeedleChange.timestamp.desc()).all()
+    selected_needle = request.args.get("needle_number", type=int)
+
+    if view_mode == "needle" and selected_needle:
+        logs = NeedleChange.query.filter_by(
+            batch_id=sub_tag.batch.id,
+            needle_number=selected_needle
+        ).order_by(NeedleChange.timestamp.desc()).all()
+    else:
+        logs = NeedleChange.query.filter_by(sub_tag_id=sub_tag.id).order_by(
+            NeedleChange.timestamp.desc()
+        ).all()
         selected_needle = None
 
     last_change_dict = {}
@@ -222,6 +240,7 @@ def sub_tag_view(sub_tag_id):
         view_mode=view_mode,
         selected_needle=selected_needle,
         logs_to_display=logs_to_display,
+        logs=logs,
     )
 
 @routes.route("/user/log/<type>/<int:machine_id>", methods=["POST"])
@@ -503,6 +522,11 @@ def user_signup():
         )
         db.session.add(new_user)
         db.session.commit()
+        log_activity(
+            "signup",
+            user_id=new_user.id,
+            description=f"New user {email} signed up",
+        )
 
         # Log the user in right after signup
         login_user(new_user)
@@ -843,6 +867,24 @@ def admin_dashboard():
     total_machines = Machine.query.count()
     total_subusers = SubUser.query.count()
 
+    # Daily engagement for the last 7 days
+    start_date = date.today() - timedelta(days=6)
+    daily_labels = []
+    daily_counts = []
+    for i in range(7):
+        day = start_date + timedelta(days=i)
+        next_day = day + timedelta(days=1)
+        count_actions = SubUserAction.query.filter(
+            SubUserAction.timestamp >= day,
+            SubUserAction.timestamp < next_day,
+        ).count()
+        count_sr = ServiceRequest.query.filter(
+            ServiceRequest.timestamp >= day,
+            ServiceRequest.timestamp < next_day,
+        ).count()
+        daily_labels.append(day.strftime('%Y-%m-%d'))
+        daily_counts.append(count_actions + count_sr)
+
     for batch in batches:
         batch.qrcodes = QRCode.query.filter_by(batch_id=batch.id).all()
         batch.user = User.query.filter_by(id=batch.owner_id).first()
@@ -857,7 +899,29 @@ def admin_dashboard():
         service_requests_count=service_requests_count,
         total_machines=total_machines,
         total_subusers=total_subusers,
+        daily_labels=daily_labels,
+        daily_counts=daily_counts,
     )
+
+
+@routes.route("/admin/activity-feed")
+@login_required
+def admin_activity_feed():
+    if current_user.role != "admin":
+        abort(403)
+    logs = (
+        ActivityLog.query.order_by(ActivityLog.timestamp.desc())
+        .limit(50)
+        .all()
+    )
+    data = [
+        {
+            "timestamp": log.timestamp.strftime("%Y-%m-%d %H:%M:%S"),
+            "description": log.description or log.event_type,
+        }
+        for log in logs
+    ]
+    return jsonify({"logs": data})
 
 @routes.route("/admin/create-batch")
 @login_required
@@ -1089,6 +1153,13 @@ def create_subuser():
         )
         db.session.add(sub)
         db.session.commit()
+        log_activity(
+            "subuser_created",
+            user_id=current_user.id,
+            subuser_id=sub.id,
+            machine_id=machine_id,
+            description=f"Sub-user {name} created",
+        )
         flash(f"✅ Sub-user created successfully! Code: {static_id}", "success")
 
         # Refresh subusers list after creation
@@ -1400,6 +1471,12 @@ def subuser_action(type):
         )
         db.session.add(sr)
         db.session.commit()
+        log_activity(
+            "service_request",
+            subuser_id=sub.id,
+            machine_id=machine.id,
+            description=f"Service request for machine {machine.name}",
+        )
         flash("Service request sent!", "success")
 
     return redirect(url_for("routes.subuser_dashboard"))
@@ -1428,6 +1505,12 @@ def raise_service_request():
         )
         db.session.add(new_request)
         db.session.commit()
+        log_activity(
+            "service_request",
+            subuser_id=sub.id,
+            machine_id=machine_id,
+            description=f"Service request for machine {machine_id}",
+        )
         flash("✅ Service request submitted successfully.", "success")
     except Exception as e:
         print("Error creating request:", e)
@@ -1457,6 +1540,12 @@ def user_raise_service_request(machine_id):
         )
         db.session.add(new_request)
         db.session.commit()
+        log_activity(
+            "service_request",
+            user_id=user.id,
+            machine_id=machine_id,
+            description=f"Service request for machine {machine_id}",
+        )
         flash("✅ Service request submitted successfully.", "success")
     except Exception as e:
         print("Error creating request:", e)
