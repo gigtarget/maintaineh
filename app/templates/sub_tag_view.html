@@ -199,6 +199,34 @@
     .needle-stale::after {
       border-top-color: #e0a800;
     }
+    #needle-select {
+      display: block;
+      width: 100%;
+      padding: 12px 16px;
+      font-size: 16px;
+      font-weight: 600;
+      background: #fff;
+      border-radius: 12px;
+      border: 2px solid #cbd5e1;
+      margin-bottom: 20px;
+    }
+    #needle-select option {
+      padding: 10px;
+    }
+    #needle-select option:checked {
+      background: #0ea5e9;
+      color: #fff;
+    }
+    .head-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .head-label {
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
     @keyframes selectPop {
       0% { transform: scale(1); }
       70% { transform: scale(1.13); }
@@ -421,7 +449,7 @@
     {% else %}
     <form method="POST">
       <h3>Select Needle Number</h3>
-      <select id="needle-select" class="w-full px-3 py-2 rounded-xl bg-white/60 border border-white/30 shadow-inner mb-4">
+      <select id="needle-select">
         {% set needle_count = sub_tag.batch.machine.needles_per_head if sub_tag.batch.machine else 15 %}
         {% for i in range(1, needle_count + 1) %}
           <option value="{{ i }}" {% if selected_needle == i %}selected{% endif %}>Needle {{ i }}</option>
@@ -432,12 +460,14 @@
         {% for head in head_tags %}
           {% set log = last_change_dict.get(head.id) %}
           {% set is_stale = log and (now - log.timestamp).days > 10 %}
-          <div class="needle-shape {% if is_stale %}needle-stale{% endif %}" data-id="{{ head.id }}">
-            <div class="needle-number-top">Head<br>{{ head.tag_type.replace('sub', '') }}</div>
-            {% if log %}
-              <div class="date">{{ log.timestamp.strftime('%d') }}<br>{{ log.timestamp.strftime('%b') }}</div>
-              <div class="needle-badge-inside">{{ log.needle_type }}</div>
-            {% endif %}
+          <div class="head-item">
+            <div class="head-label">Head {{ head.tag_type.replace('sub', '') }}</div>
+            <div class="needle-shape {% if is_stale %}needle-stale{% endif %}" data-id="{{ head.id }}">
+              {% if log %}
+                <div class="date">{{ log.timestamp.strftime('%d') }}<br>{{ log.timestamp.strftime('%b') }}</div>
+                <div class="needle-badge-inside">{{ log.needle_type }}</div>
+              {% endif %}
+            </div>
           </div>
         {% endfor %}
       </div>
