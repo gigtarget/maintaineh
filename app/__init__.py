@@ -23,8 +23,10 @@ def create_app():
     login_manager.init_app(app)
     login_manager.login_view = "routes.admin_login"
 
-    # Ensure subuser_id column allows NULL values
+    # Ensure tables and columns exist
     with app.app_context():
+        # Create any missing tables (e.g. ActivityLog)
+        db.create_all()
         try:
             db.session.execute(text('ALTER TABLE sub_user_action ALTER COLUMN subuser_id DROP NOT NULL;'))
             db.session.execute(text('ALTER TABLE machine ADD COLUMN IF NOT EXISTS num_heads INTEGER DEFAULT 8;'))
