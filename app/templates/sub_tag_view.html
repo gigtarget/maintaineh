@@ -432,7 +432,6 @@
       </div>
       <ul class="log-list expanded">
         {% for log in logs_to_display %}
-        {% for log in logs %}
           <li>Head {{ log.sub_tag.tag_type.replace('sub ', '') }} – Type {{ log.needle_type }} – {{ log.timestamp.strftime('%d %b %Y') }}</li>
         {% else %}
           <li>No logs for this needle.</li>
