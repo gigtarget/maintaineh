@@ -431,6 +431,7 @@
         <h3>Logs for Needle {{ selected_needle }}</h3>
       </div>
       <ul class="log-list expanded">
+        {% for log in logs_to_display %}
         {% for log in logs %}
           <li>Head {{ log.sub_tag.tag_type.replace('sub ', '') }} – Type {{ log.needle_type }} – {{ log.timestamp.strftime('%d %b %Y') }}</li>
         {% else %}
@@ -478,6 +479,17 @@
       toggle.classList.toggle('collapsed');
     }
 
+    const headUrl = "{{ url_for('routes.sub_tag_view', sub_tag_id=sub_tag.id) }}";
+    const needleUrlBase = "{{ url_for('routes.sub_tag_view', sub_tag_id=sub_tag.id, view='needle') }}";
+
+    const viewToggle = document.getElementById('view-toggle');
+    if (viewToggle) {
+      viewToggle.addEventListener('change', () => {
+        const sel = document.getElementById('needle-select');
+        const num = sel ? sel.value : {{ selected_needle or 1 }};
+        window.location.href = viewToggle.checked
+          ? `${needleUrlBase}&needle_number=${num}`
+          : headUrl;
     const viewToggle = document.getElementById('view-toggle');
     if (viewToggle) {
       viewToggle.addEventListener('change', () => {
@@ -494,6 +506,7 @@
     const needleSelect = document.getElementById('needle-select');
     if (needleSelect) {
       needleSelect.addEventListener('change', () => {
+        window.location.href = `${needleUrlBase}&needle_number=${needleSelect.value}`;
         window.location.href = '{{ url_for('routes.sub_tag_view', sub_tag_id=sub_tag.id) }}?view=needle&needle_number=' + needleSelect.value;
       });
     }
