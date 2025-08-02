@@ -419,13 +419,63 @@
       </ul>
     </div>
     {% else %}
-    <h3>Select Needle Number</h3>
-    <select id="needle-select" class="w-full px-3 py-2 rounded-xl bg-white/60 border border-white/30 shadow-inner mb-4">
-      {% set needle_count = sub_tag.batch.machine.needles_per_head if sub_tag.batch.machine else 15 %}
-      {% for i in range(1, needle_count + 1) %}
-        <option value="{{ i }}" {% if selected_needle == i %}selected{% endif %}>Needle {{ i }}</option>
-      {% endfor %}
-    </select>
+    <form method="POST">
+      <h3>Select Needle Number</h3>
+      <select id="needle-select" class="w-full px-3 py-2 rounded-xl bg-white/60 border border-white/30 shadow-inner mb-4">
+        {% set needle_count = sub_tag.batch.machine.needles_per_head if sub_tag.batch.machine else 15 %}
+        {% for i in range(1, needle_count + 1) %}
+          <option value="{{ i }}" {% if selected_needle == i %}selected{% endif %}>Needle {{ i }}</option>
+        {% endfor %}
+      </select>
+
+      <div class="needle-grid">
+        {% for head in head_tags %}
+          {% set log = last_change_dict.get(head.id) %}
+          {% set is_stale = log and (now - log.timestamp).days > 10 %}
+          <div class="needle-shape {% if is_stale %}needle-stale{% endif %}{% if head.id == sub_tag.id %} needle-selected{% endif %}" data-id="{{ head.id }}">
+            <div class="needle-number-top">{{ head.tag_type.replace('sub ', '') }}</div>
+            {% if log %}
+              <div class="date">{{ log.timestamp.strftime('%d') }}<br>{{ log.timestamp.strftime('%b') }}</div>
+              <div class="needle-badge-inside">{{ log.needle_type }}</div>
+            {% endif %}
+          </div>
+        {% endfor %}
+      </div>
+
+      <input type="hidden" name="target_sub_tag_id" id="target_sub_tag_id" value="{{ sub_tag.id }}">
+      <input type="hidden" name="needle_number" id="needle_number" value="{{ selected_needle }}" required>
+      <input type="hidden" name="needle_type" id="needle_type" required>
+
+      <h3>Select Needle Type</h3>
+      <div class="type-buttons">
+        <div class="type-btn" data-type="9">9</div>
+        <div class="type-btn" data-type="11">11</div>
+        <div class="type-btn" data-type="12">12</div>
+        <div class="type-btn" data-type="14">14</div>
+      </div>
+
+      <button type="submit" id="submit-btn">Log Needle Change</button>
+    </form>
+
+    <div class="log-box">
+      <div class="log-header" onclick="toggleLogs()">
+        <h3>Latest Changes:</h3>
+        <span id="log-toggle" class="log-toggle collapsed">&#9660;</span>
+      </div>
+      <ul id="log-list" class="log-list collapsed">
+        {% for head in head_tags %}
+          {% if last_change_dict.get(head.id) %}
+            {% set log = last_change_dict.get(head.id) %}
+            <li>
+              Head {{ head.tag_type.replace('sub ', '') }} (Type {{ log.needle_type }}) – {{ log.timestamp.strftime('%d %b %Y') }}
+            </li>
+          {% else %}
+            <li>Head {{ head.tag_type.replace('sub ', '') }} – No data available</li>
+          {% endif %}
+        {% endfor %}
+      </ul>
+    </div>
+
     <div class="log-box">
       <div class="log-header">
         <h3>Logs for Needle {{ selected_needle }}</h3>
@@ -451,17 +501,22 @@
 
   <script>
     // Needle selection
-    const needles = document.querySelectorAll('.needle-shape');
-    const types = document.querySelectorAll('.type-btn');
-    const needleInput = document.getElementById('needle_number');
-    const typeInput = document.getElementById('needle_type');
-    needles.forEach(n => {
-      n.addEventListener('click', () => {
-        needles.forEach(m => m.classList.remove('needle-selected'));
-        n.classList.add('needle-selected');
+  const needles = document.querySelectorAll('.needle-shape');
+  const types = document.querySelectorAll('.type-btn');
+  const needleInput = document.getElementById('needle_number');
+  const typeInput = document.getElementById('needle_type');
+  const headInput = document.getElementById('target_sub_tag_id');
+  needles.forEach(n => {
+    n.addEventListener('click', () => {
+      needles.forEach(m => m.classList.remove('needle-selected'));
+      n.classList.add('needle-selected');
+      if (headInput) {
+        headInput.value = n.dataset.id;
+      } else if (needleInput) {
         needleInput.value = n.dataset.id;
-      });
+      }
     });
+  });
     types.forEach(btn => {
       btn.addEventListener('click', () => {
         types.forEach(t => t.classList.remove('selected'));

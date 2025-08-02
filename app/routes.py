@@ -181,47 +181,83 @@ def sub_tag_view(sub_tag_id):
         needle_number = int(request.form["needle_number"])
         needle_type = int(request.form["needle_type"])
 
+        target_id = request.form.get("target_sub_tag_id")
+        target_tag = sub_tag
+        if target_id:
+            temp = QRTag.query.get(int(target_id))
+            if temp and temp.batch_id == sub_tag.batch.id:
+                target_tag = temp
+
         change = NeedleChange(
-            batch_id=sub_tag.batch.id,
-            sub_tag_id=sub_tag.id,
+            batch_id=target_tag.batch.id,
+            sub_tag_id=target_tag.id,
             needle_number=needle_number,
             needle_type=needle_type,
-            timestamp=datetime.utcnow()
+            timestamp=datetime.utcnow(),
         )
         db.session.add(change)
         db.session.commit()
         flash(f"Needle #{needle_number} updated successfully!", "success")
-        return redirect(url_for("routes.sub_tag_view", sub_tag_id=sub_tag_id))
+
+        if request.args.get("view") == "needle":
+            return redirect(
+                url_for(
+                    "routes.sub_tag_view",
+                    sub_tag_id=target_tag.id,
+                    view="needle",
+                    needle_number=needle_number,
+                )
+            )
+        return redirect(url_for("routes.sub_tag_view", sub_tag_id=target_tag.id))
 
     view_mode = request.args.get("view", "head")
     needle_arg = request.args.get("needle_number", type=int)
     if view_mode == "needle":
         selected_needle = needle_arg or 1
-        logs_to_display = NeedleChange.query.filter_by(
-            batch_id=sub_tag.batch.id,
-            needle_number=selected_needle,
-        ).order_by(NeedleChange.timestamp.desc()).all()
+        logs_to_display = (
+            NeedleChange.query.filter_by(
+                batch_id=sub_tag.batch.id, needle_number=selected_needle
+            )
+            .order_by(NeedleChange.timestamp.desc())
+            .all()
+        )
+        head_tags = (
+            QRTag.query.filter(
+                QRTag.batch_id == sub_tag.batch.id, QRTag.tag_type.startswith("sub")
+            )
+            .order_by(QRTag.id)
+            .all()
+        )
     else:
-        logs_to_display = NeedleChange.query.filter_by(
-            sub_tag_id=sub_tag.id
-        ).order_by(NeedleChange.timestamp.desc()).all()
+        logs_to_display = (
+            NeedleChange.query.filter_by(sub_tag_id=sub_tag.id)
+            .order_by(NeedleChange.timestamp.desc())
+            .all()
+        )
+        head_tags = []
     selected_needle = request.args.get("needle_number", type=int)
 
     if view_mode == "needle" and selected_needle:
-        logs = NeedleChange.query.filter_by(
-            batch_id=sub_tag.batch.id,
-            needle_number=selected_needle
-        ).order_by(NeedleChange.timestamp.desc()).all()
+        logs = (
+            NeedleChange.query.filter_by(
+                batch_id=sub_tag.batch.id, needle_number=selected_needle
+            )
+            .order_by(NeedleChange.timestamp.desc())
+            .all()
+        )
     else:
-        logs = NeedleChange.query.filter_by(sub_tag_id=sub_tag.id).order_by(
-            NeedleChange.timestamp.desc()
-        ).all()
+        logs = (
+            NeedleChange.query.filter_by(sub_tag_id=sub_tag.id)
+            .order_by(NeedleChange.timestamp.desc())
+            .all()
+        )
         selected_needle = None
 
     last_change_dict = {}
     for log in logs_to_display:
-        if log.needle_number not in last_change_dict:
-            last_change_dict[log.needle_number] = log
+        key = log.sub_tag_id if view_mode == "needle" else log.needle_number
+        if key not in last_change_dict:
+            last_change_dict[key] = log
 
     # Back URL logic
     if hasattr(current_user, "is_authenticated") and current_user.is_authenticated and getattr(current_user, "role", None) == "user":
@@ -239,6 +275,7 @@ def sub_tag_view(sub_tag_id):
         back_url=back_url,
         view_mode=view_mode,
         selected_needle=selected_needle,
+        head_tags=head_tags,
         logs_to_display=logs_to_display,
         logs=logs,
     )
