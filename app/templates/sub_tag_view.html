@@ -389,11 +389,10 @@
   <div class="container">
     <!-- Header with just the number -->
     <h2>
-      Head<br>
       {% if sub_tag.tag_type.startswith('sub') %}
-        {{ sub_tag.tag_type.replace('sub', '').strip() }}
+        Head {{ sub_tag.tag_type.replace('sub', '').strip() }}
       {% else %}
-        {{ sub_tag.tag_type }}
+        Head {{ sub_tag.tag_type }}
       {% endif %}
     </h2>
     {% if view_mode == 'head' %}
