@@ -389,8 +389,8 @@
     <!-- Header with just the number -->
     <h2>
       Head
-      {% if sub_tag.tag_type.startswith("sub ") %}
-        {{ sub_tag.tag_type.replace("sub ", "") }}
+      {% if sub_tag.tag_type.startswith('sub') %}
+        {{ sub_tag.tag_type.replace('sub', '').strip() }}
       {% else %}
         {{ sub_tag.tag_type }}
       {% endif %}
