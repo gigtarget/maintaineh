@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, redirect, url_for, flash, request, send_file, session, abort, jsonify
+from flask import Blueprint, render_template, redirect, url_for, flash, request, send_file, session, abort
 from flask_login import login_user, logout_user, login_required, current_user
 from datetime import datetime, date, timedelta
 from sqlalchemy import func, or_
@@ -355,6 +355,12 @@ def sub_tag_service_log(sub_tag_id):
         )
         db.session.add(log)
         db.session.commit()
+        log_activity(
+            "service_log",
+            user_id=current_user.id if current_user.is_authenticated else None,
+            subuser_id=session.get('subuser_id'),
+            description=f"Service log added for '{part_name}'",
+        )
         flash(f"Logged replacement for '{part_name}' successfully!", "success")
         return redirect(url_for("routes.sub_tag_service_log", sub_tag_id=sub_tag_id, back=back_url))
 
@@ -440,15 +446,27 @@ def user_settings():
                 existing.type = mtype
                 existing.num_heads = num_heads
                 existing.needles_per_head = needles
+                db.session.commit()
+                log_activity(
+                    "machine_updated",
+                    user_id=current_user.id,
+                    machine_id=existing.id,
+                    description=f"Machine {name} updated",
+                )
                 flash("Machine updated with your preferences.", "success")
                 sync_qr_heads(existing.batch_id, num_heads)
             else:
                 machine = Machine(batch_id=batch_id, name=name, type=mtype, num_heads=num_heads, needles_per_head=needles)
                 db.session.add(machine)
                 db.session.commit()
+                log_activity(
+                    "machine_added",
+                    user_id=current_user.id,
+                    machine_id=machine.id,
+                    description=f"Machine {name} added",
+                )
                 sync_qr_heads(machine.batch_id, num_heads)
                 flash("Machine added successfully.", "success")
-            db.session.commit()
             return redirect(url_for("routes.user_settings", tab="machines"))
 
         # --- Update Profile ---
@@ -584,6 +602,11 @@ def user_login():
         user = User.query.filter_by(email=email, role="user").first()
         if user and user.password == password:
             login_user(user)
+            log_activity(
+                "login",
+                user_id=user.id,
+                description=f"User {email} logged in",
+            )
             session['show_login_success'] = True  # ✅ Trigger login toast
             return redirect(next_url or url_for("routes.user_dashboard"))
         else:
@@ -879,6 +902,11 @@ def admin_login():
         user = User.query.filter_by(email=email, role="admin").first()
         if user and user.password == password:
             login_user(user)
+            log_activity(
+                "login",
+                user_id=user.id,
+                description=f"Admin {email} logged in",
+            )
             return redirect(url_for("routes.admin_dashboard"))
         else:
             flash("Invalid credentials", "danger")
@@ -894,33 +922,11 @@ def admin_dashboard():
     total_batches = len(batches)
     total_qrcodes = QRCode.query.count()
 
-    # --- Usage analytics ---
-    action_counts = dict(
-        db.session.query(SubUserAction.action_type, func.count(SubUserAction.id))
-        .group_by(SubUserAction.action_type)
+    logs = (
+        ActivityLog.query.order_by(ActivityLog.timestamp.desc())
+        .limit(50)
         .all()
     )
-    service_requests_count = ServiceRequest.query.count()
-    total_machines = Machine.query.count()
-    total_subusers = SubUser.query.count()
-
-    # Daily engagement for the last 7 days
-    start_date = date.today() - timedelta(days=6)
-    daily_labels = []
-    daily_counts = []
-    for i in range(7):
-        day = start_date + timedelta(days=i)
-        next_day = day + timedelta(days=1)
-        count_actions = SubUserAction.query.filter(
-            SubUserAction.timestamp >= day,
-            SubUserAction.timestamp < next_day,
-        ).count()
-        count_sr = ServiceRequest.query.filter(
-            ServiceRequest.timestamp >= day,
-            ServiceRequest.timestamp < next_day,
-        ).count()
-        daily_labels.append(day.strftime('%Y-%m-%d'))
-        daily_counts.append(count_actions + count_sr)
 
     for batch in batches:
         batch.qrcodes = QRCode.query.filter_by(batch_id=batch.id).all()
@@ -932,33 +938,8 @@ def admin_dashboard():
         batches=batches,
         total_batches=total_batches,
         total_qrcodes=total_qrcodes,
-        action_counts=action_counts,
-        service_requests_count=service_requests_count,
-        total_machines=total_machines,
-        total_subusers=total_subusers,
-        daily_labels=daily_labels,
-        daily_counts=daily_counts,
+        logs=logs,
     )
-
-
-@routes.route("/admin/activity-feed")
-@login_required
-def admin_activity_feed():
-    if current_user.role != "admin":
-        abort(403)
-    logs = (
-        ActivityLog.query.order_by(ActivityLog.timestamp.desc())
-        .limit(50)
-        .all()
-    )
-    data = [
-        {
-            "timestamp": log.timestamp.strftime("%Y-%m-%d %H:%M:%S"),
-            "description": log.description or log.event_type,
-        }
-        for log in logs
-    ]
-    return jsonify({"logs": data})
 
 @routes.route("/admin/create-batch")
 @login_required
@@ -966,6 +947,11 @@ def create_batch():
     if current_user.role != "admin":
         return redirect(url_for("routes.admin_login"))
     batch_id = generate_and_store_qr_batch()  # Defaults to admin or None if not specified
+    log_activity(
+        "batch_created",
+        user_id=current_user.id,
+        description=f"Batch {batch_id} created",
+    )
     return redirect(url_for("routes.admin_dashboard"))
 
 @routes.route("/admin/download-batch/<int:batch_id>")
@@ -1213,6 +1199,11 @@ def subuser_login():
         sub = SubUser.query.filter_by(static_id=code).first()
         if sub:
             session['subuser_id'] = sub.id
+            log_activity(
+                "subuser_login",
+                subuser_id=sub.id,
+                description=f"Subuser {sub.name} logged in",
+            )
             return redirect(url_for("routes.subuser_dashboard"))
         flash("Invalid code", "danger")
     return render_template("subuser_login.html")
@@ -1344,7 +1335,11 @@ def delete_batch(batch_id):
     Machine.query.filter_by(batch_id=batch.id).delete()
     db.session.delete(batch)
     db.session.commit()
-
+    log_activity(
+        "batch_deleted",
+        user_id=current_user.id,
+        description=f"Batch {batch_id} deleted",
+    )
     flash(f"Batch #{batch_id} deleted successfully.", "success")
     return redirect(url_for("routes.admin_dashboard"))
 
@@ -1598,6 +1593,12 @@ def resolve_service_request(request_id):
     req.resolved = True
     req.resolved_at = date.today()
     db.session.commit()
+    log_activity(
+        "service_request_resolved",
+        user_id=current_user.id,
+        machine_id=req.machine_id,
+        description=f"Service request {req.id} resolved",
+    )
     flash("Service request marked as resolved.", "success")
     return redirect(url_for("routes.user_dashboard"))
 
@@ -1729,15 +1730,29 @@ def service_log_view(service_tag_id):
 @routes.route("/logout")
 @login_required
 def logout():
+    user_id = getattr(current_user, "id", None)
+    email = getattr(current_user, "email", "user")
     logout_user()
     session.clear()
+    log_activity(
+        "logout",
+        user_id=user_id,
+        description=f"User {email} logged out",
+    )
     flash("You have been logged out.", "info")
     return redirect(url_for("routes.user_login"))
 
 # ---- Sub-User Logout ----
 @routes.route("/subuser/logout")
 def subuser_logout():
-    session.pop('subuser_id', None)
+    sub_id = session.pop('subuser_id', None)
+    if sub_id:
+        sub = SubUser.query.get(sub_id)
+        log_activity(
+            "subuser_logout",
+            subuser_id=sub_id,
+            description=f"Subuser {sub.name if sub else sub_id} logged out",
+        )
     flash("Sub-user logged out.", "info")
     return redirect(url_for("routes.subuser_login"))
 

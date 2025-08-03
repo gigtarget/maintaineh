@@ -44,30 +44,16 @@
     </div>
   </div>
 
-  <!-- usage insights -->
-  <div class="max-w-6xl mx-auto bg-white/30 backdrop-blur-lg border border-white/20 rounded-xl p-6 mb-8">
-    <h2 class="text-xl font-semibold mb-4">Daily Activity</h2>
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-      <div>
-        <canvas id="usageChart" class="w-full h-64"></canvas>
-      </div>
-      <div>
-        <table class="w-full text-sm">
-          <tr><td class="py-1">Total Machines</td><td class="py-1 text-right font-medium">{{ total_machines }}</td></tr>
-          <tr><td class="py-1">Total Sub-Users</td><td class="py-1 text-right font-medium">{{ total_subusers }}</td></tr>
-          <tr><td class="py-1">Service Requests</td><td class="py-1 text-right font-medium">{{ service_requests_count }}</td></tr>
-          {% for k, v in action_counts.items() %}
-          <tr><td class="py-1">{{ k.capitalize() }} Logs</td><td class="py-1 text-right font-medium">{{ v }}</td></tr>
-          {% endfor %}
-        </table>
-      </div>
-    </div>
-  </div>
-
   <!-- activity log -->
   <div class="max-w-6xl mx-auto bg-white/30 backdrop-blur-lg border border-white/20 rounded-xl p-6 mb-8">
-    <h2 class="text-xl font-semibold mb-4">Recent Activity</h2>
-    <ul id="activityLog" class="text-sm space-y-1 max-h-60 overflow-y-auto"></ul>
+    <h2 class="text-xl font-semibold mb-4">Activity Log</h2>
+    <ul class="text-sm space-y-1 max-h-60 overflow-y-auto">
+      {% for log in logs %}
+      <li>[{{ log.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}] {{ log.description or log.event_type }}</li>
+      {% else %}
+      <li class="text-slate-500">No recent activity.</li>
+      {% endfor %}
+    </ul>
   </div>
 
   <!-- batches list -->
@@ -229,52 +215,13 @@
       if (section) section.classList.toggle('hidden');
     }
 
-    function copyQRLink(link) {
-      const cleanLink = link.replace(/^https?:\/\//, '');
-      navigator.clipboard.writeText(cleanLink)
-        .then(() => alert("Copied: " + cleanLink))
-        .catch(err => alert("Failed to copy: " + err));
-    }
-
-    // Daily activity chart
-    document.addEventListener('DOMContentLoaded', () => {
-      const ctx = document.getElementById('usageChart');
-      if (ctx) {
-        const data = {
-          labels: {{ daily_labels|tojson }},
-          datasets: [{
-            label: 'Daily Activity',
-            backgroundColor: '#60a5fa',
-            borderColor: '#3b82f6',
-            fill: false,
-            tension: 0.3,
-            data: {{ daily_counts|tojson }}
-          }]
-        };
-        new Chart(ctx, { type: 'line', data });
+      function copyQRLink(link) {
+        const cleanLink = link.replace(/^https?:\/\//, '');
+        navigator.clipboard.writeText(cleanLink)
+          .then(() => alert("Copied: " + cleanLink))
+          .catch(err => alert("Failed to copy: " + err));
       }
-    });
+    </script>
 
-    // Activity feed polling
-    function fetchActivity() {
-      fetch('{{ url_for('routes.admin_activity_feed') }}')
-        .then(r => r.json())
-        .then(d => {
-          const list = document.getElementById('activityLog');
-          list.innerHTML = '';
-          d.logs.forEach(log => {
-            const li = document.createElement('li');
-            li.textContent = `[${log.timestamp}] ${log.description}`;
-            list.appendChild(li);
-          });
-        });
-    }
-    document.addEventListener('DOMContentLoaded', () => {
-      fetchActivity();
-      setInterval(fetchActivity, 10000);
-    });
-  </script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-</body>
-</html>
+  </body>
+  </html>
