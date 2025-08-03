@@ -947,6 +947,11 @@ def create_batch():
     if current_user.role != "admin":
         return redirect(url_for("routes.admin_login"))
     batch_id = generate_and_store_qr_batch()  # Defaults to admin or None if not specified
+    log_activity(
+        "batch_created",
+        user_id=current_user.id,
+        description=f"Batch {batch_id} created",
+    )
     return redirect(url_for("routes.admin_dashboard"))
 
 @routes.route("/admin/download-batch/<int:batch_id>")
@@ -1330,7 +1335,11 @@ def delete_batch(batch_id):
     Machine.query.filter_by(batch_id=batch.id).delete()
     db.session.delete(batch)
     db.session.commit()
-
+    log_activity(
+        "batch_deleted",
+        user_id=current_user.id,
+        description=f"Batch {batch_id} deleted",
+    )
     flash(f"Batch #{batch_id} deleted successfully.", "success")
     return redirect(url_for("routes.admin_dashboard"))
 
@@ -1584,6 +1593,12 @@ def resolve_service_request(request_id):
     req.resolved = True
     req.resolved_at = date.today()
     db.session.commit()
+    log_activity(
+        "service_request_resolved",
+        user_id=current_user.id,
+        machine_id=req.machine_id,
+        description=f"Service request {req.id} resolved",
+    )
     flash("Service request marked as resolved.", "success")
     return redirect(url_for("routes.user_dashboard"))
 
@@ -1715,15 +1730,29 @@ def service_log_view(service_tag_id):
 @routes.route("/logout")
 @login_required
 def logout():
+    user_id = getattr(current_user, "id", None)
+    email = getattr(current_user, "email", "user")
     logout_user()
     session.clear()
+    log_activity(
+        "logout",
+        user_id=user_id,
+        description=f"User {email} logged out",
+    )
     flash("You have been logged out.", "info")
     return redirect(url_for("routes.user_login"))
 
 # ---- Sub-User Logout ----
 @routes.route("/subuser/logout")
 def subuser_logout():
-    session.pop('subuser_id', None)
+    sub_id = session.pop('subuser_id', None)
+    if sub_id:
+        sub = SubUser.query.get(sub_id)
+        log_activity(
+            "subuser_logout",
+            subuser_id=sub_id,
+            description=f"Subuser {sub.name if sub else sub_id} logged out",
+        )
     flash("Sub-user logged out.", "info")
     return redirect(url_for("routes.subuser_login"))
 
