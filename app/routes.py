@@ -99,6 +99,11 @@ def scan_qr_page():
 @login_required
 def user_create_batch():
     batch_id = generate_and_store_qr_batch(user_id=current_user.id)
+    log_activity(
+        "batch_created",
+        user_id=current_user.id,
+        description=f"Batch {batch_id} created",
+    )
     flash("QR batch generated! You can now set up your machine.", "success")
 
     next_url = request.args.get("next")
@@ -197,6 +202,14 @@ def sub_tag_view(sub_tag_id):
         )
         db.session.add(change)
         db.session.commit()
+        machine = Machine.query.filter_by(batch_id=target_tag.batch.id).first()
+        log_activity(
+            "needle_change",
+            user_id=current_user.id if current_user.is_authenticated else None,
+            subuser_id=session.get("subuser_id"),
+            machine_id=machine.id if machine else None,
+            description=f"Needle {needle_number} updated on {target_tag.tag_type}",
+        )
         flash(f"Needle #{needle_number} updated successfully!", "success")
 
         if request.args.get("view") == "needle":
@@ -422,6 +435,11 @@ def claim_batch(batch_id):
         # Claim the batch
         batch.owner_id = current_user.id
         db.session.commit()
+        log_activity(
+            "batch_claimed",
+            user_id=current_user.id,
+            description=f"Batch {batch_id} claimed",
+        )
         flash("Batch successfully claimed!", "success")
 
     # Always redirect to dashboard
@@ -495,6 +513,11 @@ def user_settings():
                 current_user.security_answer = security_answer
 
             db.session.commit()
+            log_activity(
+                "profile_updated",
+                user_id=current_user.id,
+                description="Profile updated",
+            )
             flash("Profile updated successfully.", "success")
             return redirect(url_for("routes.user_settings", tab="profile"))
 
@@ -526,6 +549,12 @@ def user_settings():
                 db.session.commit()
                 if heads_val and int(heads_val) != old_heads:
                     sync_qr_heads(machine.batch_id, int(heads_val))
+                log_activity(
+                    "machine_updated",
+                    user_id=current_user.id,
+                    machine_id=machine.id,
+                    description=f"Machine {name} updated",
+                )
                 flash("Machine settings updated successfully.", "success")
             return redirect(url_for("routes.user_settings", tab="machines"))
 
@@ -688,12 +717,25 @@ def user_dashboard():
         if existing:
             existing.name = name
             existing.type = mtype
+            db.session.commit()
+            log_activity(
+                "machine_updated",
+                user_id=current_user.id,
+                machine_id=existing.id,
+                description=f"Machine {name} updated",
+            )
             flash("Machine updated with your preferences.", "success")
         else:
             machine = Machine(batch_id=batch_id, name=name, type=mtype)
             db.session.add(machine)
+            db.session.commit()
+            log_activity(
+                "machine_added",
+                user_id=current_user.id,
+                machine_id=machine.id,
+                description=f"Machine {name} added",
+            )
             flash("Machine added successfully.", "success")
-        db.session.commit()
 
     user_batches = QRBatch.query.filter_by(owner_id=current_user.id).all()
     batch_data = []
@@ -1290,8 +1332,15 @@ def manage_subusers():
         subuser = SubUser.query.filter_by(id=sub_id, parent_id=current_user.id).first_or_404()
 
         if action == "delete":
+            sid = subuser.id
+            name = subuser.name
             db.session.delete(subuser)
             db.session.commit()
+            log_activity(
+                "subuser_deleted",
+                user_id=current_user.id,
+                description=f"Sub-user {name} ({sid}) deleted",
+            )
             flash("Sub-user deleted successfully.", "success")
             return redirect(url_for("routes.create_subuser"))  # ✅ Redirect after delete
 
@@ -1299,6 +1348,13 @@ def manage_subusers():
             subuser.name = request.form.get("name")
             subuser.assigned_machine_id = request.form.get("machine_id")
             db.session.commit()
+            log_activity(
+                "subuser_updated",
+                user_id=current_user.id,
+                subuser_id=subuser.id,
+                machine_id=subuser.assigned_machine_id,
+                description=f"Sub-user {subuser.name} updated",
+            )
             flash("Sub-user updated successfully.", "success")
             return redirect(url_for("routes.manage_subusers"))  # ✅ Stay here after update
 
@@ -1319,6 +1375,12 @@ def update_machine(machine_id):
     machine.name = request.form.get("name")
     machine.type = request.form.get("type")
     db.session.commit()
+    log_activity(
+        "machine_updated",
+        user_id=current_user.id,
+        machine_id=machine.id,
+        description=f"Machine {machine.name} updated",
+    )
     flash("Machine updated successfully!", "success")
     return redirect(url_for("routes.user_settings"))
 
@@ -1466,7 +1528,7 @@ def subuser_action(type):
                 subuser_id=sub.id,
                 machine_id=machine.id,
                 action_type="oil",
-                status="done"
+                status="done",
             )
             db.session.add(action)
 
@@ -1476,19 +1538,32 @@ def subuser_action(type):
                 oiled=True
             )
             db.session.add(log)
-
-        flash("Marked as oiled for today!", "success")
-        db.session.commit()
+            db.session.commit()
+            log_activity(
+                "oil_log",
+                subuser_id=sub.id,
+                machine_id=machine.id,
+                description=f"Oil logged for machine {machine.name}",
+            )
+            flash("Marked as oiled for today!", "success")
+        else:
+            flash("Already oiled for today!", "info")
 
     elif type == "lube":
         action = SubUserAction(
             subuser_id=sub.id,
             machine_id=machine.id,
             action_type="lube",
-            status="done"
+            status="done",
         )
         db.session.add(action)
         db.session.commit()
+        log_activity(
+            "lube_log",
+            subuser_id=sub.id,
+            machine_id=machine.id,
+            description=f"Lube logged for machine {machine.name}",
+        )
         flash("Lube completed!", "success")
 
     elif type == "service":
