@@ -72,13 +72,12 @@
 </div>
 {% endblock %}
 {% block scripts %}
-  {{ super() }}
-  <script>
+<script>
 const btn=document.getElementById('expandBtn');
 const form=document.getElementById('logForm');
 btn.addEventListener('click',()=>{
   form.classList.toggle('collapsed');
   form.classList.toggle('expanded');
 });
-  </script>
+</script>
 {% endblock %}
