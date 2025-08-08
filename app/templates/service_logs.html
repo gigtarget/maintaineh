@@ -1,46 +1,35 @@
-<!DOCTYPE html>
-<html>
-<head>
-  <title>Service Logs - Tokatap</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <script src="https://cdn.tailwindcss.com"></script>
-</head>
-<body class="bg-gradient-to-br from-blue-100 to-white min-h-screen px-2 py-6">
-
-  <div class="max-w-lg mx-auto bg-white/50 border border-white/20 rounded-2xl shadow-lg p-6 mt-6">
-    <h2 class="text-xl font-bold mb-6 text-blue-800">Service Logs</h2>
-    {% if logs %}
-      <div class="space-y-4">
-        {% for log in logs %}
-          <div class="p-4 rounded-xl border border-slate-200 bg-white/80 shadow-sm flex items-center justify-between">
-            <div>
-              <div class="font-semibold text-slate-800">{{ log.description }}</div>
-              <div class="text-xs text-slate-500 mt-1">
-                {{ log.timestamp.strftime('%d %b %Y, %I:%M %p') if log.timestamp else '' }}
-                {% if log.status %}
-                  • <span class="font-bold {{ 'text-green-700' if log.status == 'Completed' else 'text-orange-600' }}">
-                    {{ log.status }}
-                  </span>
-                {% endif %}
-              </div>
-            </div>
-            {% if log.status != 'Completed' and current_user.is_authenticated %}
-              <form method="POST" action="{{ url_for('routes.complete_service_log', log_id=log.id) }}">
-                <button type="submit" class="px-3 py-1 rounded-lg bg-green-500 text-white text-xs font-bold hover:bg-green-600 transition">Mark Complete</button>
-              </form>
-            {% endif %}
-          </div>
-        {% endfor %}
+{% extends "base.html" %}
+{% block title %}Service Logs - Tokatap{% endblock %}
+{% block content %}
+<div class="lg-glass lg-card-lg round-2xl mb-6 max-w-lg mx-auto">
+  <div class="h2 mb-2">Service Logs</div>
+  {% if logs %}
+  <div class="space-y-2">
+    {% for log in logs %}
+    <div class="cell">
+      <div>
+        <div>{{ log.description }}</div>
+        <div class="text-xs text-dim mt-1">
+          {{ log.timestamp.strftime('%d %b %Y, %I:%M %p') if log.timestamp else '' }}
+          {% if log.status %}
+          • <span class="{{ 'text-green-400' if log.status == 'Completed' else 'text-warning' }}">{{ log.status }}</span>
+          {% endif %}
+        </div>
       </div>
-    {% else %}
-      <div class="text-center text-slate-500 py-8">
-        No service logs found for this tag yet.
-      </div>
-    {% endif %}
-    <div class="mt-6 flex justify-between">
-      <a href="{{ url_for('routes.scan_service', service_tag_id=service_tag.id) }}" class="text-blue-700 hover:underline">← Back</a>
-      <a href="{{ url_for('routes.add_service_log', service_tag_id=service_tag.id) }}" class="text-blue-700 hover:underline">Log New Service</a>
+      {% if log.status != 'Completed' and current_user.is_authenticated %}
+      <form method="POST" action="{{ url_for('routes.complete_service_log', log_id=log.id) }}">
+        <button type="submit" class="btn btn-primary text-xs">Mark Complete</button>
+      </form>
+      {% endif %}
     </div>
+    {% endfor %}
   </div>
-</body>
-</html>
+  {% else %}
+  <div class="lg-glass lg-card round-2xl text-dim">No service logs found for this tag yet.</div>
+  {% endif %}
+  <div class="mt-6 flex justify-between">
+    <a href="{{ url_for('routes.scan_service', service_tag_id=service_tag.id) }}" class="btn btn-secondary">← Back</a>
+    <a href="{{ url_for('routes.add_service_log', service_tag_id=service_tag.id) }}" class="btn btn-primary">Log New Service</a>
+  </div>
+</div>
+{% endblock %}
