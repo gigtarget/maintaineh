@@ -1,0 +1,63 @@
+/* Custom utilities and animations */
+.toast {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 9999;
+  padding: 12px 24px;
+  background-color: #22c55e;
+  color: white;
+  font-weight: 500;
+  border-radius: 10px;
+  box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+  opacity: 0;
+  transition: opacity 0.5s ease;
+}
+.toast.show { opacity: 1; }
+@keyframes float {
+  0%,100% { transform: translateY(0) translateX(0); }
+  50% { transform: translateY(-6px) translateX(6px); }
+}
+.mascot-float { animation: float 4s ease-in-out infinite; }
+@keyframes fadeUp {
+  0% { transform: translateY(20px); opacity: 0; }
+  100% { transform: translateY(0); opacity: 1; }
+}
+.logo-fade { animation: fadeUp 1.8s ease-out forwards; }
+.icon-side {
+  width: 2.2rem;
+  height: 2.2rem;
+  min-width: 2.2rem;
+  min-height: 2.2rem;
+  margin-right: 1rem;
+  color: #64748b;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.btn-card {
+  min-height: 72px;
+  padding-top: 0.8rem;
+  padding-bottom: 0.8rem;
+}
+.expand-form {
+  transition: max-height 0.3s cubic-bezier(.4,0,.2,1);
+  overflow: hidden;
+}
+.expand-form.collapsed {
+  max-height: 0;
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+}
+.expand-form.expanded {
+  max-height: 800px;
+  padding-top: 1.5rem;
+  padding-bottom: 1.5rem;
+}
+@keyframes slide-in-right {
+  0% { opacity:0; transform: translateX(100%); }
+  100% { opacity:1; transform: translateX(0); }
+}
+.animate-slide-in-right { animation: slide-in-right 0.3s ease-out; }
