@@ -1,86 +1,14 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Sub-user Dashboard</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <script src="https://cdn.tailwindcss.com"></script>
-  <style>
-    .icon-side {
-      width: 2.2rem;
-      height: 2.2rem;
-      min-width: 2.2rem;
-      min-height: 2.2rem;
-      margin-right: 1rem;
-      color: #64748b;
-      flex-shrink: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-    .btn-card {
-      min-height: 72px;
-      padding-top: 0.8rem;
-      padding-bottom: 0.8rem;
-    }
-  </style>
-</head>
-<body class="bg-gradient-to-br from-blue-100 to-white min-h-screen text-gray-800 p-4">
-
-  <!-- ✅ Flash Toast Notification -->
-  {% with messages = get_flashed_messages(with_categories=true) %}
-    {% if messages %}
-      <div id="toast-container" class="fixed top-4 right-4 space-y-3 z-50">
-        {% for category, message in messages %}
-          <div class="bg-green-100 border border-green-300 text-green-800 px-4 py-2 rounded shadow-lg animate-slide-in-right">
-            {{ message }}
-          </div>
-        {% endfor %}
-      </div>
-      <script>
-        setTimeout(() => {
-          document.getElementById('toast-container').style.display = 'none';
-        }, 2500);
-      </script>
-      <style>
-        @keyframes slide-in-right {
-          0% { opacity: 0; transform: translateX(100%); }
-          100% { opacity: 1; transform: translateX(0); }
-        }
-        .animate-slide-in-right {
-          animation: slide-in-right 0.3s ease-out;
-        }
-      </style>
-    {% endif %}
-  {% endwith %}
-
-  <div class="max-w-4xl mx-auto">
-
-    <!-- Header with Logout -->
-    <div class="flex items-center justify-between mb-6">
-      <div>
-        <h1 class="text-2xl sm:text-3xl font-bold text-slate-800">Welcome, {{ subuser.name }}</h1>
-        <p class="text-sm text-slate-600">Machine Access Panel for: <strong>{{ machine.name }}</strong> ({{ machine.type }})</p>
-      </div>
-      <a href="{{ url_for('routes.subuser_logout') }}" class="bg-red-500 text-white px-4 py-2 rounded-lg shadow hover:bg-red-600 transition">
-        Logout
-      </a>
+{% extends "base.html" %}
+{% block title %}Sub-user Dashboard{% endblock %}
+{% block content %}
+<div class="max-w-4xl mx-auto">
+  <div class="flex items-center justify-between mb-6">
+    <div>
+      <h1 class="text-2xl sm:text-3xl font-bold text-slate-800">Welcome, {{ subuser.name }}</h1>
+      <p class="text-sm text-slate-600">Machine Access Panel for: <strong>{{ machine.name }}</strong> ({{ machine.type }})</p>
     </div>
-
+    <a href="{{ url_for('routes.subuser_logout') }}" class="bg-red-500 text-white px-4 py-2 rounded-lg shadow hover:bg-red-600 transition">Logout</a>
+  </div>
   <p class="text-center text-slate-500 mb-8">Scan the service QR code for maintenance options.</p>
 </div>
-
-<footer class="bg-blue-950 text-blue-100 py-6 mt-12">
-  <div class="max-w-4xl mx-auto flex flex-col items-center gap-1 text-xs">
-    <div><span class="font-bold">Tokatap</span> &copy; 2025. All rights reserved.</div>
-    <div>Built with ❤️ by JD.</div>
-    <div class="flex gap-4 mt-1 text-blue-200">
-      <a href="{{ url_for('routes.setup_guide_page') }}" class="hover:text-white">Setup Guide</a>
-      <span class="text-blue-300">|</span>
-      <a href="{{ url_for('routes.faq_page') }}" class="hover:text-white">FAQ</a>
-    </div>
-  </div>
-</footer>
-
-</body>
-</html>
+{% endblock %}

@@ -9,6 +9,8 @@ import requests
 from PIL import Image, ImageDraw, ImageFont
 import random
 import string
+import os
+from flask import current_app
 
 def time_until(dt):
     """Return human friendly time until dt (UTC)."""
@@ -1064,8 +1066,9 @@ def _build_qr_page(qr_codes, title=None, machine=None):
     page = Image.new("RGB", (A4_WIDTH, A4_HEIGHT), "white")
     draw = ImageDraw.Draw(page)
     try:
-        font_title = ImageFont.truetype("app/fonts/Agrandir.ttf", 80)
-        font_label = ImageFont.truetype("app/fonts/Agrandir.ttf", 50)
+        font_path = os.path.join(current_app.root_path, "static", "fonts", "Agrandir.ttf")
+        font_title = ImageFont.truetype(font_path, 80)
+        font_label = ImageFont.truetype(font_path, 50)
     except Exception:
         font_title = ImageFont.load_default()
         font_label = ImageFont.load_default()
