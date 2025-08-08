@@ -101,8 +101,7 @@
 </div>
 {% endblock %}
 {% block scripts %}
-  {{ super() }}
-  <script>
+<script>
 function openModal(){
   document.getElementById('serviceModal').classList.remove('hidden');
   document.getElementById('serviceModalBackdrop').classList.remove('hidden');
@@ -111,5 +110,5 @@ function closeModal(){
   document.getElementById('serviceModal').classList.add('hidden');
   document.getElementById('serviceModalBackdrop').classList.add('hidden');
 }
-  </script>
+</script>
 {% endblock %}

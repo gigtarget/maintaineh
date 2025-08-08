@@ -1,32 +1,40 @@
 {% extends "base.html" %}
 {% block title %}Tokatap - Login{% endblock %}
 {% block content %}
-<div class="lg-glass lg-card-lg round-2xl w-full max-w-sm mx-auto mt-10 text-center relative overflow-hidden pb-28">
+<div class="bg-white/30 backdrop-blur-xl border border-white/20 rounded-2xl shadow-xl w-full max-w-sm mx-auto mt-10 relative overflow-hidden pb-28 text-center">
   <img src="{{ url_for('static', filename='logo/logo.svg') }}" alt="Tokatap Logo" class="w-56 sm:w-64 h-auto mx-auto mt-4 object-contain logo-fade z-10 relative">
-  <div class="h2 mt-2">Welcome</div>
-  <p class="text-dim mt-2 mb-6 px-4 leading-relaxed">
+  <h2 class="text-2xl font-bold text-slate-800 mt-2">Welcome</h2>
+  <p class="text-sm text-slate-600 mt-2 mb-6 px-4 leading-relaxed">
     Know your machine’s full service history, upcoming maintenance needs, and past component changes — all in one place with just one tap or scan.
   </p>
   <form method="POST" class="space-y-4 text-left px-4">
     <div>
-      <label for="email" class="block text-sm font-medium mb-1">Email</label>
-      <input id="email" type="email" name="email" required placeholder="you@example.com">
+      <label for="email" class="block text-sm font-medium text-slate-600 mb-1">Email</label>
+      <input id="email" type="email" name="email" required placeholder="you@example.com"
+             class="w-full px-4 py-2 rounded-xl bg-white/50 border border-white/20 shadow-inner text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-400">
     </div>
     <div>
-      <label for="password" class="block text-sm font-medium mb-1">Password</label>
-      <input id="password" type="password" name="password" required placeholder="••••••••">
+      <label for="password" class="block text-sm font-medium text-slate-600 mb-1">Password</label>
+      <input id="password" type="password" name="password" required placeholder="••••••••"
+             class="w-full px-4 py-2 rounded-xl bg-white/50 border border-white/20 shadow-inner text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-400">
       <div class="text-right mt-1">
-        <a href="{{ url_for('routes.forgot_password') }}" class="text-xs text-blue-400 hover:underline">Forgot Password?</a>
+        <a href="{{ url_for('routes.forgot_password') }}" class="text-xs text-blue-600 hover:underline">Forgot Password?</a>
       </div>
     </div>
-    <button type="submit" class="btn btn-primary w-full justify-center">Login</button>
+    <button type="submit"
+            class="w-full py-2 bg-blue-600 text-white font-semibold rounded-xl shadow-lg transition-all duration-300 transform hover:scale-105 active:scale-95 hover:bg-blue-700">
+      Login
+    </button>
   </form>
-  <div class="mt-6 text-sm text-dim">
-    <p>New user? <a href="{{ url_for('routes.user_signup') }}" class="text-blue-400 hover:underline">Sign up here</a></p>
-    <p class="mt-2"><a href="{{ url_for('routes.home') }}" class="text-blue-400 hover:underline">← Back to Home</a></p>
+  <div class="mt-6 text-sm text-slate-600">
+    <p>New user? <a href="{{ url_for('routes.user_signup') }}" class="text-blue-600 hover:underline">Sign up here</a></p>
+    <p class="mt-2"><a href="{{ url_for('routes.home') }}" class="text-blue-600 hover:underline">← Back to Home</a></p>
   </div>
   <div class="flex justify-end mt-4 px-4">
-    <a href="{{ url_for('routes.subuser_login') }}" class="btn btn-secondary text-xs">Sub-User Login (using code)</a>
+    <a href="{{ url_for('routes.subuser_login') }}"
+       class="px-4 py-1.5 bg-blue-50 border border-blue-300 text-blue-700 hover:bg-blue-100 hover:border-blue-500 font-medium rounded-full shadow-sm transition-all duration-200 text-xs">
+      Sub-User Login (using code)
+    </a>
   </div>
   <div class="absolute bottom-0 left-[-60px] w-48 sm:w-56 overflow-hidden">
     <img src="{{ url_for('static', filename='logo/octatoka.png') }}" alt="Tokatap Mascot" class="mascot-float pointer-events-none select-none">
