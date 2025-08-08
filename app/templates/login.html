@@ -1,144 +1,43 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <title>Tokatap - Login</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <script src="https://cdn.tailwindcss.com"></script>
-  <style>
-    .toast {
-      position: fixed;
-      top: 20px;
-      left: 50%;
-      transform: translateX(-50%);
-      z-index: 9999;
-      padding: 12px 24px;
-      background-color: #22c55e;
-      color: white;
-      font-weight: 500;
-      border-radius: 10px;
-      box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
-      opacity: 0;
-      transition: opacity 0.5s ease;
-    }
-    .toast.show {
-      opacity: 1;
-    }
-    @keyframes float {
-      0%, 100% { transform: translateY(0px) translateX(0px);}
-      50%      { transform: translateY(-6px) translateX(6px);}
-    }
-    .mascot-float {
-      animation: float 4s ease-in-out infinite;
-    }
-    @keyframes fadeUp {
-      0% {
-        transform: translateY(20px);
-        opacity: 0;
-      }
-      100% {
-        transform: translateY(0);
-        opacity: 1;
-      }
-    }
-    .logo-fade {
-      animation: fadeUp 1.8s ease-out forwards;
-    }
-  </style>
-</head>
-<body class="bg-gradient-to-br from-blue-100 to-white min-h-screen p-4">
-
-  <!-- ✅ Toast for successful login -->
-  {% with messages = get_flashed_messages(with_categories=true) %}
-    {% for category, message in messages %}
-      {% if category == 'success' %}
-        <div id="toast" class="toast">{{ message }}</div>
-        <script>
-          document.addEventListener("DOMContentLoaded", () => {
-            const toast = document.getElementById("toast");
-            if (toast) {
-              toast.classList.add("show");
-              setTimeout(() => toast.classList.remove("show"), 3000);
-            }
-          });
-        </script>
-      {% else %}
-        <div class="text-sm text-red-600 mb-4 text-center">{{ message }}</div>
-      {% endif %}
-    {% endfor %}
-  {% endwith %}
-
-  <div class="bg-white/30 backdrop-blur-xl border border-white/20 rounded-2xl shadow-xl w-full max-w-sm mx-auto mt-10 text-center relative overflow-hidden pb-28">
-
-    <!-- Big Animated Logo (like index) -->
-    <img src="{{ url_for('static', filename='logo/logo.svg') }}" alt="Tokatap Logo" class="w-56 sm:w-64 h-auto mx-auto mt-4 object-contain logo-fade z-10 relative">
-
-    <!-- Welcome Heading -->
-    <h2 class="text-2xl font-bold text-slate-800 mt-2">Welcome</h2>
-
-    <!-- Tagline -->
-    <p class="text-sm text-slate-600 mt-2 mb-6 px-4 leading-relaxed">
-      Know your machine’s full service history, upcoming maintenance needs, and past component changes — all in one place with just one tap or scan.
-    </p>
-
-
-
-    <!-- Login Form -->
-    <form method="POST" class="space-y-4 text-left px-4">
-      <div>
-        <label class="block text-sm font-medium text-slate-600 mb-1">Email</label>
-        <input type="email" name="email" required placeholder="you@example.com"
-               class="w-full px-4 py-2 rounded-xl bg-white/50 border border-white/20 shadow-inner text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-400">
-      </div>
-
-      <div>
-        <label class="block text-sm font-medium text-slate-600 mb-1">Password</label>
-        <input type="password" name="password" required placeholder="••••••••"
-               class="w-full px-4 py-2 rounded-xl bg-white/50 border border-white/20 shadow-inner text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-400">
-        <div class="text-right mt-1">
-          <a href="{{ url_for('routes.forgot_password') }}" class="text-xs text-blue-600 hover:underline">Forgot Password?</a>
-        </div>
-      </div>
-
-      <button type="submit"
-              class="w-full py-2 bg-blue-600 text-white font-semibold rounded-xl shadow-lg
-                     transition-all duration-300 transform hover:scale-105 active:scale-95 hover:bg-blue-700">
-        Login
-      </button>
-    </form>
-
-    <!-- Links -->
-    <div class="mt-6 text-sm text-slate-600">
-      <p>New user? <a href="{{ url_for('routes.user_signup') }}" class="text-blue-600 hover:underline">Sign up here</a></p>
-      <p class="mt-2"><a href="{{ url_for('routes.home') }}" class="text-blue-600 hover:underline">← Back to Home</a></p>
+{% extends "base.html" %}
+{% block title %}Tokatap - Login{% endblock %}
+{% block content %}
+<div class="bg-white/30 backdrop-blur-xl border border-white/20 rounded-2xl shadow-xl w-full max-w-sm mx-auto mt-10 relative overflow-hidden pb-28 text-center">
+  <img src="{{ url_for('static', filename='logo/logo.svg') }}" alt="Tokatap Logo" class="w-56 sm:w-64 h-auto mx-auto mt-4 object-contain logo-fade z-10 relative">
+  <h2 class="text-2xl font-bold text-slate-800 mt-2">Welcome</h2>
+  <p class="text-sm text-slate-600 mt-2 mb-6 px-4 leading-relaxed">
+    Know your machine’s full service history, upcoming maintenance needs, and past component changes — all in one place with just one tap or scan.
+  </p>
+  <form method="POST" class="space-y-4 text-left px-4">
+    <div>
+      <label for="email" class="block text-sm font-medium text-slate-600 mb-1">Email</label>
+      <input id="email" type="email" name="email" required placeholder="you@example.com"
+             class="w-full px-4 py-2 rounded-xl bg-white/50 border border-white/20 shadow-inner text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-400">
     </div>
-
-    <!-- Sub-User Login Button -->
-    <div class="flex justify-end mt-4 px-4">
-      <a href="{{ url_for('routes.subuser_login') }}"
-         class="px-4 py-1.5 bg-blue-50 border border-blue-300 text-blue-700 hover:bg-blue-100 hover:border-blue-500 font-medium rounded-full shadow-sm transition-all duration-200 text-xs">
-        Sub-User Login (using code)
-      </a>
+    <div>
+      <label for="password" class="block text-sm font-medium text-slate-600 mb-1">Password</label>
+      <input id="password" type="password" name="password" required placeholder="••••••••"
+             class="w-full px-4 py-2 rounded-xl bg-white/50 border border-white/20 shadow-inner text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-400">
+      <div class="text-right mt-1">
+        <a href="{{ url_for('routes.forgot_password') }}" class="text-xs text-blue-600 hover:underline">Forgot Password?</a>
+      </div>
     </div>
-
-    <!-- Mascot Half Inside and Clipped (just like index) -->
+    <button type="submit"
+            class="w-full py-2 bg-blue-600 text-white font-semibold rounded-xl shadow-lg transition-all duration-300 transform hover:scale-105 active:scale-95 hover:bg-blue-700">
+      Login
+    </button>
+  </form>
+  <div class="mt-6 text-sm text-slate-600">
+    <p>New user? <a href="{{ url_for('routes.user_signup') }}" class="text-blue-600 hover:underline">Sign up here</a></p>
+    <p class="mt-2"><a href="{{ url_for('routes.home') }}" class="text-blue-600 hover:underline">← Back to Home</a></p>
+  </div>
+  <div class="flex justify-end mt-4 px-4">
+    <a href="{{ url_for('routes.subuser_login') }}"
+       class="px-4 py-1.5 bg-blue-50 border border-blue-300 text-blue-700 hover:bg-blue-100 hover:border-blue-500 font-medium rounded-full shadow-sm transition-all duration-200 text-xs">
+      Sub-User Login (using code)
+    </a>
+  </div>
   <div class="absolute bottom-0 left-[-60px] w-48 sm:w-56 overflow-hidden">
-    <img src="{{ url_for('static', filename='logo/octatoka.png') }}"
-         alt="Tokatap Mascot"
-         class="mascot-float pointer-events-none select-none">
+    <img src="{{ url_for('static', filename='logo/octatoka.png') }}" alt="Tokatap Mascot" class="mascot-float pointer-events-none select-none">
   </div>
 </div>
-
-<footer class="bg-blue-950 text-blue-100 py-6 mt-12">
-  <div class="max-w-4xl mx-auto flex flex-col items-center gap-1 text-xs">
-    <div><span class="font-bold">Tokatap</span> &copy; 2025. All rights reserved.</div>
-    <div>Built with ❤️ by JD.</div>
-    <div class="flex gap-4 mt-1 text-blue-200">
-      <a href="{{ url_for('routes.setup_guide_page') }}" class="hover:text-white">Setup Guide</a>
-      <span class="text-blue-300">|</span>
-      <a href="{{ url_for('routes.faq_page') }}" class="hover:text-white">FAQ</a>
-    </div>
-  </div>
-</footer>
-</body>
-</html>
+{% endblock %}

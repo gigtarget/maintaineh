@@ -3,6 +3,7 @@ import qrcode
 from io import BytesIO
 import cloudinary.uploader
 from PIL import Image, ImageDraw, ImageFont
+from flask import current_app
 from app import db
 from app.models import QRBatch, QRCode, QRTag, NeedleChange, ServiceLog
 from datetime import datetime
@@ -48,7 +49,8 @@ def generate_custom_qr_image(data, tag_type, logo_path='app/static/logo/qr code 
     qr_img.putalpha(255)
     base.paste(qr_img, ((img_width - qr_img.width) // 2, 60), qr_img)
     try:
-        font = ImageFont.truetype("app/fonts/Agrandir.ttf", 70)
+        font_path = os.path.join(current_app.root_path, "static", "fonts", "Agrandir.ttf")
+        font = ImageFont.truetype(font_path, 70)
     except Exception as e:
         print(f"⚠️ Font load failed: {e}")
         font = ImageFont.load_default()
