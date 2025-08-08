@@ -8,17 +8,17 @@
   <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
   {% block head %}{% endblock %}
 </head>
-<body class="min-h-screen bg-gradient-to-br from-blue-100 to-white text-gray-800 flex flex-col">
-  <header class="bg-blue-950 text-white">
-    <div class="max-w-4xl mx-auto px-4 py-3 flex justify-between items-center">
+<body class="min-h-screen ios26-bg text-gray-100 flex flex-col">
+  <header class="lg-bar text-white lg-nav py-3">
+    <div class="max-w-shell mx-auto pad-shell flex justify-between items-center">
       <a href="{{ url_for('routes.home') }}" class="font-bold">Tokatap</a>
       <nav class="space-x-4 text-sm">
-        <a href="{{ url_for('routes.user_login') }}" class="hover:underline">Login</a>
-        <a href="{{ url_for('routes.user_signup') }}" class="hover:underline">Sign Up</a>
+        <a href="{{ url_for('routes.user_login') }}" class="hover:opacity-90">Login</a>
+        <a href="{{ url_for('routes.user_signup') }}" class="hover:opacity-90">Sign Up</a>
       </nav>
     </div>
   </header>
-  <main class="flex-1 max-w-4xl mx-auto w-full px-4 py-6">
+  <main class="flex-1 pad-shell max-w-shell w-full mx-auto">
     {% with messages = get_flashed_messages(with_categories=true) %}
       {% if messages %}
         {% include '_flash.html' %}
@@ -26,15 +26,30 @@
     {% endwith %}
     {% block content %}{% endblock %}
   </main>
-  <footer class="bg-blue-950 text-blue-100 py-6 text-center text-xs">
-    <div class="max-w-4xl mx-auto flex flex-col items-center gap-1">
+  <footer class="lg-footer text-blue-100 py-6 text-center text-xs">
+    <div class="max-w-shell mx-auto flex flex-col items-center gap-1">
       <div><span class="font-bold">Tokatap</span> &copy; 2025. All rights reserved.</div>
       <div class="flex gap-4 mt-1">
-        <a href="{{ url_for('routes.setup_guide_page') }}" class="hover:text-white">Setup Guide</a>
-        <a href="{{ url_for('routes.faq_page') }}" class="hover:text-white">FAQ</a>
+        <a href="{{ url_for('routes.setup_guide_page') }}" class="hover:opacity-90">Setup Guide</a>
+        <a href="{{ url_for('routes.faq_page') }}" class="hover:opacity-90">FAQ</a>
       </div>
     </div>
   </footer>
-  {% block scripts %}{% endblock %}
+  {% block scripts %}
+    {{ super() }}
+    <script>
+      (function(){
+        const nav = document.querySelector('.lg-nav');
+        if(!nav) return;
+        let last = 0;
+        window.addEventListener('scroll', ()=>{
+          const y = window.scrollY || 0;
+          const shrinking = y > 16 && y >= last;
+          nav.classList.toggle('shrink', shrinking);
+          last = y;
+        }, {passive:true});
+      })();
+    </script>
+  {% endblock %}
 </body>
 </html>
