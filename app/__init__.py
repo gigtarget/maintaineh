@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask, render_template
 from flask_login import LoginManager
 from dotenv import load_dotenv
 from sqlalchemy import text
@@ -52,6 +52,10 @@ def create_app():
     # ✅ Register blueprints
     from app.routes import routes
     app.register_blueprint(routes)
+
+    @app.errorhandler(500)
+    def internal_server_error(error):
+        return render_template("500.html"), 500
 
     return app
 

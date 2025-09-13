@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% block title %}Something went wrong{% endblock %}
+{% block content %}
+<div class="text-center py-20">
+  <h1 class="text-4xl font-bold text-red-600 mb-4">Oh no! Something went wrong.</h1>
+  <p class="mb-8">An unexpected error occurred. Please try again later.</p>
+  <a href="{{ url_for('routes.home') }}" class="text-blue-600 hover:underline">Return to the home page</a>
+</div>
+{% endblock %}
