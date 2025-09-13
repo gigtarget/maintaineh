@@ -10,6 +10,7 @@ from PIL import Image, ImageDraw, ImageFont
 import random
 import string
 import os
+import csv
 from flask import current_app
 
 def time_until(dt):
@@ -589,6 +590,7 @@ def user_signup():
         password = request.form["password"]
         name = request.form["name"]
         company_name = request.form.get("company_name")
+        industry = request.form.get("industry")
         security_question = request.form.get("security_question")
         security_answer = request.form.get("security_answer")
 
@@ -602,6 +604,7 @@ def user_signup():
             password=password,  # Hash in production!
             name=name,
             company_name=company_name,
+            industry=industry,
             security_question=security_question,
             security_answer=security_answer,
             role="user"
@@ -966,6 +969,16 @@ def admin_dashboard():
     total_batches = len(batches)
     total_qrcodes = QRCode.query.count()
 
+    selected_industry = request.args.get("industry")
+    industries = [
+        i[0] for i in User.query.with_entities(User.industry).distinct().all() if i[0]
+    ]
+    user_query = User.query
+    if selected_industry:
+        user_query = user_query.filter_by(industry=selected_industry)
+    user_count = user_query.count()
+    service_request_count = ServiceRequest.query.count()
+
     logs = (
         ActivityLog.query.order_by(ActivityLog.timestamp.desc())
         .limit(50)
@@ -983,6 +996,10 @@ def admin_dashboard():
         total_batches=total_batches,
         total_qrcodes=total_qrcodes,
         logs=logs,
+        user_count=user_count,
+        industries=industries,
+        selected_industry=selected_industry,
+        service_request_count=service_request_count,
     )
 
 @routes.route("/admin/create-batch")
@@ -1018,6 +1035,73 @@ def download_batch(batch_id):
         mimetype="application/zip",
         as_attachment=True,
         download_name=f"batch_{batch_id}.zip"
+    )
+
+
+@routes.route("/admin/user-report")
+@login_required
+def admin_user_report():
+    if current_user.role != "admin":
+        return redirect(url_for("routes.admin_login"))
+
+    industry = request.args.get("industry")
+    query = User.query
+    if industry:
+        query = query.filter_by(industry=industry)
+    users = query.all()
+
+    output = io.StringIO()
+    writer = csv.writer(output)
+    writer.writerow(["id", "email", "name", "company_name", "industry"])
+    for u in users:
+        writer.writerow([u.id, u.email, u.name, u.company_name, u.industry])
+
+    mem = io.BytesIO()
+    mem.write(output.getvalue().encode("utf-8"))
+    mem.seek(0)
+    return send_file(
+        mem,
+        mimetype="text/csv",
+        as_attachment=True,
+        download_name="user_report.csv",
+    )
+
+
+@routes.route("/admin/service-report")
+@login_required
+def admin_service_report():
+    if current_user.role != "admin":
+        return redirect(url_for("routes.admin_login"))
+
+    requests_q = ServiceRequest.query.all()
+
+    output = io.StringIO()
+    writer = csv.writer(output)
+    writer.writerow(
+        ["id", "machine_id", "subuser_id", "heads", "issue", "resolved", "timestamp", "resolved_at"]
+    )
+    for sr in requests_q:
+        writer.writerow(
+            [
+                sr.id,
+                sr.machine_id,
+                sr.subuser_id,
+                sr.heads,
+                sr.issue,
+                sr.resolved,
+                sr.timestamp,
+                sr.resolved_at,
+            ]
+        )
+
+    mem = io.BytesIO()
+    mem.write(output.getvalue().encode("utf-8"))
+    mem.seek(0)
+    return send_file(
+        mem,
+        mimetype="text/csv",
+        as_attachment=True,
+        download_name="service_requests.csv",
     )
 
 

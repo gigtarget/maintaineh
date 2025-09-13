@@ -14,6 +14,7 @@ class User(UserMixin, db.Model):
     role = db.Column(db.String(20), nullable=False, default="user")
     name = db.Column(db.String(100), nullable=False)
     company_name = db.Column(db.String(100))
+    industry = db.Column(db.String(100))
     mobile = db.Column(db.String(20))
 
     security_question = db.Column(db.String(255))

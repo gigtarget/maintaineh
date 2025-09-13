@@ -44,6 +44,29 @@
     </div>
   </div>
 
+  <!-- reports -->
+  <div class="max-w-6xl mx-auto grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
+    <div class="bg-white/30 backdrop-blur-lg border border-white/20 rounded-xl p-6">
+      <h2 class="text-lg font-semibold mb-4">User Report</h2>
+      <form method="get" action="{{ url_for('routes.admin_dashboard') }}" class="flex flex-col sm:flex-row gap-2 mb-2">
+        <select name="industry" class="flex-1 px-2 py-1 rounded border">
+          <option value="">All Industries</option>
+          {% for ind in industries %}
+            <option value="{{ ind }}" {% if ind == selected_industry %}selected{% endif %}>{{ ind }}</option>
+          {% endfor %}
+        </select>
+        <button type="submit" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded">Filter</button>
+        <a href="{{ url_for('routes.admin_user_report', industry=selected_industry) }}" class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded">Download CSV</a>
+      </form>
+      <p class="text-sm">Total Users: {{ user_count }}</p>
+    </div>
+    <div class="bg-white/30 backdrop-blur-lg border border-white/20 rounded-xl p-6">
+      <h2 class="text-lg font-semibold mb-4">Service Requests</h2>
+      <p class="text-sm mb-4">Total Requests: {{ service_request_count }}</p>
+      <a href="{{ url_for('routes.admin_service_report') }}" class="inline-block px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded">Download CSV</a>
+    </div>
+  </div>
+
   <!-- activity log -->
   <div class="max-w-6xl mx-auto bg-white/30 backdrop-blur-lg border border-white/20 rounded-xl p-6 mb-8">
     <h2 class="text-xl font-semibold mb-4">Activity Log</h2>
