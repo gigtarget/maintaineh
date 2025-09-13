@@ -15,7 +15,17 @@ def create_app():
 
     # ✅ Configurations
     app.config["SECRET_KEY"] = os.getenv("SECRET_KEY")
-    app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv("DATABASE_URL")
+
+    # Provide a sensible default database URI so the app can boot even if
+    # the environment variable is missing.  Railway and similar platforms
+    # expose the connection string via the ``DATABASE_URL`` variable.
+    # SQLAlchemy expects the scheme ``postgresql://`` instead of
+    # ``postgres://``, so we normalise it when present.
+    database_url = os.getenv("DATABASE_URL")
+    if database_url and database_url.startswith("postgres://"):
+        database_url = database_url.replace("postgres://", "postgresql://", 1)
+    app.config["SQLALCHEMY_DATABASE_URI"] = database_url or "sqlite:///app.db"
+
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
     # ✅ Initialize extensions
