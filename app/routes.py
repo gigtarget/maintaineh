@@ -1479,9 +1479,28 @@ def delete_batch(batch_id):
 
     batch = QRBatch.query.get_or_404(batch_id)
 
-    QRCode.query.filter_by(batch_id=batch.id).delete()
-    QRTag.query.filter_by(batch_id=batch.id).delete()
-    Machine.query.filter_by(batch_id=batch.id).delete()
+    # Gather related machines so we can clean up dependent records before deleting
+    machines = Machine.query.filter_by(batch_id=batch.id).all()
+    machine_ids = [m.id for m in machines]
+
+    if machine_ids:
+        # Remove logs and records tied to these machines to satisfy FK constraints
+        ActivityLog.query.filter(ActivityLog.machine_id.in_(machine_ids)).delete(synchronize_session=False)
+        SubUserAction.query.filter(SubUserAction.machine_id.in_(machine_ids)).delete(synchronize_session=False)
+        DailyMaintenance.query.filter(DailyMaintenance.machine_id.in_(machine_ids)).delete(synchronize_session=False)
+        ServiceRequest.query.filter(ServiceRequest.machine_id.in_(machine_ids)).delete(synchronize_session=False)
+        # Unassign any subusers pointing to these machines
+        SubUser.query.filter(SubUser.assigned_machine_id.in_(machine_ids)).update(
+            {"assigned_machine_id": None}, synchronize_session=False
+        )
+
+    # Remove batch-scoped logs before deleting tags/codes
+    ServiceLog.query.filter_by(batch_id=batch.id).delete(synchronize_session=False)
+    NeedleChange.query.filter_by(batch_id=batch.id).delete(synchronize_session=False)
+
+    QRCode.query.filter_by(batch_id=batch.id).delete(synchronize_session=False)
+    QRTag.query.filter_by(batch_id=batch.id).delete(synchronize_session=False)
+    Machine.query.filter_by(batch_id=batch.id).delete(synchronize_session=False)
     db.session.delete(batch)
     db.session.commit()
     log_activity(
