@@ -965,18 +965,70 @@ def admin_dashboard():
     if current_user.role != "admin":
         return redirect(url_for("routes.admin_login"))
 
-    batches = QRBatch.query.order_by(QRBatch.created_at.desc()).all()
-    total_batches = len(batches)
-    total_qrcodes = QRCode.query.count()
-
     selected_industry = request.args.get("industry")
+    user_search = request.args.get("user_search")
+    batch_owner_email = request.args.get("batch_owner_email")
+    claimed_status = request.args.get("claimed_status", "all")
+    machine_status = request.args.get("machine_status", "all")
+    start_date_str = request.args.get("start_date")
+    end_date_str = request.args.get("end_date")
+
     industries = [
         i[0] for i in User.query.with_entities(User.industry).distinct().all() if i[0]
     ]
+
+    # User filters
     user_query = User.query
     if selected_industry:
         user_query = user_query.filter_by(industry=selected_industry)
+    if user_search:
+        like_term = f"%{user_search}%"
+        user_query = user_query.filter(
+            or_(
+                User.email.ilike(like_term),
+                User.name.ilike(like_term),
+                User.company_name.ilike(like_term),
+            )
+        )
     user_count = user_query.count()
+    users = user_query.order_by(User.id.desc()).all()
+
+    # Batch filters
+    batches_query = (
+        QRBatch.query.outerjoin(User, QRBatch.owner_id == User.id)
+        .outerjoin(Machine, Machine.batch_id == QRBatch.id)
+    )
+
+    if batch_owner_email:
+        batches_query = batches_query.filter(User.email.ilike(f"%{batch_owner_email}%"))
+
+    if claimed_status == "claimed":
+        batches_query = batches_query.filter(QRBatch.owner_id.isnot(None))
+    elif claimed_status == "unclaimed":
+        batches_query = batches_query.filter(QRBatch.owner_id.is_(None))
+
+    if machine_status == "with":
+        batches_query = batches_query.filter(Machine.id.isnot(None))
+    elif machine_status == "without":
+        batches_query = batches_query.filter(Machine.id.is_(None))
+
+    if start_date_str:
+        try:
+            start_dt = datetime.strptime(start_date_str, "%Y-%m-%d")
+            batches_query = batches_query.filter(QRBatch.created_at >= start_dt)
+        except ValueError:
+            flash("Invalid start date. Please use YYYY-MM-DD.", "danger")
+
+    if end_date_str:
+        try:
+            end_dt = datetime.strptime(end_date_str, "%Y-%m-%d") + timedelta(days=1)
+            batches_query = batches_query.filter(QRBatch.created_at < end_dt)
+        except ValueError:
+            flash("Invalid end date. Please use YYYY-MM-DD.", "danger")
+
+    batches = batches_query.order_by(QRBatch.created_at.desc()).all()
+    total_batches = QRBatch.query.count()
+    total_qrcodes = QRCode.query.count()
     service_request_count = ServiceRequest.query.count()
 
     logs = (
@@ -999,6 +1051,13 @@ def admin_dashboard():
         user_count=user_count,
         industries=industries,
         selected_industry=selected_industry,
+        user_search=user_search,
+        batch_owner_email=batch_owner_email,
+        claimed_status=claimed_status,
+        machine_status=machine_status,
+        start_date_str=start_date_str,
+        end_date_str=end_date_str,
+        users=users,
         service_request_count=service_request_count,
     )
 
@@ -1509,6 +1568,66 @@ def delete_batch(batch_id):
         description=f"Batch {batch_id} deleted",
     )
     flash(f"Batch #{batch_id} deleted successfully.", "success")
+    return redirect(url_for("routes.admin_dashboard"))
+
+
+@routes.route("/admin/delete-user/<int:user_id>", methods=["POST"])
+@login_required
+def delete_user(user_id):
+    if current_user.role != "admin":
+        return redirect(url_for("routes.admin_login"))
+
+    user = User.query.get_or_404(user_id)
+    if user.role == "admin":
+        flash("Admins cannot be deleted from this panel.", "danger")
+        return redirect(url_for("routes.admin_dashboard"))
+
+    # Collect related objects
+    subusers = SubUser.query.filter_by(parent_id=user.id).all()
+    subuser_ids = [s.id for s in subusers]
+    batch_ids = [b.id for b in QRBatch.query.filter_by(owner_id=user.id).all()]
+    machines = Machine.query.filter(Machine.batch_id.in_(batch_ids)).all() if batch_ids else []
+    machine_ids = [m.id for m in machines]
+
+    # Clean up machine-scoped data
+    if machine_ids:
+        DailyMaintenance.query.filter(DailyMaintenance.machine_id.in_(machine_ids)).delete(synchronize_session=False)
+        ServiceRequest.query.filter(ServiceRequest.machine_id.in_(machine_ids)).delete(synchronize_session=False)
+        SubUserAction.query.filter(SubUserAction.machine_id.in_(machine_ids)).delete(synchronize_session=False)
+        ActivityLog.query.filter(ActivityLog.machine_id.in_(machine_ids)).delete(synchronize_session=False)
+        SubUser.query.filter(SubUser.assigned_machine_id.in_(machine_ids)).update(
+            {"assigned_machine_id": None}, synchronize_session=False
+        )
+
+    # Clean up subuser-scoped data
+    if subuser_ids:
+        ServiceRequest.query.filter(ServiceRequest.subuser_id.in_(subuser_ids)).delete(synchronize_session=False)
+        SubUserAction.query.filter(SubUserAction.subuser_id.in_(subuser_ids)).delete(synchronize_session=False)
+        ActivityLog.query.filter(ActivityLog.subuser_id.in_(subuser_ids)).delete(synchronize_session=False)
+        SubUser.query.filter(SubUser.id.in_(subuser_ids)).delete(synchronize_session=False)
+
+    # Clean up batch-scoped data
+    if batch_ids:
+        ServiceLog.query.filter(ServiceLog.batch_id.in_(batch_ids)).delete(synchronize_session=False)
+        NeedleChange.query.filter(NeedleChange.batch_id.in_(batch_ids)).delete(synchronize_session=False)
+        QRCode.query.filter(QRCode.batch_id.in_(batch_ids)).delete(synchronize_session=False)
+        QRTag.query.filter(QRTag.batch_id.in_(batch_ids)).delete(synchronize_session=False)
+        Machine.query.filter(Machine.batch_id.in_(batch_ids)).delete(synchronize_session=False)
+        QRBatch.query.filter(QRBatch.id.in_(batch_ids)).delete(synchronize_session=False)
+
+    # User-scoped data
+    PasswordResetToken.query.filter_by(user_id=user.id).delete(synchronize_session=False)
+    SubUserAction.query.filter_by(user_id=user.id).delete(synchronize_session=False)
+    ActivityLog.query.filter_by(user_id=user.id).delete(synchronize_session=False)
+
+    db.session.delete(user)
+    db.session.commit()
+    log_activity(
+        "user_deleted",
+        user_id=current_user.id,
+        description=f"User {user.email} deleted with related data",
+    )
+    flash(f"User {user.email} and all related data were deleted.", "success")
     return redirect(url_for("routes.admin_dashboard"))
 
 @routes.route("/machine/<int:machine_id>/view")
