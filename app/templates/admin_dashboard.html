@@ -48,17 +48,58 @@
   <div class="max-w-6xl mx-auto grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
     <div class="bg-white/30 backdrop-blur-lg border border-white/20 rounded-xl p-6">
       <h2 class="text-lg font-semibold mb-4">User Report</h2>
-      <form method="get" action="{{ url_for('routes.admin_dashboard') }}" class="flex flex-col sm:flex-row gap-2 mb-2">
-        <select name="industry" class="flex-1 px-2 py-1 rounded border">
+      <form method="get" action="{{ url_for('routes.admin_dashboard') }}" class="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-3">
+        <select name="industry" class="w-full px-2 py-2 rounded border" aria-label="Industry filter">
           <option value="">All Industries</option>
           {% for ind in industries %}
             <option value="{{ ind }}" {% if ind == selected_industry %}selected{% endif %}>{{ ind }}</option>
           {% endfor %}
         </select>
-        <button type="submit" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded">Filter</button>
-        <a href="{{ url_for('routes.admin_user_report', industry=selected_industry) }}" class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded">Download CSV</a>
+        <input type="text" name="user_search" value="{{ user_search or '' }}" placeholder="Search by email, name, company" class="w-full px-3 py-2 rounded border" />
+        <div class="flex flex-wrap gap-2 col-span-1 sm:col-span-2">
+          <button type="submit" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded">Apply Filters</button>
+          <a href="{{ url_for('routes.admin_dashboard') }}" class="px-4 py-2 bg-slate-200 hover:bg-slate-300 rounded">Clear</a>
+          <a href="{{ url_for('routes.admin_user_report', industry=selected_industry) }}" class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded">Download CSV</a>
+        </div>
       </form>
-      <p class="text-sm">Total Users: {{ user_count }}</p>
+      <p class="text-sm mb-3">Total Users: {{ user_count }}</p>
+      <div class="max-h-64 overflow-y-auto border border-white/40 rounded-lg">
+        <table class="min-w-full text-sm">
+          <thead class="bg-white/50">
+            <tr>
+              <th class="text-left px-3 py-2">User</th>
+              <th class="text-left px-3 py-2">Company</th>
+              <th class="text-left px-3 py-2">Industry</th>
+              <th class="text-left px-3 py-2">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for u in users %}
+              <tr class="border-t border-white/40">
+                <td class="px-3 py-2">
+                  <div class="font-semibold">{{ u.name }}</div>
+                  <div class="text-slate-600">{{ u.email }}</div>
+                </td>
+                <td class="px-3 py-2">{{ u.company_name or '—' }}</td>
+                <td class="px-3 py-2">{{ u.industry or '—' }}</td>
+                <td class="px-3 py-2">
+                  {% if u.role != 'admin' %}
+                    <form action="{{ url_for('routes.delete_user', user_id=u.id) }}" method="POST" onsubmit="return confirm('Delete user {{ u.email }} and all related data?');">
+                      <button type="submit" class="px-3 py-1 bg-red-500 hover:bg-red-600 text-white rounded text-xs">Delete</button>
+                    </form>
+                  {% else %}
+                    <span class="text-slate-500 text-xs">Admin</span>
+                  {% endif %}
+                </td>
+              </tr>
+            {% else %}
+              <tr>
+                <td colspan="4" class="px-3 py-2 text-center text-slate-500">No users match this filter.</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
     </div>
     <div class="bg-white/30 backdrop-blur-lg border border-white/20 rounded-xl p-6">
       <h2 class="text-lg font-semibold mb-4">Service Requests</h2>
@@ -77,6 +118,30 @@
       <li class="text-slate-500">No recent activity.</li>
       {% endfor %}
     </ul>
+  </div>
+
+  <!-- batch filters -->
+  <div class="max-w-6xl mx-auto bg-white/30 backdrop-blur-lg border border-white/20 rounded-xl p-6 mb-8">
+    <h2 class="text-xl font-semibold mb-4">Batch Filters</h2>
+    <form method="get" action="{{ url_for('routes.admin_dashboard') }}" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+      <input type="text" name="batch_owner_email" value="{{ batch_owner_email or '' }}" placeholder="Filter by owner email" class="w-full px-3 py-2 rounded border" />
+      <select name="claimed_status" class="w-full px-3 py-2 rounded border">
+        <option value="all" {% if claimed_status == 'all' %}selected{% endif %}>All claim statuses</option>
+        <option value="claimed" {% if claimed_status == 'claimed' %}selected{% endif %}>Claimed</option>
+        <option value="unclaimed" {% if claimed_status == 'unclaimed' %}selected{% endif %}>Unclaimed</option>
+      </select>
+      <select name="machine_status" class="w-full px-3 py-2 rounded border">
+        <option value="all" {% if machine_status == 'all' %}selected{% endif %}>All machine statuses</option>
+        <option value="with" {% if machine_status == 'with' %}selected{% endif %}>With machine</option>
+        <option value="without" {% if machine_status == 'without' %}selected{% endif %}>Without machine</option>
+      </select>
+      <input type="date" name="start_date" value="{{ start_date_str or '' }}" class="w-full px-3 py-2 rounded border" />
+      <input type="date" name="end_date" value="{{ end_date_str or '' }}" class="w-full px-3 py-2 rounded border" />
+      <div class="flex flex-wrap gap-2 items-center">
+        <button type="submit" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded">Apply</button>
+        <a href="{{ url_for('routes.admin_dashboard') }}" class="px-4 py-2 bg-slate-200 hover:bg-slate-300 rounded">Clear Filters</a>
+      </div>
+    </form>
   </div>
 
   <!-- batches list -->
