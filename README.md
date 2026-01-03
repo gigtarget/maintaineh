@@ -1,11 +1,5 @@
 # Tokatap
 
-## Runtime
-
-The project is deployed with Python 3.12 to avoid compatibility issues seen with
-newer runtimes (for example, some third-party libraries crash on Python 3.13).
-Railway/Heroku style deployments can be pinned via `runtime.txt`.
-
 Placeholder README for the Tokatap Flask application.
 
 ## Quickstart
