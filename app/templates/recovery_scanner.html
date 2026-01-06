@@ -15,6 +15,7 @@
     </div>
 
     <div id="status" class="hidden text-sm text-center px-4 py-2 rounded-xl"></div>
+    <div id="last-status" class="text-xs text-slate-600 hidden">Last status: -</div>
 
     <div class="bg-white/70 backdrop-blur-md border border-white/30 p-5 rounded-xl space-y-3 shadow">
       <p class="text-sm text-slate-700">Stay on this page while recovering. Scans post directly to your session without opening new tabs.</p>
@@ -41,6 +42,13 @@
     let html5QrCode = null;
     let isScanning = false;
 
+    const lastStatusLine = document.getElementById('last-status');
+
+    function updateLastStatus(status) {
+      lastStatusLine.textContent = `Last status: ${status}`;
+      lastStatusLine.classList.remove('hidden');
+    }
+
     function showStatus(message, type) {
       statusBox.textContent = message;
       statusBox.classList.remove('hidden', 'bg-green-100', 'text-green-800', 'bg-red-100', 'text-red-800');
@@ -51,27 +59,53 @@
       }
     }
 
-    function sendToBackend(text) {
-      fetch('{{ url_for('routes.recovery_ingest') }}', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ qr_text: text })
-      })
-      .then(response => response.json().then(data => ({ status: response.status, body: data })))
-      .then(({ status, body }) => {
-        if (body.redirect && body.type === 'need_map') {
-          window.location.href = body.redirect;
+    async function sendToBackend(qr_text) {
+      try {
+        const resp = await fetch("/recovery/ingest", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Accept": "application/json"
+          },
+          body: JSON.stringify({ qr_text })
+        });
+
+        const ct = resp.headers.get("content-type") || "";
+        let payload = null;
+        if (ct.includes("application/json")) {
+          payload = await resp.json();
+        } else {
+          const txt = await resp.text();
+          updateLastStatus(resp.status);
+          throw new Error(`Non-JSON response (${resp.status}). ${txt.slice(0, 200)}`);
+        }
+
+        updateLastStatus(resp.status);
+
+        if (resp.status === 401 && payload.login_url) {
+          window.location = payload.login_url;
           return;
         }
-        if (body.ok) {
-          showStatus(body.message || 'Scan processed.', 'success');
-        } else {
-          showStatus(body.error || 'Unable to process scan.', 'error');
+
+        if (!payload.ok) {
+          let message = payload.error || 'Unable to process scan.';
+          if (payload.path) {
+            message += ` (${payload.path})`;
+          }
+          showStatus(message, 'error');
+          return;
         }
-      })
-      .catch(() => {
-        showStatus('Network error while sending scan.', 'error');
-      });
+
+        if (payload.type === 'need_map') {
+          window.location = payload.redirect;
+          return;
+        }
+
+        showStatus(payload.message || 'Scan processed.', 'success');
+      } catch (err) {
+        updateLastStatus('error');
+        showStatus(err.message || 'Network error while sending scan.', 'error');
+      }
     }
 
     function startScanner() {
