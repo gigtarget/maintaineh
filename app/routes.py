@@ -751,110 +751,130 @@ def _normalize_qr_url(qr_text: str, parsed_path: str) -> str:
 
 
 @routes.route("/recovery/ingest", methods=["POST"])
-@login_required
 def recovery_ingest():
-    if getattr(current_user, "role", None) != "user":
-        abort(403)
-
-    if session.get("recovery_mode") is not True:
-        return jsonify({"ok": False, "error": "Recovery Mode required"}), 403
-
-    payload = request.get_json(silent=True) or {}
-    qr_text = str(payload.get("qr_text", "")).strip()
-    if not qr_text:
-        return jsonify({"ok": False, "error": "qr_text is required"}), 400
-
-    parsed = urlparse(qr_text)
-    path = parsed.path or ""
-    if not path.startswith("/"):
-        path = f"/{path}" if path else ""
-
-    segments = [seg for seg in path.split("/") if seg]
-    if len(segments) < 3 or segments[0] != "scan":
-        return jsonify({"ok": False, "error": "Unrecognized QR format"}), 400
-
-    qr_type = segments[1]
-    target_id = segments[2]
-
     try:
-        target_id_int = int(target_id)
-    except ValueError:
-        return jsonify({"ok": False, "error": "Invalid QR identifier"}), 400
+        if not current_user.is_authenticated:
+            return (
+                jsonify(
+                    {
+                        "ok": False,
+                        "error": "AUTH_REQUIRED",
+                        "login_url": url_for(
+                            "routes.user_login", next=url_for("routes.recovery_scanner")
+                        ),
+                    }
+                ),
+                401,
+            )
 
-    original_full_url = _normalize_qr_url(qr_text, path)
+        if getattr(current_user, "role", None) != "user":
+            return jsonify({"ok": False, "error": "FORBIDDEN"}), 403
 
-    if qr_type == "master":
-        batch, _ = ensure_batch_exists(target_id_int, current_user.id)
-        session["recovery_batch_id"] = batch.id
-        session.setdefault("recovery_num_heads", 8)
-        master_url = url_for("routes.scan_master", batch_id=batch.id, _external=True)
-        ensure_qrcode_row(batch.id, "master", master_url)
-        reset_postgres_sequences()
-        return (
-            jsonify(
-                {
-                    "ok": True,
-                    "type": "master",
-                    "batch_id": batch.id,
-                    "message": "Master recovered. Now scan Service QR, then Head QRs.",
-                }
-            ),
-            200,
-        )
+        if not session.get("recovery_mode"):
+            return jsonify({"ok": False, "error": "RECOVERY_MODE_OFF"}), 400
 
-    if qr_type == "service":
-        recovery_batch_id = session.get("recovery_batch_id")
-        if not recovery_batch_id:
-            return jsonify({"ok": False, "error": "Scan Master first"}), 400
-        ensure_batch_exists(recovery_batch_id, current_user.id)
-        ensure_tag_exists(target_id_int, recovery_batch_id, "service", original_full_url)
-        ensure_qrcode_row(recovery_batch_id, "service", original_full_url)
-        reset_postgres_sequences()
-        return (
-            jsonify(
-                {
-                    "ok": True,
-                    "type": "service",
-                    "message": "Service QR recovered.",
-                }
-            ),
-            200,
-        )
+        data = request.get_json(silent=True) or {}
+        qr_text = (data.get("qr_text") or "").strip()
+        if not qr_text:
+            return jsonify({"ok": False, "error": "EMPTY_QR"}), 400
 
-    if qr_type == "sub":
-        recovery_batch_id = session.get("recovery_batch_id")
-        if not recovery_batch_id:
-            return jsonify({"ok": False, "error": "Scan Master first"}), 400
+        parsed = urlparse(qr_text)
+        path = parsed.path if parsed.scheme else qr_text
+        if not path.startswith("/"):
+            path = f"/{path}" if path else ""
 
-        existing_tag = QRTag.query.get(target_id_int)
-        if existing_tag:
+        segments = [seg for seg in path.split("/") if seg]
+        if len(segments) < 3 or segments[0] != "scan":
+            return jsonify({"ok": False, "error": "UNSUPPORTED_QR", "path": path}), 400
+
+        qr_type = segments[1]
+        target_id = segments[2]
+
+        try:
+            target_id_int = int(target_id)
+        except ValueError:
+            return jsonify({"ok": False, "error": "UNSUPPORTED_QR", "path": path}), 400
+
+        original_full_url = _normalize_qr_url(qr_text, path)
+
+        if qr_type == "master":
+            batch, _ = ensure_batch_exists(target_id_int, current_user.id)
+            session["recovery_batch_id"] = batch.id
+            session.setdefault("recovery_num_heads", 8)
+            master_url = url_for("routes.scan_master", batch_id=batch.id, _external=True)
+            ensure_qrcode_row(batch.id, "master", master_url)
+            reset_postgres_sequences()
             return (
                 jsonify(
                     {
                         "ok": True,
-                        "type": "sub_exists",
-                        "sub_tag_id": target_id_int,
-                        "message": "Head QR already exists.",
+                        "type": "master",
+                        "batch_id": batch.id,
+                        "message": "Master recovered. Now scan Service QR, then Head QRs.",
                     }
                 ),
                 200,
             )
 
-        session["pending_recovery_sub_tag_id"] = target_id_int
-        session["pending_recovery_sub_url"] = original_full_url
-        return (
-            jsonify(
-                {
-                    "ok": True,
-                    "type": "need_map",
-                    "sub_tag_id": target_id_int,
-                    "redirect": url_for("routes.recovery_map_sub", sub_tag_id=target_id_int),
-                }
-            ),
-            200,
-        )
+        if qr_type == "service":
+            recovery_batch_id = session.get("recovery_batch_id")
+            if not recovery_batch_id:
+                return jsonify({"ok": False, "error": "SCAN_MASTER_FIRST"}), 400
+            ensure_batch_exists(recovery_batch_id, current_user.id)
+            ensure_tag_exists(
+                target_id_int, recovery_batch_id, "service", original_full_url
+            )
+            ensure_qrcode_row(recovery_batch_id, "service", original_full_url)
+            reset_postgres_sequences()
+            return (
+                jsonify(
+                    {
+                        "ok": True,
+                        "type": "service",
+                        "batch_id": recovery_batch_id,
+                        "message": "Service QR recovered.",
+                    }
+                ),
+                200,
+            )
 
-    return jsonify({"ok": False, "error": "Unsupported QR type"}), 400
+        if qr_type == "sub":
+            recovery_batch_id = session.get("recovery_batch_id")
+            if not recovery_batch_id:
+                return jsonify({"ok": False, "error": "SCAN_MASTER_FIRST"}), 400
+
+            existing_tag = QRTag.query.get(target_id_int)
+            if existing_tag:
+                return (
+                    jsonify(
+                        {
+                            "ok": True,
+                            "type": "sub_exists",
+                            "sub_tag_id": target_id_int,
+                            "message": "Head QR already exists.",
+                        }
+                    ),
+                    200,
+                )
+
+            session["pending_recovery_sub_tag_id"] = target_id_int
+            session["pending_recovery_sub_qr_url"] = original_full_url
+            return (
+                jsonify(
+                    {
+                        "ok": True,
+                        "type": "need_map",
+                        "sub_tag_id": target_id_int,
+                        "redirect": url_for("routes.recovery_map_sub", sub_tag_id=target_id_int),
+                    }
+                ),
+                200,
+            )
+
+        return jsonify({"ok": False, "error": "UNSUPPORTED_QR", "path": path}), 400
+    except Exception as e:  # noqa: BLE001
+        current_app.logger.exception("recovery_ingest_failed")
+        return jsonify({"ok": False, "error": "SERVER_ERROR", "detail": str(e)}), 500
 
 
 @routes.route("/recovery/map-sub/<int:sub_tag_id>", methods=["GET", "POST"])
@@ -887,7 +907,9 @@ def recovery_map_sub(sub_tag_id):
 
         batch, _ = ensure_batch_exists(recovery_batch_id, current_user.id)
         tag_type = f"sub{head_number_int}"
-        qr_url = session.get("pending_recovery_sub_url") or urljoin(request.host_url, f"scan/sub/{sub_tag_id}")
+        qr_url = session.get("pending_recovery_sub_qr_url") or urljoin(
+            request.host_url, f"scan/sub/{sub_tag_id}"
+        )
         tag, _ = ensure_tag_exists(sub_tag_id, batch.id, tag_type, qr_url)
         updated = False
         if tag.batch_id != batch.id:
@@ -904,7 +926,7 @@ def recovery_map_sub(sub_tag_id):
         ensure_qrcode_row(batch.id, tag_type, qr_url)
         reset_postgres_sequences()
         session.pop("pending_recovery_sub_tag_id", None)
-        session.pop("pending_recovery_sub_url", None)
+        session.pop("pending_recovery_sub_qr_url", None)
         flash(f"Head mapped to {tag_type} and recovered.", "success")
         return redirect(url_for("routes.recovery_scanner"))
 
