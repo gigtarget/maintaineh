@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template, redirect, url_for, flash, request, send_file, session, abort
 from flask_login import login_user, logout_user, login_required, current_user
 from datetime import datetime, date, timedelta
-from sqlalchemy import func, or_
+from sqlalchemy import func, or_, text
 from sqlalchemy.exc import IntegrityError
 import io
 import zipfile
@@ -29,6 +29,15 @@ def time_until(dt):
         return f"in {hours}h" if minutes == 0 else f"in {hours}h {minutes}m"
     return f"in {minutes}m"
 
+
+def is_recovery_allowed():
+    return (
+        hasattr(current_user, "is_authenticated")
+        and current_user.is_authenticated
+        and getattr(current_user, "role", None) == "user"
+        and session.get("recovery_mode") is True
+    )
+
 from app import db
 from app.utils import generate_and_store_qr_batch, sync_qr_heads, log_activity
 from app.decorators import subuser_required, user_or_subuser_required   # <-- CHANGED
@@ -38,6 +47,90 @@ from app.models import (
     SubUserAction, DailyMaintenance, ServiceRequest,
     PasswordResetToken, ActivityLog
 )
+
+
+def reset_postgres_sequences():
+    if db.engine.dialect.name != "postgresql":
+        return
+
+    tables = [
+        "user",
+        "qr_batch",
+        "qr_tag",
+        "qr_code",
+        "machine",
+        "sub_user",
+        "sub_user_action",
+        "needle_change",
+        "servicelog",
+        "service_request",
+        "password_reset_token",
+        "activity_log",
+    ]
+
+    for table in tables:
+        db.session.execute(
+            text(
+                f"SELECT setval(pg_get_serial_sequence('{table}', 'id'), "
+                f"COALESCE((SELECT MAX(id) FROM {table}), 0));"
+            )
+        )
+    db.session.commit()
+
+
+def ensure_batch_exists(batch_id: int, owner_id: int):
+    batch = QRBatch.query.get(batch_id)
+    created = False
+    if not batch:
+        batch = QRBatch(id=batch_id, created_at=datetime.utcnow(), owner_id=owner_id)
+        db.session.add(batch)
+        db.session.commit()
+        reset_postgres_sequences()
+        created = True
+    elif batch.owner_id is None and owner_id:
+        batch.owner_id = owner_id
+        db.session.commit()
+    return batch, created
+
+
+def ensure_tag_exists(tag_id: int, batch_id: int, tag_type: str, qr_url: str):
+    tag = QRTag.query.get(tag_id)
+    created = False
+    changed = False
+    if not tag:
+        tag = QRTag(id=tag_id, batch_id=batch_id, tag_type=tag_type, qr_url=qr_url)
+        db.session.add(tag)
+        db.session.commit()
+        reset_postgres_sequences()
+        created = True
+    else:
+        if tag.batch_id is None and batch_id is not None:
+            tag.batch_id = batch_id
+            changed = True
+        if not tag.tag_type and tag_type:
+            tag.tag_type = tag_type
+            changed = True
+        if not tag.qr_url and qr_url:
+            tag.qr_url = qr_url
+            changed = True
+        if changed:
+            db.session.commit()
+    return tag, created or changed
+
+
+def ensure_qrcode_row(batch_id: int, qr_type: str, qr_url: str):
+    qr_code = QRCode.query.filter_by(batch_id=batch_id, qr_type=qr_type).first()
+    created = False
+    if not qr_code:
+        qr_code = QRCode(batch_id=batch_id, qr_type=qr_type, qr_url=qr_url, image_url=None)
+        db.session.add(qr_code)
+        db.session.commit()
+        reset_postgres_sequences()
+        created = True
+    elif not qr_code.qr_url and qr_url:
+        qr_code.qr_url = qr_url
+        db.session.commit()
+    return qr_code, created
 
 routes = Blueprint("routes", __name__)
 
@@ -54,6 +147,14 @@ def faq_page():
     return render_template("faq.html")
 @routes.route("/scan/master/<int:batch_id>")
 def scan_master(batch_id):
+    if is_recovery_allowed():
+        ensure_batch_exists(batch_id, current_user.id)
+        session["recovery_batch_id"] = batch_id
+        session.setdefault("recovery_num_heads", 8)
+        ensure_qrcode_row(batch_id, "master", request.url)
+        flash("Master recovered, now scan Service QR, then each Head QR", "success")
+        return redirect(url_for("routes.user_settings"))
+
     # If a sub-user is logged in, go to sub-user dashboard
     if 'subuser_id' in session:
         return redirect(url_for("routes.subuser_dashboard"))
@@ -66,6 +167,15 @@ def scan_master(batch_id):
 
 @routes.route("/scan/sub/<int:sub_tag_id>")
 def scan_sub(sub_tag_id):
+    if is_recovery_allowed():
+        existing_tag = QRTag.query.get(sub_tag_id)
+        if existing_tag:
+            return redirect(url_for("routes.sub_tag_options", sub_tag_id=sub_tag_id))
+        if not session.get("recovery_batch_id"):
+            flash("Scan Master first to start recovery.", "warning")
+            return redirect(url_for("routes.user_settings"))
+        return redirect(url_for("routes.recovery_map_sub", sub_tag_id=sub_tag_id))
+
     # Publicly redirect anyone (logged in or not) to the sub options page
     return redirect(url_for("routes.sub_tag_options", sub_tag_id=sub_tag_id))
 
@@ -581,6 +691,92 @@ def user_settings():
         machines=machines,
         batches=user_batches,
         default_tab=default_tab,
+    )
+
+
+@routes.route("/recovery/unlock", methods=["POST"])
+@login_required
+def recovery_unlock():
+    if getattr(current_user, "role", None) != "user":
+        abort(403)
+
+    password = request.form.get("recovery_password")
+    num_heads_val = request.form.get("recovery_num_heads")
+    try:
+        num_heads = int(num_heads_val) if num_heads_val else 8
+    except ValueError:
+        num_heads = 8
+
+    if password != "tokaadminaccess":
+        flash("Invalid recovery password.", "danger")
+        return redirect(url_for("routes.user_settings"))
+
+    session["recovery_mode"] = True
+    session["recovery_num_heads"] = num_heads if num_heads > 0 else 8
+    session.pop("recovery_batch_id", None)
+    flash("Recovery Mode unlocked. Scan Master, Service, then each Head QR.", "success")
+    return redirect(url_for("routes.user_settings"))
+
+
+@routes.route("/recovery/lock", methods=["POST"])
+@login_required
+def recovery_lock():
+    session.pop("recovery_mode", None)
+    session.pop("recovery_batch_id", None)
+    session.pop("recovery_num_heads", None)
+    flash("Recovery Mode locked.", "success")
+    return redirect(url_for("routes.user_settings"))
+
+
+@routes.route("/recovery/map-sub/<int:sub_tag_id>", methods=["GET", "POST"])
+@login_required
+def recovery_map_sub(sub_tag_id):
+    if not is_recovery_allowed():
+        abort(403)
+
+    recovery_batch_id = session.get("recovery_batch_id")
+    if not recovery_batch_id:
+        flash("Scan Master first to start recovery.", "warning")
+        return redirect(url_for("routes.user_settings"))
+
+    head_limit = session.get("recovery_num_heads", 8)
+    if request.method == "POST":
+        head_number = request.form.get("head_number")
+        try:
+            head_number_int = int(head_number)
+        except (TypeError, ValueError):
+            flash("Choose a valid head number.", "danger")
+            return redirect(url_for("routes.recovery_map_sub", sub_tag_id=sub_tag_id))
+
+        if head_number_int < 1 or head_number_int > head_limit:
+            flash("Head number out of range.", "danger")
+            return redirect(url_for("routes.recovery_map_sub", sub_tag_id=sub_tag_id))
+
+        batch, _ = ensure_batch_exists(recovery_batch_id, current_user.id)
+        tag_type = f"sub{head_number_int}"
+        qr_url = request.url
+        tag, _ = ensure_tag_exists(sub_tag_id, batch.id, tag_type, qr_url)
+        updated = False
+        if tag.batch_id != batch.id:
+            tag.batch_id = batch.id
+            updated = True
+        if tag.tag_type != tag_type:
+            tag.tag_type = tag_type
+            updated = True
+        if tag.qr_url != qr_url:
+            tag.qr_url = qr_url
+            updated = True
+        if updated:
+            db.session.commit()
+        ensure_qrcode_row(batch.id, tag_type, qr_url)
+        flash(f"Head mapped to {tag_type} and recovered.", "success")
+        return redirect(url_for("routes.sub_tag_options", sub_tag_id=sub_tag_id))
+
+    return render_template(
+        "recovery_map_sub.html",
+        sub_tag_id=sub_tag_id,
+        head_limit=head_limit,
+        recovery_batch_id=recovery_batch_id,
     )
 
 @routes.route("/signup", methods=["GET", "POST"], endpoint="user_signup")
@@ -1906,8 +2102,25 @@ def resolve_service_request(request_id):
 
 @routes.route("/scan/service/<int:service_tag_id>")
 def scan_service(service_tag_id):
-    service_tag = QRTag.query.get_or_404(service_tag_id)
-    machine = Machine.query.filter_by(batch_id=service_tag.batch_id).first()
+    if is_recovery_allowed():
+        service_tag = QRTag.query.get(service_tag_id)
+        if not service_tag:
+            recovery_batch_id = session.get("recovery_batch_id")
+            if not recovery_batch_id:
+                flash("Scan Master first to start recovery.", "warning")
+                return redirect(url_for("routes.user_settings"))
+            ensure_batch_exists(recovery_batch_id, current_user.id)
+            qr_url = request.url
+            service_tag = QRTag(id=service_tag_id, batch_id=recovery_batch_id, tag_type="service", qr_url=qr_url)
+            db.session.add(service_tag)
+            db.session.commit()
+            reset_postgres_sequences()
+            ensure_qrcode_row(recovery_batch_id, "service", qr_url)
+            flash("Service QR recovered. Continue with head QR codes.", "success")
+        machine = Machine.query.filter_by(batch_id=service_tag.batch_id).first()
+    else:
+        service_tag = QRTag.query.get_or_404(service_tag_id)
+        machine = Machine.query.filter_by(batch_id=service_tag.batch_id).first()
 
     # Determine who is logged in for proper back URL
     if 'subuser_id' in session:
@@ -2063,3 +2276,9 @@ def debug_session():
     session['subuser_id']: {session.get('subuser_id')}<br>
     session: {dict(session)}
     """
+
+# Manual testing notes (local & Railway):
+# 1) Log in as a user, open /settings, and unlock Recovery Mode with password `tokaadminaccess` and desired head count.
+# 2) Scan /scan/master/<batch_id> to set recovery_batch_id, then /scan/service/<service_tag_id> to rebuild missing service tag.
+# 3) Scan /scan/sub/<sub_tag_id> for each head; use mapping buttons to assign the correct head number even out of order.
+# 4) Lock Recovery Mode afterward and confirm normal scanning still routes to existing flows without recovery enabled.
