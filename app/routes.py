@@ -49,35 +49,68 @@ from app.models import (
     PasswordResetToken, ActivityLog
 )
 
+SEQUENCE_RESET_MODELS = [
+    User,
+    QRBatch,
+    QRTag,
+    QRCode,
+    Machine,
+    SubUser,
+    SubUserAction,
+    NeedleChange,
+    ServiceLog,
+    DailyMaintenance,
+    ServiceRequest,
+    PasswordResetToken,
+    ActivityLog,
+]
 
-def reset_postgres_sequences():
+
+def reset_postgres_sequences_for_models(models=SEQUENCE_RESET_MODELS):
     if db.engine.dialect.name != "postgresql":
         return
 
-    tables = [
-        "user",
-        "qr_batch",
-        "qr_tag",
-        "qr_code",
-        "machine",
-        "daily_maintenance",
-        "sub_user",
-        "sub_user_action",
-        "needle_change",
-        "servicelog",
-        "service_request",
-        "password_reset_token",
-        "activity_log",
-    ]
+    try:
+        from sqlalchemy import text
+    except Exception:  # noqa: BLE001
+        return
 
-    for table in tables:
-        db.session.execute(
-            text(
-                f"SELECT setval(pg_get_serial_sequence('{table}', 'id'), "
-                f"COALESCE((SELECT MAX(id) FROM {table}), 0));"
+    for Model in models:
+        try:
+            table_name = Model.__table__.name
+            reg_class = db.session.execute(
+                text("SELECT to_regclass(:t)"), {"t": table_name}
+            ).scalar()
+            if not reg_class:
+                continue
+
+            seq_name = db.session.execute(
+                text("SELECT pg_get_serial_sequence(:t, 'id')"), {"t": table_name}
+            ).scalar()
+            if not seq_name:
+                continue
+
+            db.session.execute(
+                text(
+                    f"""
+SELECT setval(
+    pg_get_serial_sequence(:t, 'id'),
+    COALESCE((SELECT MAX(id) FROM {table_name}), 1),
+    true
+)
+                    """
+                ),
+                {"t": table_name},
             )
-        )
-    db.session.commit()
+        except Exception:  # noqa: BLE001
+            current_app.logger.exception(
+                "sequence_reset_failed", extra={"table": Model.__name__}
+            )
+    try:
+        db.session.commit()
+    except Exception:  # noqa: BLE001
+        db.session.rollback()
+        current_app.logger.exception("sequence_reset_commit_failed")
 
 
 def ensure_batch_exists(batch_id: int, owner_id: int):
@@ -87,7 +120,7 @@ def ensure_batch_exists(batch_id: int, owner_id: int):
         batch = QRBatch(id=batch_id, created_at=datetime.utcnow(), owner_id=owner_id)
         db.session.add(batch)
         db.session.commit()
-        reset_postgres_sequences()
+        reset_postgres_sequences_for_models()
         created = True
     elif batch.owner_id is None and owner_id:
         batch.owner_id = owner_id
@@ -103,7 +136,7 @@ def ensure_tag_exists(tag_id: int, batch_id: int, tag_type: str, qr_url: str):
         tag = QRTag(id=tag_id, batch_id=batch_id, tag_type=tag_type, qr_url=qr_url)
         db.session.add(tag)
         db.session.commit()
-        reset_postgres_sequences()
+        reset_postgres_sequences_for_models()
         created = True
     else:
         if tag.batch_id is None and batch_id is not None:
@@ -127,7 +160,7 @@ def ensure_qrcode_row(batch_id: int, qr_type: str, qr_url: str):
         qr_code = QRCode(batch_id=batch_id, qr_type=qr_type, qr_url=qr_url, image_url=None)
         db.session.add(qr_code)
         db.session.commit()
-        reset_postgres_sequences()
+        reset_postgres_sequences_for_models()
         created = True
     elif not qr_code.qr_url and qr_url:
         qr_code.qr_url = qr_url
@@ -567,7 +600,13 @@ def user_settings():
     if request.method == "POST":
         # --- Adding a machine for an unregistered batch ---
         if request.form.get("batch_id") and request.form.get("name"):
-            batch_id = request.form.get("batch_id")
+            if session.get("recovery_mode"):
+                batch_id = session.get("recovery_batch_id")
+                if not batch_id:
+                    flash("Scan Master QR in Recovery Scanner before attaching a machine.", "warning")
+                    return redirect(url_for("routes.user_settings", tab="machines"))
+            else:
+                batch_id = request.form.get("batch_id")
             name = request.form.get("name") or current_user.default_machine_name or "Unnamed Machine"
             mtype = request.form.get("type") or current_user.default_machine_location or "General"
             num_heads = int(request.form.get("num_heads") or 8)
@@ -587,7 +626,13 @@ def user_settings():
                     description=f"Machine {name} updated",
                 )
                 flash("Machine updated with your preferences.", "success")
-                sync_qr_heads(existing.batch_id, num_heads)
+                if not session.get("recovery_mode"):
+                    sync_qr_heads(existing.batch_id, num_heads)
+                else:
+                    flash(
+                        "Recovery Mode active: heads will NOT be auto-generated. Scan Service + each Head QR in Recovery Scanner.",
+                        "info",
+                    )
             else:
                 machine = Machine(batch_id=batch_id, name=name, type=mtype, num_heads=num_heads, needles_per_head=needles)
                 db.session.add(machine)
@@ -598,7 +643,13 @@ def user_settings():
                     machine_id=machine.id,
                     description=f"Machine {name} added",
                 )
-                sync_qr_heads(machine.batch_id, num_heads)
+                if not session.get("recovery_mode"):
+                    sync_qr_heads(machine.batch_id, num_heads)
+                else:
+                    flash(
+                        "Recovery Mode active: heads will NOT be auto-generated. Scan Service + each Head QR in Recovery Scanner.",
+                        "info",
+                    )
                 flash("Machine added successfully.", "success")
             return redirect(url_for("routes.user_settings", tab="machines"))
 
@@ -662,8 +713,13 @@ def user_settings():
                 if grease_int:
                     machine.grease_interval_months = int(grease_int)
                 db.session.commit()
-                if heads_val and int(heads_val) != old_heads:
+                if heads_val and int(heads_val) != old_heads and not session.get("recovery_mode"):
                     sync_qr_heads(machine.batch_id, int(heads_val))
+                elif heads_val and int(heads_val) != old_heads:
+                    flash(
+                        "Recovery Mode active: heads will NOT be auto-generated. Scan Service + each Head QR in Recovery Scanner.",
+                        "info",
+                    )
                 log_activity(
                     "machine_updated",
                     user_id=current_user.id,
@@ -752,6 +808,8 @@ def _normalize_qr_url(qr_text: str, parsed_path: str) -> str:
 
 @routes.route("/recovery/ingest", methods=["POST"])
 def recovery_ingest():
+    qr_text = None
+    path = None
     try:
         if not current_user.is_authenticated:
             return (
@@ -801,9 +859,15 @@ def recovery_ingest():
             batch, _ = ensure_batch_exists(target_id_int, current_user.id)
             session["recovery_batch_id"] = batch.id
             session.setdefault("recovery_num_heads", 8)
-            master_url = url_for("routes.scan_master", batch_id=batch.id, _external=True)
+            master_url = original_full_url
             ensure_qrcode_row(batch.id, "master", master_url)
-            reset_postgres_sequences()
+            try:
+                reset_postgres_sequences_for_models()
+            except Exception:  # noqa: BLE001
+                current_app.logger.exception(
+                    "sequence_reset_during_recovery_master_failed",
+                    extra={"batch_id": batch.id},
+                )
             return (
                 jsonify(
                     {
@@ -825,7 +889,7 @@ def recovery_ingest():
                 target_id_int, recovery_batch_id, "service", original_full_url
             )
             ensure_qrcode_row(recovery_batch_id, "service", original_full_url)
-            reset_postgres_sequences()
+            reset_postgres_sequences_for_models()
             return (
                 jsonify(
                     {
@@ -873,8 +937,73 @@ def recovery_ingest():
 
         return jsonify({"ok": False, "error": "UNSUPPORTED_QR", "path": path}), 400
     except Exception as e:  # noqa: BLE001
-        current_app.logger.exception("recovery_ingest_failed")
+        current_app.logger.exception(
+            "recovery_ingest_failed", extra={"qr_text": qr_text, "path": path}
+        )
         return jsonify({"ok": False, "error": "SERVER_ERROR", "detail": str(e)}), 500
+
+
+@routes.route("/recovery/attach-machine", methods=["POST"])
+@login_required
+def recovery_attach_machine():
+    if getattr(current_user, "role", None) != "user":
+        abort(403)
+
+    if session.get("recovery_mode") is not True:
+        flash("Enable Recovery Mode first.", "warning")
+        return redirect(url_for("routes.user_settings", tab="machines"))
+
+    recovery_batch_id = session.get("recovery_batch_id")
+    if not recovery_batch_id:
+        flash("Scan Master QR in Recovery Scanner before attaching a machine.", "warning")
+        return redirect(url_for("routes.recovery_scanner"))
+
+    ensure_batch_exists(recovery_batch_id, current_user.id)
+
+    name = request.form.get("name") or current_user.default_machine_name or "Unnamed Machine"
+    mtype = request.form.get("type") or current_user.default_machine_location or "General"
+    try:
+        num_heads = int(request.form.get("num_heads") or session.get("recovery_num_heads", 8))
+    except (TypeError, ValueError):
+        num_heads = session.get("recovery_num_heads", 8)
+    try:
+        needles = int(request.form.get("needles_per_head") or 15)
+    except (TypeError, ValueError):
+        needles = 15
+
+    machine = Machine.query.filter_by(batch_id=recovery_batch_id).first()
+    if machine:
+        machine.name = name
+        machine.type = mtype
+        machine.num_heads = num_heads
+        machine.needles_per_head = needles
+        db.session.commit()
+        log_activity(
+            "machine_updated",
+            user_id=current_user.id,
+            machine_id=machine.id,
+            description=f"Machine {name} updated for recovery batch {recovery_batch_id}",
+        )
+        flash("Machine updated and attached to recovered batch.", "success")
+    else:
+        machine = Machine(
+            batch_id=recovery_batch_id,
+            name=name,
+            type=mtype,
+            num_heads=num_heads,
+            needles_per_head=needles,
+        )
+        db.session.add(machine)
+        db.session.commit()
+        log_activity(
+            "machine_added",
+            user_id=current_user.id,
+            machine_id=machine.id,
+            description=f"Machine {name} added during recovery for batch {recovery_batch_id}",
+        )
+        flash("Machine attached to recovered batch.", "success")
+
+    return redirect(url_for("routes.recovery_scanner"))
 
 
 @routes.route("/recovery/map-sub/<int:sub_tag_id>", methods=["GET", "POST"])
@@ -924,7 +1053,7 @@ def recovery_map_sub(sub_tag_id):
         if updated:
             db.session.commit()
         ensure_qrcode_row(batch.id, tag_type, qr_url)
-        reset_postgres_sequences()
+        reset_postgres_sequences_for_models()
         session.pop("pending_recovery_sub_tag_id", None)
         session.pop("pending_recovery_sub_qr_url", None)
         flash(f"Head mapped to {tag_type} and recovered.", "success")
@@ -2272,7 +2401,7 @@ def scan_service(service_tag_id):
             service_tag = QRTag(id=service_tag_id, batch_id=recovery_batch_id, tag_type="service", qr_url=qr_url)
             db.session.add(service_tag)
             db.session.commit()
-            reset_postgres_sequences()
+            reset_postgres_sequences_for_models()
             ensure_qrcode_row(recovery_batch_id, "service", qr_url)
             flash("Service QR recovered. Continue with head QR codes.", "success")
         machine = Machine.query.filter_by(batch_id=service_tag.batch_id).first()
