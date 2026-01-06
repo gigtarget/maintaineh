@@ -43,6 +43,49 @@
       {% endfor %}
     {% endwith %}
 
+    {% if current_user.role == 'user' %}
+    <div class="bg-white/40 backdrop-blur-md border border-white/30 p-5 rounded-xl space-y-3 shadow">
+      <div class="flex items-center justify-between">
+        <h2 class="text-lg font-semibold">🧰 Recover Batch</h2>
+        {% if session.get('recovery_mode') %}
+          <span class="text-xs font-semibold text-green-700 bg-green-100 px-2 py-1 rounded-full">Active</span>
+        {% else %}
+          <span class="text-xs font-semibold text-slate-600 bg-slate-100 px-2 py-1 rounded-full">Locked</span>
+        {% endif %}
+      </div>
+
+      {% if not session.get('recovery_mode') %}
+      <form method="POST" action="{{ url_for('routes.recovery_unlock') }}" class="space-y-3">
+        <div>
+          <label class="block text-sm mb-1">Recovery Password</label>
+          <input type="password" name="recovery_password" class="w-full px-4 py-2 rounded-xl bg-white/70 border border-white/40 shadow-inner" placeholder="Enter admin password" required>
+        </div>
+        <div>
+          <label class="block text-sm mb-1">Number of Heads (Sub QRs)</label>
+          <input type="number" min="1" name="recovery_num_heads" value="{{ session.get('recovery_num_heads', 8) }}" class="w-full px-4 py-2 rounded-xl bg-white/70 border border-white/40 shadow-inner">
+        </div>
+        <div class="text-right">
+          <button type="submit" class="bg-amber-600 hover:bg-amber-700 text-white font-semibold rounded-xl py-2 px-4 shadow">Unlock Recovery Mode</button>
+        </div>
+      </form>
+      {% else %}
+      <div class="space-y-2 text-sm">
+        <p class="font-semibold text-green-800">Recovery Mode is active.</p>
+        <p>Heads configured: <strong>{{ session.get('recovery_num_heads', 8) }}</strong></p>
+        <p>Current recovery batch: <strong>{{ session.get('recovery_batch_id') or 'Not set yet - scan Master QR' }}</strong></p>
+        <ol class="list-decimal list-inside text-slate-700 space-y-1">
+          <li>Scan the Master QR to set the batch.</li>
+          <li>Scan the Service QR to recover it.</li>
+          <li>Scan each Head QR and map to the correct head number.</li>
+        </ol>
+      </div>
+      <form method="POST" action="{{ url_for('routes.recovery_lock') }}" class="text-right">
+        <button type="submit" class="bg-gray-700 hover:bg-gray-800 text-white font-semibold rounded-xl py-2 px-4 shadow">Lock Recovery Mode</button>
+      </form>
+      {% endif %}
+    </div>
+    {% endif %}
+
     <!-- Tab Buttons -->
     <div class="flex space-x-4 border-b mb-4">
       <button id="tab-profile" data-tab onclick="showTab('profile')"

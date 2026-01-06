@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Map Head QR</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gradient-to-br from-blue-100 to-white min-h-screen text-slate-800 p-4">
+  <div class="max-w-xl mx-auto space-y-4">
+    <div class="flex items-center justify-between">
+      <h1 class="text-2xl font-bold">Map Head QR</h1>
+      <a href="{{ url_for('routes.user_settings') }}" class="text-sm text-blue-700 hover:underline">Back to Settings</a>
+    </div>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% for category, message in messages %}
+        <div class="text-sm text-center px-4 py-2 rounded-xl {{ 'bg-green-100 text-green-800' if category == 'success' else 'bg-red-100 text-red-800' }}">
+          {{ message }}
+        </div>
+      {% endfor %}
+    {% endwith %}
+
+    <div class="bg-white/70 backdrop-blur-md border border-white/30 p-5 rounded-xl space-y-3 shadow">
+      <p class="text-sm text-slate-700">Recovery Batch: <strong>{{ recovery_batch_id }}</strong></p>
+      <p class="text-sm text-slate-700">Sub Tag ID: <strong>{{ sub_tag_id }}</strong></p>
+      <p class="text-sm">Select which head this QR belongs to. You can scan heads in any order.</p>
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        {% for i in range(1, head_limit + 1) %}
+        <form method="POST" action="{{ url_for('routes.recovery_map_sub', sub_tag_id=sub_tag_id) }}">
+          <input type="hidden" name="head_number" value="{{ i }}" />
+          <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl py-3 shadow">Head {{ i }}</button>
+        </form>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</body>
+</html>
