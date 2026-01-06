@@ -79,9 +79,12 @@
           <li>Scan each Head QR and map to the correct head number.</li>
         </ol>
       </div>
-      <form method="POST" action="{{ url_for('routes.recovery_lock') }}" class="text-right">
-        <button type="submit" class="bg-gray-700 hover:bg-gray-800 text-white font-semibold rounded-xl py-2 px-4 shadow">Lock Recovery Mode</button>
-      </form>
+      <div class="flex items-center justify-between">
+        <a href="{{ url_for('routes.recovery_scanner') }}" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl py-2 px-4 shadow">Open Recovery Scanner</a>
+        <form method="POST" action="{{ url_for('routes.recovery_lock') }}" class="text-right">
+          <button type="submit" class="bg-gray-700 hover:bg-gray-800 text-white font-semibold rounded-xl py-2 px-4 shadow">Lock Recovery Mode</button>
+        </form>
+      </div>
       {% endif %}
     </div>
     {% endif %}
